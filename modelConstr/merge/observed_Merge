@@ -1,0 +1,13 @@
+f,1,s,1,info,1,GPS,1,comm,1,q,1,3393
+f,4,s,1,info,1,comm,1,q,1,3060
+s,1,q,3,f,1,info,1,GPS,1,comm,1,2967
+s,1,q,3,f,4,info,1,comm,1,2913
+s,2,q,3,f,5,info,1,comm,1,2170
+s,2,q,3,f,5,info,3,comm,1,2090
+s,2,q,3,f,2,info,2,GPS,1,comm,1,2463
+s,3,q,2,f,1,info,1,GPS,1,comm,1,2378
+s,3,q,2,f,6,info,1,comm,1,2100
+s,3,q,4,f,1,info,1,GPS,1,comm,1,2278
+s,3,q,5,f,6,info,1,comm,1,1963
+s,6,q,5,f,3,info,1,GPS,1,comm,1,1656
+s,6,q,5,f,6,info,1,comm,1,1636

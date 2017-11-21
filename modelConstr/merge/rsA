@@ -1,0 +1,17 @@
+s,1,q,1,f,1,info,1,GPS,comm,
+s,1,q,1,f,4,info,1,comm
+
+s,1,q,3,f,1,info,1,GPS,comm
+s,1,q,3,f,4,info,1,comm
+
+s,2,q,3,f,5,info,1,comm
+s,2,q,3,f,5,info,3,comm
+s,2,q,3,f,2,info,2,GPS,comm
+
+s,3,q,2,f,1,info,1,GPS,comm
+s,3,q,2,f,6,info,1,comm
+
+s,3,q,4,f,1,info,1,GPS,comm
+s,3,q,5,f,6,info,1,comm
+
+s,6,q,5,f,3,info,1,GPS,comm

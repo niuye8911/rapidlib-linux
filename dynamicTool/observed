@@ -1,0 +1,78 @@
+scr1 + inf1 + loc1 + freq1 + SYS + comm + GPS >= 1799.38
+scr1 + inf1 + loc1 + freq1 + SYS + comm + GPS - 1799.38 err <= 1799.38
+
+scr1 + inf1 + loc3 + freq3 + SYS + comm + GPS >= 1696.07
+scr1 + inf1 + loc3 + freq3 + SYS + comm + GPS  - 1696.07 err <= 1696.07
+
+scr1 + inf2 + loc1 + freq1 + SYS + comm + GPS >= 1678.86
+scr1 + inf2 + loc1 + freq1 + SYS + comm + GPS - 1678.86 err <= 1678.86
+
+scr1 + inf3 + loc1 + freq1 + SYS + comm + GPS >= 1697.65
+scr1 + inf3 + loc1 + freq1 + SYS + comm + GPS - 1697.65 err <= 1697.65
+
+scr1 + inf3 + loc4 + freq1 + SYS + comm >= 1331.42
+scr1 + inf3 + loc4 + freq1 + SYS + comm - 1331.42 err <= 1331.42
+
+scr2 + inf1 + loc1 + freq1 + SYS + comm + GPS >= 1544.49
+scr2 + inf1 + loc1 + freq1 + SYS + comm + GPS - 1544.49 err <= 1544.49
+
+scr2 + inf1 + loc3 + freq3 + SYS + comm + GPS >= 1501.03
+scr2 + inf1 + loc3 + freq3 + SYS + comm + GPS - 1501.03 err <= 1501.03
+
+scr2 + inf2 + loc1 + freq1 + SYS + comm + GPS >= 1485.21
+scr2 + inf2 + loc1 + freq1 + SYS + comm + GPS - 1485.21 err <= 1485.21
+
+scr2 + inf3 + loc1 + freq1 + SYS + comm + GPS >= 1465.34
+scr2 + inf3 + loc1 + freq1 + SYS + comm + GPS - 1465.34 err <= 1465.34
+
+scr2 + inf3 + loc4 + freq1 + SYS + comm >= 1176.45
+scr2 + inf3 + loc4 + freq1 + SYS + comm - 1176.45 err <= 1176.45
+
+scr3 + inf1 + loc1 + freq1 + SYS + comm + GPS >= 1331.66
+scr3 + inf1 + loc1 + freq1 + SYS + comm + GPS - 1331.66 err <= 1331.66
+
+scr3 + inf1 + loc3 + freq3 + SYS + comm + GPS >= 1286.04
+scr3 + inf1 + loc3 + freq3 + SYS + comm + GPS - 1286.04 err <= 1286.04
+
+scr3 + inf2 + loc2 + freq2 + SYS + comm + GPS >= 1170.07
+scr3 + inf2 + loc2 + freq2 + SYS + comm + GPS - 1170.07 err <= 1170.07
+
+scr3 + inf3 + loc4 + freq1 + SYS + comm >= 872.92
+scr3 + inf3 + loc4 + freq1 + SYS + comm - 872.92 err <= 872.92
+
+scr4 + inf1 + loc1 + freq1 + SYS + comm + GPS >= 1084.34
+scr4 + inf1 + loc1 + freq1 + SYS + comm + GPS - 1084.34 err <= 1084.34
+
+scr4 + inf3 + loc4 + freq1 + SYS + comm >= 637.54
+scr4 + inf3 + loc4 + freq1 + SYS + comm - 637.54 err <= 637.54
+
+scr5 + inf1 + loc1 + freq1 + SYS + comm + GPS >= 1010.77
+scr5 + inf1 + loc1 + freq1 + SYS + comm + GPS - 1010.77 err <= 1010.77
+
+scr5 + inf1 + loc4 + freq1 + SYS + comm >= 673.40
+scr5 + inf1 + loc4 + freq1 + SYS + comm - 673.4 err <= 673.4
+
+scr5 + inf3 + loc1 + freq1 + SYS + comm + GPS >= 819.05
+scr5 + inf3 + loc1 + freq1 + SYS + comm + GPS - 819.05 err <= 819.05
+
+scr3 + inf1 + loc2 + freq2 + SYS + comm + GPS >= 1321.11
+scr3 + inf1 + loc2 + freq2 + SYS + comm + GPS - 1321.11 err <= 1321.11
+
+scr3 + inf1 + loc3 + freq3 + SYS + comm + GPS >= 1310.43
+scr3 + inf1 + loc3 + freq3 + SYS + comm + GPS - 1370.43 err <= 1370.11
+
+scr4 + inf1 + loc4 + freq1 + SYS + comm >= 720.24
+scr4 + inf1 + loc4 + freq1 + SYS + comm - 720.24 err <= 720.24
+
+scr6 + inf1 + loc4 + freq1 + SYS + comm >= 612.71
+scr6 + inf1 + loc4 + freq1 + SYS + comm - 612.71 err <= 612.71
+
+scr6 + inf1 + loc5 + freq2 + SYS + comm  >= 611
+scr6 + inf1 + loc5 + freq2 + SYS + comm - 611 err <= 611
+
+scr6 + inf1 + loc6 + freq3 + SYS + comm  >= 609.2
+scr6 + inf1 + loc6 + freq3 + SYS + comm  - 609.2 err <= 609.2
+
+
+
+

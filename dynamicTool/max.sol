@@ -1,0 +1,23 @@
+# Objective value = 0
+err 0
+scr1 8.8585999999999990e+02
+scr2 692.21
+scr3 3.7651999999999975e+02
+scr4 1.4653999999999996e+02
+scr5 2
+scr6 1
+inf1 1.2252000000000021e+02
+inf2 2
+inf3 1
+loc1 6
+loc2 5
+loc3 4
+loc4 3
+loc5 2
+loc6 1
+freq1 3
+freq2 2
+freq3 1
+SYS 375
+comm 109
+GPS 298

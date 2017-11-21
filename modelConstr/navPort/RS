@@ -1,0 +1,35 @@
+f-1 + info-1 + s-1 + GPS + comm + SYS >= 2534.532
+
+f-6 + info-3 + s-4 + comm + SYS >= 1486.1751012
+
+f-1 + info-1 + s-3 + GPS + comm + SYS >= 1977.75684
+
+f-5 + info-1 + s-2 + comm + SYS >= 2004.37408873
+
+f-6 + info-2 + s-5 + comm + SYS >= 1536.50693578
+
+f-6 + info-1 + s-3 + comm + SYS >= 1689.04524712
+
+f-5 + info-3 + s-2 + comm + SYS >= 1803.91239895
+
+f-3 + info-1 + s-6 + GPS + comm + SYS >= 1648.20182727
+
+#outlier:
+f,1,info,1,s,5,GPS,0,comm,0,SYS,0,1708.4796
+
+f,2,info,1,s,4,GPS,0,comm,0,SYS,0,1705.5963269531246
+
+f,2,info,1,s,5,GPS,0,comm,0,SYS,0,1651.9893622851562
+
+f,3,info,1,s,5,GPS,0,comm,0,SYS,0,1729.5770887209317
+
+f,4,info,1,s,5,comm,0,SYS,0,1466.1060260378877
+
+f,4,info,2,s,3,comm,0,SYS,0,1757.920023702718
+
+f,4,info,3,s,3,comm,0,SYS,0,1776.0012891070794
+
+f,5,info,1,s,5,comm,0,SYS,0,1412.6588184784769
+
+f,6,info,1,s,5,comm,0,SYS,0,1422.3105909542471
+

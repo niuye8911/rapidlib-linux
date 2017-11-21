@@ -1,0 +1,14 @@
+CC = g++
+CFLAGS =  -std=c++11 -pthread -Wall -g -c
+TFLAGS =  -std=c++11 -pthread -Wall -g
+
+INCLUDE = -I/usr/include/curl -I../
+LDLIBS = -lcurl
+
+TARGET = test
+
+$(TARGET): sample.cpp ../rsdg.a
+	$(CC) $(TFLAGS) -o $@ $< ../rsdg.a $(LDFLAGS) $(LDLIBS) $(INCLUDE)
+
+clean:
+	rm $(TARGET)
