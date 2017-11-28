@@ -144,19 +144,35 @@ Basic::Basic(index_t *addr, string n)
     setType(2);     //2 is basic
 }
 
-Basic::Basic(string n)
+Basic::Basic(string n, bool isContinuous)
 {
     setName(n);
+    CONTINUOUS = isContinuous;
     setType(2);     //2 is basic
 }
+
 double Basic::getValue()
 {
     return value;
 }
 
+void Basic::getValueOrder(vector<double>& orders){
+	orders.clear();
+	orders.push_back(mvo2);
+	orders.push_back(mvo1);
+	orders.push_back(mvc);
+}
+
 float Basic::getCost()
 {
     return cost;
+}
+
+void Basic::getCostOrder(vector<double>& orders){
+	orders.clear();
+	orders.push_back(costo2);
+	orders.push_back(costo1);
+	orders.push_back(costc);
 }
 
 // Set the weight of this basic node
@@ -165,10 +181,22 @@ void Basic::setValue(double val)
     value = val;
 }
 
+void Basic::setValueOrder(double o2, double o1, double c){
+	mvo2 = o2; mvo1 = o1; mvc = c;
+}
+
 // Set energy cost
 void Basic::setCost(float c)
 {
     cost = c;
+}
+
+void Basic::setCostOrder(double o2, double o1, double c){
+	costo2 = o2; costo1 = o1; costc = c;
+}
+
+bool Basic::isContinuous(){
+	return CONTINUOUS;
 }
 
 Level::Level(index_t *addr)

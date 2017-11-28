@@ -79,13 +79,25 @@ class Basic : public Node
 	private:
 		double value;
 		float cost;
+		double costo2;
+		double costo1;
+		double costc;
+		double mvo2;
+		double mvo1;
+		double mvc;
+		bool CONTINUOUS;
 	public:
 		void setValue(double );
+		void setValueOrder(double, double, double);
 		void setCost(float);
+		void setCostOrder(double, double, double);
 		double getValue(void);
 		float getCost(void);
+		bool isContinuous();
+		void getCostOrder(vector<double>&);
+		void getValueOrder(vector<double>&);
 		Basic(index_t *, string = "");		// Scheme
-		Basic(string);						// XML
+		Basic(string, bool);			// XML
 };
 
 // Level nodes (container for a group of basic nodes) - represent functions of a service 
@@ -129,7 +141,7 @@ class RSDG
 		vector<string> forceOff;
 	public:
 		double  targetMV;
-		bool minmax;
+		bool minmax = true;
 		Node* getNodeFromIndex(index_t *);		// Scheme 
 		Node* getNodeFromName(string);			// XML
 		void parseSchemeList(string infile);	// parse Scheme List
