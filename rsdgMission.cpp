@@ -899,6 +899,9 @@ void rsdgMission::readMVProfile(){
         }
 }
 
+/**
+ * Read the offline profile for exhaustive search
+ */
 void rsdgMission::readCostProfile(){
         ifstream offline_profile;
         offline_profile.open("factcost.csv");
@@ -924,6 +927,9 @@ void rsdgMission::readCostProfile(){
         }
 }
 
+/**
+ * Search through the offline profile
+ */
 vector<string> rsdgMission::searchProfile(){
 	vector<string> resultConfig;
 	double curMaxMV = -1;

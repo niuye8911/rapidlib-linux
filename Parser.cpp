@@ -439,6 +439,25 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			//	cout << "node name: " << fields->value() << endl;
 			}
 		}
+		else if (f_name.compare("contcost") == 0) {
+			double order2 = 0.0;
+			double order1 = 0.0;
+			double constant = 0.0;
+			for (xml_node<> *order_value = fields->first_node(); order_value; order_value = order_value->next_sibling()){
+				string name = order_value->name();
+				if (name.compare("o2") == 0){
+					order2 = stof(order_value->value());
+				}
+				else if (name.compare("o1") == 0){
+					order1 = stof(order_value->value());
+				}
+				else if (name.compare("c") == 0){
+					constant = stof(order_value -> value());
+				}
+			}
+//#TODO: Need to support continuous stuff in RSDG.cpp
+			cout<<"continuos service found"<<order2<<" "<<order1<<" "<<constant<<endl;
+		}
 		else if (f_name.compare("nodecost") == 0) {
 			try {
 				cost = stof(fields->value());
