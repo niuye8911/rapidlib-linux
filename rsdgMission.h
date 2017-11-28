@@ -136,6 +136,7 @@ class rsdgMission{
 		rsdgService* getService(string name);
 		void regService(string, string, void*(*)(void*), bool, pair<rsdgPara*, int> );
 		void regService(string, string, void*(*)(void*),bool);
+		void regContService(string, string, void*(*)(void*));
 		void setupSolverFreq(int);
 		void setUnit(int);
 		void consultServer();

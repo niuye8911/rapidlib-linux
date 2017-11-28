@@ -131,6 +131,10 @@ void rsdgMission::regService(string sName, string bName, void*(*func)(void*), bo
 	getService(sName)->addNode(bName);
 }
 
+void rsdgMission::regContService(string sName, string bName, void*(*func)(void*)){
+	regService(sName, bName, func, false);	
+}
+
 void rsdgService::addNode(string nodeName){
 	node_lists.push_back(nodeName);
 	cout<<"Pushing back node "<<nodeName<<endl;
@@ -513,7 +517,9 @@ void rsdgMission::reconfig(){
 	// phase1, max MV
 		graph->minmax = MAX;
 		printProb(outfileName);
+		cout<<RSDG_TAG<<"problem created"<<endl;
 		consultServer();
+		cout<<RSDG_TAG<<"result returned"<<endl;
 	// phase2 and set the new MV
 		graph->minmax = MIN;
 		graph->targetMV = objValue;
