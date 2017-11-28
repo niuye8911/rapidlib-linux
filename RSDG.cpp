@@ -144,11 +144,14 @@ Basic::Basic(index_t *addr, string n)
     setType(2);     //2 is basic
 }
 
-Basic::Basic(string n, bool isContinuous)
+Basic::Basic(string n)
 {
     setName(n);
-    CONTINUOUS = isContinuous;
     setType(2);     //2 is basic
+}
+
+void Basic::setContinuous(){
+	CONTINUOUS = true;
 }
 
 double Basic::getValue()

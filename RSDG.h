@@ -85,7 +85,7 @@ class Basic : public Node
 		double mvo2;
 		double mvo1;
 		double mvc;
-		bool CONTINUOUS;
+		bool CONTINUOUS = false;
 	public:
 		void setValue(double );
 		void setValueOrder(double, double, double);
@@ -94,10 +94,11 @@ class Basic : public Node
 		double getValue(void);
 		float getCost(void);
 		bool isContinuous();
+		void setContinuous();
 		void getCostOrder(vector<double>&);
 		void getValueOrder(vector<double>&);
 		Basic(index_t *, string = "");		// Scheme
-		Basic(string, bool);			// XML
+		Basic(string);			// XML
 };
 
 // Level nodes (container for a group of basic nodes) - represent functions of a service 

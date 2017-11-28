@@ -11,6 +11,7 @@ using namespace rapidxml;
 // Message Printing
 extern bool DEBUG_MSGS, SUPPRESS_ERRORS;
 
+#define THRESHOLD 1e-3
 /*
 * Parser for a scheme list representation of an RSDG into an in memory representation.
 */
@@ -455,8 +456,29 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 					constant = stof(order_value -> value());
 				}
 			}
-//#TODO: Need to support continuous stuff in RSDG.cpp
-			cout<<"continuos service found"<<order2<<" "<<order1<<" "<<constant<<endl;
+			// indicate the node being continuous
+			basic -> setContinuous();
+			basic -> setCostOrder(order2, order1, constant);
+		}
+		else if (f_name.compare("contmv") == 0) {
+			double order2 = 0.0;
+			double order1 = 0.0;
+			double constant = 0.0;
+			for (xml_node<> *order_value = fields->first_node(); order_value; order_value = order_value->next_sibling()){
+				string name = order_value->name();
+				if (name.compare("o2") == 0){
+					order2 = stof(order_value->value());
+				}
+				else if (name.compare("o1") == 0){
+					order1 = stof(order_value->value());
+				}
+				else if (name.compare("c") == 0){
+					constant = stof(order_value -> value());
+				}
+			}
+			// indicate the node being continuous
+			basic -> setContinuous();
+			basic -> setValueOrder(order2, order1, constant);
 		}
 		else if (f_name.compare("nodecost") == 0) {
 			try {
@@ -1036,7 +1058,7 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	//Node *node = NULL;
 	ofstream out(outfile);
 	//vector<vector<xml_edge_t>> *edges;
-	stringstream obj, net_obj;
+	stringstream obj, net_obj, net_quadobj; //net_obj is the final representation for cost function
 	string objective, net_objective;
 
 	// Maximize {{{
@@ -1049,24 +1071,41 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	if(!lp)out << "Minimize" <<endl;
 	else out<<"min:"<<endl;
 	}
+	net_quadobj <<"[ ";
 	for( Top *top : xml_rsdg) { 
 		for(Level *lvl : *(top->getLevelNodes())) {
 			for(Basic *b : *(lvl->getBasicNodes())) { 
 				obj <<  "\t" << b->getValue() << " " << b->getName() << "\n+";
-				net_obj << "\t" <<b->getCost() <<" "<<b->getName() <<"\n+";
-				
+				if(!(b->isContinuous())) net_obj << "\t" <<b->getCost() <<" "<<b->getName() <<"\n+";
+				else{
+					// continuous nodes
+					vector<double> node_cost_orders;
+					b->getCostOrder(node_cost_orders);
+					int i = 0;
+					string node_name = b->getName();
+				        if(node_cost_orders[i++] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_quadobj << " + " << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
+					if(node_cost_orders[i++] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<node_name<<" + ";
+					if(node_cost_orders[i++] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n+";
+				}	
 				// print all edge costs
-				for(vector<xml_edge_t> vec : *(b->getXMLEdges())){		
+				// modified by Liu, now that we don't have edge costs
+/*				for(vector<xml_edge_t> vec : *(b->getXMLEdges())){		
 					for(xml_edge_t e : vec) {
 						if(EDGE_VALUE(e) != 0) {
 							net_obj << "\t" << EDGE_VALUE(e) << " " << b->getName();
 							net_obj << "$" << EDGE_NAME(e) << "\n+";
 						}
 					}
-				}
+				}*/
 			}
 		}
 	}
+	net_quadobj <<"]";
+
+	// combine the linear and quad cost
+	
+	if(net_quadobj.str().size()>2) net_obj << net_quadobj.str();
+
 	if(minmax)//maximize MV
 		out << obj.str().substr(0, obj.str().find_last_of('+')); 
 	else//minimize cost
@@ -1221,8 +1260,13 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	string mv = to_string(this->targetMV);
 
 	if(minmax){
-	out << "c" << c++ << ": " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
-	out << "- energy = 0";
+	out << "c" << c++ << ": " ;
+	out<< "- energy + " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
+	out << " >= -0.001\n+";
+
+	out << "c" << c++ << ": " ;
+	out<< "- energy + " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
+	out << " <= 0.001";
 	}
 	else{
 	out << "c" << c++ << ": " << obj.str().substr(obj.str().find_first_not_of("\t"), obj.str().find_last_of('+')-1);
