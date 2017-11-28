@@ -163,7 +163,7 @@ class rsdgMission{
 			selected.clear();
 			for(auto it = serviceMap.begin(); it!=serviceMap.end(); it++){
 				if(it->second!=NULL)
-				it->second->curNode=="";
+				it->second->curNode="";
 			}
 		}
 		void addConstraint(string, bool);

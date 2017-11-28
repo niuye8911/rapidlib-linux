@@ -1083,9 +1083,11 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					b->getCostOrder(node_cost_orders);
 					int i = 0;
 					string node_name = b->getName();
-				        if(node_cost_orders[i++] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_quadobj << " + " << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
-					if(node_cost_orders[i++] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<node_name<<" + ";
-					if(node_cost_orders[i++] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n+";
+				        if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_quadobj << " + " << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
+					i++;
+					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<node_name<<" + ";
+					i++;
+					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n+";
 				}	
 				// print all edge costs
 				// modified by Liu, now that we don't have edge costs
@@ -1134,8 +1136,8 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 
 	int c = 1;
 	stringstream constraint;
-	//1. All basic nodes in a service - top node of service =0
-	for (Top *top : xml_rsdg) {
+	//1. All basic nodes in a service - top node of service =0 NOT NECCESSARY
+/*	for (Top *top : xml_rsdg) {
 		constraint.str("");
 		constraint << "c" << c++ << ": ";
 
@@ -1150,7 +1152,7 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 		if(lp)out<<";";
 		out<<endl;
 	}
-	out << endl;
+	out << endl;*/
 
 	//2. All levels in a service - top node of service = 0
 	for (Top *top : xml_rsdg) {
@@ -1171,14 +1173,24 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	//3. All basic nodes in a service - levels/implementations of svc = 0
 	for (Top *top : xml_rsdg) {
 		for (Level *lvl : *(top->getLevelNodes())) {
+			bool isCont = false;
 			constraint.str("");
 			constraint << "c" << c++ << ": ";
-
 			for (Basic *b : *(lvl->getBasicNodes())) {
-				constraint << b->getName() << " + ";
+				if(! b->isContinuous()) constraint << b->getName() << " + ";
+				else{
+					// continuous single node service
+					constraint << lvl -> getName() <<" = 1 -> "<<b->getName() <<" >= 0";
+					isCont = true;
+					break;
+				}
 			}
-			out << constraint.str().substr(0, constraint.str().find_last_of('+'));
-			out << "- " << lvl->getName() << " = 0";
+			if(!isCont) {
+				out << constraint.str().substr(0, constraint.str().find_last_of('+'));
+				out << "- " << lvl->getName() << " = 0";
+			}else{
+				out << constraint.str();
+			}
 			if(lp)out<<";";
 			out<<endl;
 		}
@@ -1262,11 +1274,11 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	if(minmax){
 	out << "c" << c++ << ": " ;
 	out<< "- energy + " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
-	out << " >= -0.001\n+";
+	out << " >= -0.001\n\n";
 
 	out << "c" << c++ << ": " ;
 	out<< "- energy + " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
-	out << " <= 0.001";
+	out << " <= 0.001\n";
 	}
 	else{
 	out << "c" << c++ << ": " << obj.str().substr(obj.str().find_first_not_of("\t"), obj.str().find_last_of('+')-1);
@@ -1298,27 +1310,33 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	out << endl << "Bounds" << endl;
 
 	stringstream integers;
+	stringstream generals;
 	for (Top *top : xml_rsdg) {
-		out << top->getName() << " <= 1";
-		if(lp)out<<";";out<< endl;
+		//out << top->getName() << " <= 1";
+		if(lp)out<<";"<< endl;
 		integers << top->getName() << endl;
 
 		for (Level *lvl : *(top->getLevelNodes())) {
-			out << lvl->getName() << " <= 1";
-			if(lp)out<<";";out<< endl;
+		//	out << lvl->getName() << " <= 1";
+			if(lp)out<<";"<< endl;
 			integers << lvl->getName() << endl;
 
 			for (Basic *b : *(lvl->getBasicNodes())) {
-				out << b->getName() << " <= 1";
-				if(lp)out<<";";out<< endl;
-				integers << b->getName() << endl;
+		//		if(!b->isContinuous())out << b->getName() << " <= 1";
+				if(lp)out<<";"<< endl;
+		//		if(!b->isContinuous())integers << b->getName() << endl;
+				if(b->isContinuous()){
+					// this is a continuous service
+		//			out<< b->getName() <<" >= 0"<<endl;
+					generals<< b->getName() <<endl;
+				}
 
 				for (vector<xml_edge_t> vec : *(b->getXMLEdges())) {
 					for (xml_edge_t e : vec) {
 						if (EDGE_VALUE(e) != 0) {
 							integers << b->getName() << "$" << EDGE_NAME(e) << endl;
-							out << b->getName() << "$" << EDGE_NAME(e) << " <= 1";
-							if(lp)out<<";";out<< endl; 
+		//					out << b->getName() << "$" << EDGE_NAME(e) << " <= 1";
+							if(lp)out<<";"<< endl; 
 						}
 					}
 				}
@@ -1326,9 +1344,16 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 			}
 		}
 	}
+	out<< "indicator = 1"<<endl;
+
+	// GENERALS
+	if(!lp) {
+		out << endl << "Generals" <<endl;
+		out << generals.str();
+	}
 
 	// INTEGERS 
-	if(!lp)out << endl << "Integers" << endl;
+	if(!lp)out << endl << "Binaries" << endl;
 	else out<<endl<<"int"<<endl;
 	out << integers.str();
 	if(lp)out<<";";
