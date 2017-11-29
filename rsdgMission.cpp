@@ -63,12 +63,14 @@ void rsdgService::run(string name, void *f(void*)){
 }
 
 void rsdgService::updateNode(void* (*f)(void*),string name){
-	if(name==curNode){
+	//#TODO: updateNode should consider discrete and continuous nodes separately
+	/*if(name==curNode){
 		cout<<RSDG_TAG+"same config:"<<curNode<<"->"<<name<<endl;
 		return;
-	}
+	}*/
 	cout<<RSDG_TAG+"change config:"<<curNode<<"->"<<name<<endl;
-        if(name!=curNode && f!=NULL){
+//        if(name!=curNode && f!=NULL){
+	if(f!=NULL){      
 		if(single){
 			f(NULL);
 			curNode = name;
@@ -82,7 +84,7 @@ void rsdgService::updateNode(void* (*f)(void*),string name){
                 pthread_create(&sThread, NULL,f, NULL);
 		
 		curNode = name;
-		//cout<<"created thread"<<endl;
+		cout<<"created thread"<<endl;
         }
 }
 pthread_t rsdgService::getThread(){return sThread;}
@@ -131,8 +133,10 @@ void rsdgMission::regService(string sName, string bName, void*(*func)(void*), bo
 	getService(sName)->addNode(bName);
 }
 
-void rsdgMission::regContService(string sName, string bName, void*(*func)(void*)){
-	regService(sName, bName, func, false);	
+void rsdgMission::regContService(string sName, string bName, void*(*func)(void*), rsdgPara* para){
+	regService(sName, bName, func, false);
+	// register the value for parameter
+	contParaList[bName] = para;
 }
 
 void rsdgService::addNode(string nodeName){
@@ -269,28 +273,40 @@ void rsdgMission::updateSelection(vector<string>& result){
 	}
 	//iterating throught he result and fetch the returned result
 	for(i = 0; i<(int)result.size(); i++){
-		string s = basicToService[result[i]];	
+		string currentNode = result[i];
+		string curNode = currentNode;
+		std::size_t found = curNode.find(" ");
+		if (found!=std::string::npos){
+			string nodeName = "";
+			int i = 0; 
+			while(currentNode[i] != ' ')nodeName+=currentNode[i++];
+			double value = stof(currentNode.substr(i));
+			contServiceValue[nodeName] = value;
+			curNode = nodeName;
+		}
+
+		string s = basicToService[curNode];	
 		rsdgService* svc = serviceMap[s];
 		if(svc==NULL){//could be edge or could be something wrong
 			//get the edge
-			size_t deli = result[i].find_last_of("$");
+			size_t deli = curNode.find_last_of("$");
 			if(deli != string::npos){
 				//found
-				string sink = result[i].substr(0,deli);
-				string source = result[i].substr(deli+1);
+				string sink = curNode.substr(0,deli);
+				string source = curNode.substr(deli+1);
 				depChain[sink].push_back(source);
 			}	
 			//get the objective cost
-			size_t equalSign = result[i].find_last_of("=");
+			size_t equalSign = curNode.find_last_of("=");
 			if(equalSign != string::npos){
-				int expectCost = stoi(result[i].substr(equalSign+1));
+				int expectCost = stoi(curNode.substr(equalSign+1));
 				predictedCost = expectCost;
 //				cout<<RSDG_TAG+"EXPECTED COST = "<<expectCost<<endl;
 			}
 			continue;
 		}
 		svc->setStatus(false);
-		selected[s] = result[i]; 
+		selected[s] = curNode; 
 	}	
 }
 
@@ -300,14 +316,17 @@ void rsdgMission::applyResult(){
 		string basic = it->second;
 		rsdgService* s = getService(service);
 		if(s==NULL)continue;
-		updateThread(s,basic);		
+		if(contParaList.find(basic) != contParaList.end()){
+			// this is a continuous service
+			updateThread(s, basic, contServiceValue[basic]);
+		}else updateThread(s, basic, 0.0);
 	}	
 	//sleep for a few moment to let all config takes effect
 	usleep(10000);
 	cout<<RSDG_TAG+"*Reconfiguration Finished*"<<endl<<endl;
 }
 
-void rsdgMission::updateThread(rsdgService* s, string basic){
+void rsdgMission::updateThread(rsdgService* s, string basic, double value){
 	if(basic == ""){//turn this service off
 		pthread_t curThread = s->getThread();
 		if(pthread_kill(curThread,0)==0){
@@ -324,6 +343,9 @@ void rsdgMission::updateThread(rsdgService* s, string basic){
 			int pValue = paraList[basic].second;
 			p->intPara = pValue;
 		}
+	}
+	else if (contParaList.find(basic) != contParaList.end()){
+		contParaList[basic] -> intPara = value;
 	}
 	s->updateNode(f,basic);
 }
@@ -517,9 +539,7 @@ void rsdgMission::reconfig(){
 	// phase1, max MV
 		graph->minmax = MAX;
 		printProb(outfileName);
-		cout<<RSDG_TAG<<"problem created"<<endl;
 		consultServer();
-		cout<<RSDG_TAG<<"result returned"<<endl;
 	// phase2 and set the new MV
 		graph->minmax = MIN;
 		graph->targetMV = objValue;
@@ -762,6 +782,7 @@ void rsdgMission::addConstraint(string sink, string source, bool on){
 }
 
 vector<string>  rsdgMission::localSolve(){
+	vector<string> result;
 	string filename = "";
 	if(graph->minmax)
 		filename=outfileName+"MAX.lp";
@@ -776,7 +797,6 @@ vector<string>  rsdgMission::localSolve(){
 	system(cmd.c_str());
 	cout<<"executing solver"<<endl;
 	FILE *sol = fopen("max.sol","r");                                                  
-	vector<string> result;
         if(!sol){
                 cout<<"no solution file found\n"; 
 		return result;
@@ -784,19 +804,16 @@ vector<string>  rsdgMission::localSolve(){
         char line[256];                                                                    
         char res[50];                                                                      
         
-        while(fgets(line,sizeof(line),sol)){                                               
-                char *pch,*pch_obj,pch_energy;                                                                 
+        while(fgets(line,sizeof(line),sol)){ 
+                char *pch,*pch_obj,*pch_energy;                                                                 
                 char *node;                                                                
 		//getting the VARs
-                pch = strstr(line," 1\n");                                                 
-		//pch_energy = strstr(line, "energy ");
+                pch = strstr(line," 0\n");
+		if(pch!=NULL) continue;// current line represents a value that's not chosen
+
+		pch_energy = strstr(line, "energy ");
 		if(lpsolve)pch_obj = strstr(line, "Value of objective function:");
 		else pch_obj = strstr(line," Objective value");
-
-                if(!pch && !pch_energy && !pch_obj){//none found
-                       // pch = strstr(line, "9.9");                                         
-                        continue;
-                }
 
 		if(pch_obj !=NULL){
 			char * s;
@@ -807,23 +824,35 @@ vector<string>  rsdgMission::localSolve(){
 			std::stringstream ss;
 			ss.str (s);
 			ss>>objValue;
-			
+			continue; //proceed to next line
 		}
 	
-                if(pch !=NULL){
-                        if((node = strstr(line," "))){                                       
-                                //get the selected service 
-                                int i = 0;                                                 
-                                while(line[i]!=' '){                                       
-                                        res[i] = line[i];
-                                        i++;                                               
-                                }                                                          
-                                res[i] = '\0';                                             
-                        }
-                }
-		//getting the budget/MV                                                                          
-                result.push_back(res);
-        }       
+		if(pch_energy != NULL){
+			//record the energy cost, proceed
+			continue;
+		}
+
+		// this is a line with a selection
+                if((node = strstr(line," 1\n"))){
+			int i = 0;
+			while(line[i]!=' '){
+				res[i] = line[i];
+				i++;
+			}
+			res[i] = '\0';
+			result.push_back(res);			
+			continue;
+                } else{
+			// this is a line with continuous service value
+			/*stringstream ss(line);
+			string name; double value;
+			ss>>name;
+			ss>>value;
+			result.push_back(name);
+			result.push_back(to_string(value));*/
+			result.push_back(line);
+		}
+	}       
 	return result;
 }
 
