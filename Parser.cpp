@@ -625,7 +625,7 @@ void RSDG::parseSchemeList(string infile)
 	input >> str; //First token 
 	
 	// Get to rsdg-nodes
-	while (!str.compare("rsdg-nodes") == 0) {
+	while (!str.compare("rsdg-nodes")) {
 		input >> str;
 	}
 
@@ -636,7 +636,7 @@ void RSDG::parseSchemeList(string infile)
 	schemeNodes(this);
 
 	// Get to rsdg-edges
-	while (!str.compare("rsdg-edges") == 0) {
+	while (!str.compare("rsdg-edges")) {
 		input >> str;
 	}
 
@@ -647,7 +647,7 @@ void RSDG::parseSchemeList(string infile)
 	schemeEdges(this);
 
 	// Get to rsdg-weights
-	while (!str.compare("rsdg-weights") == 0) {
+	while (!str.compare("rsdg-weights")) {
 		input >> str;
 	}
 
