@@ -85,11 +85,13 @@ class rsdgMission{
 	map<string, string> basicToService;
 	map<string, rsdgService*> serviceMap;
 	map<string, pair<rsdgPara*, int> > paraList;
+	map<string, rsdgPara*> contParaList;
 	map<string, vector<string> > depChain;//kto a service's dependence
 	map<string, int> threadPref;
 	map<string, string> selected;
 	map<string, double> offlineCost;
 	map<string, double> offlineMV;
+	map<string, double> contServiceValue;
 	vector<vector<string>> all_configs;
 	int curTrainingId = -1;
 	int curUpdatingId = -1;
@@ -136,13 +138,13 @@ class rsdgMission{
 		rsdgService* getService(string name);
 		void regService(string, string, void*(*)(void*), bool, pair<rsdgPara*, int> );
 		void regService(string, string, void*(*)(void*),bool);
-		void regContService(string, string, void*(*)(void*));
+		void regContService(string, string, void*(*)(void*), rsdgPara*);
 		void setupSolverFreq(int);
 		void setUnit(int);
 		void consultServer();
 		void updateSelection(vector<string>& result);
 		void applyResult();
-		void updateThread(rsdgService* s,string basicNode);
+		void updateThread(rsdgService* s,string basicNode, double value);
 		void start();
 		void generateProb(string);
 		void setBudget(int);
