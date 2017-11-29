@@ -275,6 +275,7 @@ void rsdgMission::updateSelection(vector<string>& result){
 	for(i = 0; i<(int)result.size(); i++){
 		string currentNode = result[i];
 		string curNode = currentNode;
+		cout<<"getting node "+currentNode<<endl;
 		std::size_t found = curNode.find(" ");
 		if (found!=std::string::npos){
 			string nodeName = "";
