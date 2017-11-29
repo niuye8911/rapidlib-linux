@@ -2,6 +2,7 @@ import optparse
 
 from LP_Util.merge import *
 from qos_checker import *
+import numpy as np
 
 configs = []
 service_levels = {}
@@ -159,6 +160,15 @@ def checkAccuracy():
     elif app == "swaptions":
         checkSwaption(fact, observed)
 
+
+def polyfit():
+    x = np.array([100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000])
+    y = np.array([1393, 2777, 4161, 5545, 6929, 8313, 9697, 11081, 12412, 13863])
+    func = np.polyfit(x, y, 2)
+    func
+    return func
+
+
 def main(argv):
     global config, observed, fact, KF, app
 
@@ -216,6 +226,10 @@ def main(argv):
         # fact will be the golden truth
         # observed will be the actual runtime data
         checkAccuracy()
+        return 0
+
+    if (mode == "polyfit"):
+        polyfit()
         return 0
 
     #read known fact
