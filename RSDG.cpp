@@ -198,6 +198,28 @@ void Basic::setCostOrder(double o2, double o1, double c){
 	costo2 = o2; costo1 = o1; costc = c;
 }
 
+void Basic::setContMax(double max){
+	MINMAX = true;
+	maxValue = max;
+}
+
+void Basic::setContMin(double min){
+	MINMAX = true;
+	minValue = min;
+}
+
+bool Basic::hasMinMax(){
+	return MINMAX;
+}
+
+double Basic::getMaxValue(){
+	return maxValue;
+}
+
+double Basic::getMinValue(){
+	return minValue;
+}
+
 bool Basic::isContinuous(){
 	return CONTINUOUS;
 }

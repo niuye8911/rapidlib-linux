@@ -460,6 +460,15 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			basic -> setContinuous();
 			basic -> setCostOrder(order2, order1, constant);
 		}
+		// the boundaries for continuous service
+		else if (f_name.compare("contmax") == 0) {
+			double max = stof(fields->value());
+			basic -> setContMax(max);
+		}
+		else if (f_name.compare("contmax") == 0) {
+			double min = stof(fields->value());
+			basic -> setContMin(min);
+		}
 		else if (f_name.compare("contmv") == 0) {
 			double order2 = 0.0;
 			double order1 = 0.0;
@@ -1329,6 +1338,10 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					// this is a continuous service
 		//			out<< b->getName() <<" >= 0"<<endl;
 					generals<< b->getName() <<endl;
+					// write the minmax boundaries if any
+					if (b->hasMinMax()){
+						out<<b->getMinValue() << " <= " << b->getName() << " <= " << b->getMaxValue() << "\n";
+					}
 				}
 
 				for (vector<xml_edge_t> vec : *(b->getXMLEdges())) {
@@ -1344,6 +1357,8 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 			}
 		}
 	}
+
+	//indicator should be 1
 	out<< "indicator = 1"<<endl;
 
 	// GENERALS

@@ -85,7 +85,10 @@ class Basic : public Node
 		double mvo2;
 		double mvo1;
 		double mvc;
+		double maxValue = INT_MAX;
+		double minValue = INT_MIN;
 		bool CONTINUOUS = false;
+		bool MINMAX = false;
 	public:
 		void setValue(double );
 		void setValueOrder(double, double, double);
@@ -97,6 +100,11 @@ class Basic : public Node
 		void setContinuous();
 		void getCostOrder(vector<double>&);
 		void getValueOrder(vector<double>&);
+		bool hasMinMax();
+		void setContMax(double);
+		void setContMin(double);
+		double getMaxValue();
+		double getMinValue();
 		Basic(index_t *, string = "");		// Scheme
 		Basic(string);			// XML
 };
