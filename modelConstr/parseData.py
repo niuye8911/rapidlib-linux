@@ -2,6 +2,7 @@ import optparse
 
 from LP_Util.merge import *
 from qos_checker import *
+from contigous import *
 import numpy as np
 
 configs = []
@@ -73,12 +74,19 @@ def checkRate(rsdg,fact,target):
     return [meanErr,maxErr, maxId, outlier]
 
 # populate a fully blown RSDG with observed measurement
-def populateRSDG(observedFile, factFile):
+def populateRSDG(observedFile, factFile, cont):
+    if cont == True:
+        paras = genContProblem(factFile)
+        os.system("gurobi_cl ResultFile=max.sol contproblem.lp")
+        getContRSDG(paras)
+        return
+
     global configs, service_levels
     # setup the configuration
     configs, service_levels = generateConfigsFromTraining(factFile)
     observed_configs, dummy = generateConfigsFromTraining(observedFile)
-    genProblem(service_levels, observed_configs)
+    if cont==False:#if it's a discrete
+        genProblem(service_levels, observed_configs)
     rsdg = solveAndPopulate(service_levels, True)
     [meanErr, maxErr, maxId, dummy] = checkRate(rsdg, fact, targetMax)
     print "Mean:" + str(meanErr) + "\tMax:" + str(maxErr)
@@ -219,7 +227,11 @@ def main(argv):
         return 0
 
     if (mode == "consrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact)
+        populateRSDG(observed, fact, False)
+        return 0
+
+    if (mode == "conscontrsdg"):# construct RSDG based on observation of RS
+        populateRSDG(observed, fact, True)
         return 0
 
     if (mode == "qos"): #check the QoS loss of two different runtime behavior
