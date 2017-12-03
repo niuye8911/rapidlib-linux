@@ -65,6 +65,10 @@ vector<vector<xml_edge_t>> *Node::getXMLEdges(){
     return &xml_edges;
 }
 
+vector<vector<cont_edge_t>> *Node::getContEdges(){
+	return &cont_edges;
+}
+
 // Gets a list of dependencies from xml representation                         
 vector<vector<xml_edge_t>> *Node::getXMLOutEdges(){                               
     return &xml_outedges; 

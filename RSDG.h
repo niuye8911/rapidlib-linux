@@ -64,6 +64,7 @@ class Node
     public:
         vector<vector<edge_t>> *getSchemeEdges(void);
         vector<vector<xml_edge_t>> *getXMLEdges(void);
+	vector<vector<cont_edge_t>> *getContEdges(void);
 	vector<vector<xml_edge_t>> *getXMLOutEdges(void);
         index_t *getAddr(void);
         string getName();

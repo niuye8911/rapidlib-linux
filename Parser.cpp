@@ -614,7 +614,7 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 					edges.push_back(or_edge);
 				}
 				// Modified by Liu that there won't be edge weight
-				else if (xml_name.compare("weight") == 0) {
+/*				else if (xml_name.compare("weight") == 0) {
 
 					try {
 						weight = stof(or_dep->value());
@@ -628,7 +628,7 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 						name.clear();
 						continue;
 					}
-				}
+				}*/
 			}
 			// Add the set of or edges to the node 
 			basic->addEdges(edges);
@@ -1262,6 +1262,18 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 			out<<endl;
 		}
 	}
+
+	// Added by Liu: continuous edges
+	stringstream constraintCont;
+        for (Top *top : xml_rsdg) {
+                for (Level *lvl : *(top->getLevelNodes())) {
+                        for (Basic *b : *(lvl->getBasicNodes())) {
+				constraintCont.str("");
+				// All continuous edges	
+				for (vector<cont_edge_t> vec: *(b->getContEdges())){
+					
+				}
+	}}}
 
 	//4. Sink - all weighted edges = 0
 	//5. AND Edges: Source - Sink >= 0 
