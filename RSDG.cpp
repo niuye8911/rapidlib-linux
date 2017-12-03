@@ -76,6 +76,10 @@ void Node::addEdges(vector<edge_t> deps)
     edges.push_back(deps);
 }
 
+void Node::addContEdges(vector<cont_edge_t> deps){
+	cont_edges.push_back(deps);
+}
+
 // Add a new dependency (form of xml_edge_t vector) to a node
 void Node::addEdges(vector<xml_edge_t> deps)
 {

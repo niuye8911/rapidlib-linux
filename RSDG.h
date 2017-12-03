@@ -33,6 +33,8 @@ using namespace std;
 
 #define MIN 0
 #define MAX 1
+#define INT_MIN -99999
+#define INT_MAX 99999
 
 // top | level | basic - unsigned shorts to fit in an 8 byte hashed value for map key
 typedef tuple<unsigned short,unsigned short, unsigned short> index_t;
@@ -43,6 +45,9 @@ typedef tuple<float, float, index_t > edge_t;
 // XML version of edge_t  address is a string 
 typedef tuple<float, float, string> xml_edge_t;
 
+// Continuous edge <min, max, sink>
+typedef tuple<float, float, string> cont_edge_t;
+
 extern bool DEBUG_MSGS, SUPPRESS_ERRORS;
 
 // Base class for Top, Level, and Basic nodes
@@ -52,6 +57,7 @@ class Node
         vector<vector<edge_t>> edges;			// Scheme
         vector<vector<xml_edge_t>> xml_edges;	// XML
 	vector<vector<xml_edge_t>> xml_outedges;
+	vector<vector<cont_edge_t>> cont_edges;
         index_t address;
         string name;
         bool basic, level, top;
@@ -63,6 +69,7 @@ class Node
         string getName();
         void setEdgeWeight(index_t, float value = 0, float cost = 0);		// Might not need cost default = 0
         void addEdges(vector<edge_t>);
+	void addContEdges(vector<cont_edge_t>);
         void addEdges(vector<xml_edge_t>);
 	void addOutEdges(vector<xml_edge_t>);
         void setAddr(index_t *);	// Scheme

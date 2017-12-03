@@ -509,6 +509,53 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
                         basic->setValue(cost);
                         //cout << "Node cost: " << cost << endl;
                 }
+		else if (f_name.compare("contand") == 0) {
+			// the AND edge for continuous service
+			vector<cont_edge_t> edges;
+			cont_edge_t tmp_edge;
+			float min = -99999;
+			float max = 99999;
+			string name;
+			if (fields -> first_node("node") == NULL || fields->first_node("name")->value()==NULL){
+				continue;
+			}
+			name = fields->first_node("name") -> value();
+			try{
+				min= stof(fields->first_node("rangemin")->value());
+				max = stof(fields->first_node("rangemax")->value());
+			}catch(exception e){
+				min = 0.0; max = 0.0;
+			}
+			get<0>(tmp_edge) = min;
+			get<1>(tmp_edge) = max;
+			get<2>(tmp_edge) = name;
+			edges.push_back(tmp_edge);
+			basic->addContEdges(edges);
+			edges.clear();
+		}
+
+		else if (f_name.compare("contor") == 0) {
+			vector<cont_edge_t> edges;
+                        cont_edge_t tmp_edge;
+                        float min = -99999;
+                        float max = 99999;
+                        string name;
+			for (xml_node<> *or_dep = fields->first_node(); or_dep; or_dep = or_dep->next_sibling()){
+				string xml_name = or_dep->name();
+				if(xml_name.compare("name") == 0) {
+					name = or_dep->value();
+					min= stof(fields->first_node("rangemin")->value());
+	                                max = stof(fields->first_node("rangemax")->value());
+					get<0>(tmp_edge) = min;
+					get<1>(tmp_edge) = max;
+					get<2>(tmp_edge) = name;
+					edges.push_back(tmp_edge);
+				}
+			}
+			basic->addContEdges(edges);	
+			edges.clear();
+		}
+
 		else if (f_name.compare("and") == 0) {  
 			vector<xml_edge_t> edges;
 			xml_edge_t and_edge;
