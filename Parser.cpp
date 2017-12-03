@@ -518,9 +518,6 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			float thenmin = ifmin;
 			float thenmax = ifmax;
 			string name;
-			if (fields -> first_node("node") == NULL || fields->first_node("name")->value()==NULL){
-				continue;
-			}
 			name = fields->first_node("name") -> value();
 			try{
 				ifmin= stof(fields->first_node("ifrangemin")->value());
@@ -1127,7 +1124,7 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	//vector<vector<xml_edge_t>> *edges;
 	stringstream obj, net_obj, net_quadobj; //net_obj is the final representation for cost function
 	string objective, net_objective;
-
+	vector<string> segments;
 	// Maximize {{{
 	if(minmax){
 	if(!lp)out << "Maximize" << endl;
@@ -1266,13 +1263,46 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	// Added by Liu: continuous edges
 	stringstream constraintCont;
         for (Top *top : xml_rsdg) {
+		// get the service name
+		string service_name = top->getName();
                 for (Level *lvl : *(top->getLevelNodes())) {
                         for (Basic *b : *(lvl->getBasicNodes())) {
+				string bName = b->getName();
 				constraintCont.str("");
+				vector<string> segment_for_this_service;
 				// All continuous edges	
 				for (vector<cont_edge_t> vec: *(b->getContEdges())){
-					
+					// each vec is a group of or edges
+					if (vec.size()<1) continue;
+					int segID = 0;
+					for (cont_edge_t e: vec){
+						// each e is a range edge
+						// setup a variable indicating the range
+						string sourceBname = get<2>(e);
+						float sinkMin = get<0>(e);
+						float sinkMax = get<1>(e);
+						float sourceMin = get<3>(e);
+						float sourceMax = get<4>(e);
+						string segmentName = service_name+to_string(segID++); 
+						segments.push_back(segmentName);
+						segment_for_this_service.push_back(segmentName);
+						constraintCont<<"c"<<c++<<":";
+						// segment = 1 -> min<source_basic<max, min<sink_basic<max
+						constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<bName<<" >= "<<sinkMin<< endl;
+					       	constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<bName<<" <= "<<sinkMax<< endl;
+						constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<sourceBname<<" >= "<<sourceMin<<endl;
+						constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<sourceBname<<" <= "<<sourceMax<<endl;
+					}	
+					// service = 1 -> sum_of_segments = 1
+					string segments_string = "";
+					segments_string += segment_for_this_service[0];
+					for (int i = 1; i<segment_for_this_service.size(); i++){
+						segments_string += " + ";
+						segments_string += segment_for_this_service[i];
+					}
+					constraintCont<<"c"<<c++<<":"<<service_name<<" = 1 -> "<< segments_string<<" = 1"<<endl;
 				}
+				out<<constraintCont.str();
 	}}}
 
 	//4. Sink - all weighted edges = 0
