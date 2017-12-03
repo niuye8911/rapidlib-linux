@@ -45,8 +45,8 @@ typedef tuple<float, float, index_t > edge_t;
 // XML version of edge_t  address is a string 
 typedef tuple<float, float, string> xml_edge_t;
 
-// Continuous edge <min, max, sink>
-typedef tuple<float, float, string> cont_edge_t;
+// Continuous edge <sinkmin, sinkmax, source, sourcemin, sourcemax>
+typedef tuple<float, float, string, float, float> cont_edge_t;
 
 extern bool DEBUG_MSGS, SUPPRESS_ERRORS;
 

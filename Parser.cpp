@@ -513,22 +513,28 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			// the AND edge for continuous service
 			vector<cont_edge_t> edges;
 			cont_edge_t tmp_edge;
-			float min = -99999;
-			float max = 99999;
+			float ifmin = -99999;
+			float ifmax = 99999;
+			float thenmin = ifmin;
+			float thenmax = ifmax;
 			string name;
 			if (fields -> first_node("node") == NULL || fields->first_node("name")->value()==NULL){
 				continue;
 			}
 			name = fields->first_node("name") -> value();
 			try{
-				min= stof(fields->first_node("rangemin")->value());
-				max = stof(fields->first_node("rangemax")->value());
+				ifmin= stof(fields->first_node("ifrangemin")->value());
+				ifmax = stof(fields->first_node("ifrangemax")->value());
+				thenmin= stof(fields->first_node("thenrangemin")->value());
+                                thenmax = stof(fields->first_node("thenrangemax")->value());
 			}catch(exception e){
-				min = 0.0; max = 0.0;
+				ifmin = 0.0; ifmax = 0.0;thenmin = 0.0; thenmax = 0.0;
 			}
-			get<0>(tmp_edge) = min;
-			get<1>(tmp_edge) = max;
+			get<0>(tmp_edge) = ifmin;
+			get<1>(tmp_edge) = ifmax;
 			get<2>(tmp_edge) = name;
+			get<3>(tmp_edge) = thenmin;
+			get<4>(tmp_edge) = thenmax;
 			edges.push_back(tmp_edge);
 			basic->addContEdges(edges);
 			edges.clear();
@@ -537,20 +543,25 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 		else if (f_name.compare("contor") == 0) {
 			vector<cont_edge_t> edges;
                         cont_edge_t tmp_edge;
-                        float min = -99999;
-                        float max = 99999;
+                        float ifmin = -99999;
+                        float ifmax = 99999;
+			float thenmin = -99999;
+			float thenmax = 99999;
                         string name;
 			for (xml_node<> *or_dep = fields->first_node(); or_dep; or_dep = or_dep->next_sibling()){
-				string xml_name = or_dep->name();
-				if(xml_name.compare("name") == 0) {
-					name = or_dep->value();
-					min= stof(fields->first_node("rangemin")->value());
-	                                max = stof(fields->first_node("rangemax")->value());
-					get<0>(tmp_edge) = min;
-					get<1>(tmp_edge) = max;
-					get<2>(tmp_edge) = name;
-					edges.push_back(tmp_edge);
-				}
+				xml_node<> *dep = or_dep->first_node();// dep is <dep> dep </dep>
+				string xml_name = dep->name();
+				name = dep->first_node("name")->value();
+				ifmin= stof(fields->first_node("ifrangemin")->value());
+	                        ifmax = stof(fields->first_node("ifrangemax")->value());
+				thenmin = stof(fields->first_node("thenrangemin")->value());
+				thenmax = stof(fields->first_node("thenrangemax")->value());
+				get<0>(tmp_edge) = ifmin;
+				get<1>(tmp_edge) = ifmax;
+				get<2>(tmp_edge) = name;
+				get<3>(tmp_edge) = thenmin;
+				get<4>(tmp_edge) = thenmax;
+				edges.push_back(tmp_edge);
 			}
 			basic->addContEdges(edges);	
 			edges.clear();
