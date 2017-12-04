@@ -1139,19 +1139,39 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	for( Top *top : xml_rsdg) { 
 		for(Level *lvl : *(top->getLevelNodes())) {
 			for(Basic *b : *(lvl->getBasicNodes())) { 
-				obj <<  "\t" << b->getValue() << " " << b->getName() << "\n+";
-				if(!(b->isContinuous())) net_obj << "\t" <<b->getCost() <<" "<<b->getName() <<"\n+";
+				if(obj.str().size()==0){
+					obj <<  b->getValue() << " " << b->getName();
+				}else { 
+					obj << " + " << b->getValue() <<" " << b->getName();
+				}
+				if(!(b->isContinuous())) {
+					if(net_obj.str().size()!=0)
+						net_obj << " + " <<  b->getCost() <<" "<<b->getName();
+					else 
+						net_obj<< b->getCost() << " " <<b->getName();
+					cout<<net_obj.str()<<endl;
+				}
 				else{
 					// continuous nodes
 					vector<double> node_cost_orders;
 					b->getCostOrder(node_cost_orders);
 					int i = 0;
 					string node_name = b->getName();
-				        if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_quadobj << " + " << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
+					cout<<"got higher order value:"<<node_cost_orders[0]<<node_cost_orders[1]<<node_cost_orders[2]<<endl;
+				        if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) {
+						if(net_quadobj.str().size()>=3)net_quadobj<<" + ";
+						net_quadobj << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
+					}
 					i++;
-					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<node_name<<" + ";
+					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) {
+						if(net_obj.str().size()>0)net_obj<<" + ";
+						net_obj << node_cost_orders[i] <<" "<<node_name<<" ";
+					}
 					i++;
-					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n+";
+					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) { 
+						if(net_obj.str().size()>0)net_obj<<" + ";
+						net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n";
+					}
 				}	
 				// print all edge costs
 				// modified by Liu, now that we don't have edge costs
@@ -1170,12 +1190,14 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 
 	// combine the linear and quad cost
 	
-	if(net_quadobj.str().size()>2) net_obj << net_quadobj.str();
+	if(net_quadobj.str().size()>3) {
+		net_obj << " + " <<  net_quadobj.str();
+	}
 
 	if(minmax)//maximize MV
-		out << obj.str().substr(0, obj.str().find_last_of('+')); 
+		out << obj.str(); 
 	else//minimize cost
-		out << net_obj.str().substr(0,net_obj.str().find_last_of('+'));
+		out << net_obj.str();
 	if(lp)out<<";";
 	out << endl;
 
@@ -1286,7 +1308,6 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 						string segmentName = service_name+to_string(segID++); 
 						segments.push_back(segmentName);
 						segment_for_this_service.push_back(segmentName);
-						constraintCont<<"c"<<c++<<":";
 						// segment = 1 -> min<source_basic<max, min<sink_basic<max
 						constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<bName<<" >= "<<sinkMin<< endl;
 					       	constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<bName<<" <= "<<sinkMax<< endl;
@@ -1380,27 +1401,29 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	string budget=to_string(this->budget);
 	string mv = to_string(this->targetMV);
 
-	if(minmax){
+	// sometimes it would lead to gurobi failure: so sacrifice this min/max problem
+//	if(minmax){
 	out << "c" << c++ << ": " ;
-	out<< "- energy + " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
-	out << " >= -0.001\n\n";
-
+	//out<< "- energy + " << net_obj.str();
+	//out << " >= -0.001\n\n";
+	out << net_obj.str() << " <= " <<budget;
+/*
 	out << "c" << c++ << ": " ;
-	out<< "- energy + " << net_obj.str().substr(net_obj.str().find_first_not_of("\t"), net_obj.str().find_last_of('+')-1);
-	out << " <= 0.001\n";
-	}
+	out<< "- energy + " << net_obj.str();
+	out << " <= 0.001\n";*/
+/*	}
 	else{
-	out << "c" << c++ << ": " << obj.str().substr(obj.str().find_first_not_of("\t"), obj.str().find_last_of('+')-1);
+	out << "c" << c++ << ": " << obj.str();
 	out << "- mv = 0";
-	}
+	}*/
 	if(lp)out<<";";out << endl;
 
-	if(minmax)
+/*	if(minmax)
 	out << "c" << c++ << ": energy <= " << budget;
 	else
 	out << "c" << c++ << ": mv >= " << mv;
 	if(lp)out<<";";out << endl;
-
+*/
 	//9.5. ForceOn constraints
 	for(string on: forceOn) {
 		out<<"c"<<c++<<":"<<on<<" = 1";

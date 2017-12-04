@@ -537,17 +537,18 @@ void rsdgMission::reconfig(){
 	}else if(offline_search){
 		consultServer();
 	}else{
+		// remove phase2 due to gurobi failure
 	// phase1, max MV
 		graph->minmax = MAX;
 		printProb(outfileName);
 		consultServer();
 	// phase2 and set the new MV
-		graph->minmax = MIN;
+/*		graph->minmax = MIN;
 		graph->targetMV = objValue;
 		maxMV=objValue==0?-1:objValue;
 		printProb(outfileName);
 		consultServer();
-		minEnergy=objValue;
+		minEnergy=objValue;*/
 	}
 	applyResult();
 	//check point again to ignore the overhead by RSDG
