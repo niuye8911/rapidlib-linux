@@ -164,9 +164,11 @@ def genRS(fact):
 def checkAccuracy():
     global fact, app, observed
     if app=="ferret":
-        checkFerret(fact, observed)
+        checkFerretWrapper(fact, observed)
     elif app == "swaptions":
-        checkSwaption(fact, observed)
+        checkSwaptionWrapper(fact, observed)
+    elif app == "bodytrack":
+        checkBodytrackWrapper(fact, observed)
 
 
 def polyfit():
