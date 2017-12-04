@@ -33,6 +33,15 @@ void print_prob(void* mission, char* file){
 	target_mission -> printProb(output);
 }
 
+// regContService
+void regContService(void* mission, char* service_name, char* node_name, void*(*func)(void*), void* para){
+        rsdgMission* targetMission = (rsdgMission*)mission;
+        string service(service_name);
+        string node(node_name);
+        rsdgPara* para_cpp = (rsdgPara*) para;  
+        targetMission->regContService(service, node, func, para_cpp);
+}
+
 // regService
 void regService(void* mission, char* service_name, char* node_name, void*(*func)(void*), int single, void* para, int para_value){
 	rsdgMission* targetMission = (rsdgMission*)mission;

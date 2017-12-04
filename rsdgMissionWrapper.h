@@ -7,6 +7,7 @@ void * newRAPIDPara();
 
 int getParaVal(void*);
 void regService(void*, char* , char* , void*(*)(void*), int, void* , int);
+void regContService(void*, char* , char* , void*(*)(void*), void*);
 void read_rsdg(void*, char* fileName);
 void print_prob(void*, char* fileName);
 void updateMV(void*, char* name, int mv, int linear);
