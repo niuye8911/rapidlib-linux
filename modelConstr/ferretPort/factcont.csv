@@ -22,7 +22,6 @@ hash,8,itr,5,probe,20,243.143
 hash,8,itr,4,probe,20,243.143
 hash,8,itr,3,probe,20,242.357
 hash,8,itr,2,probe,20,238.143
-hash,8,itr,1,probe,20,210.071
 hash,8,itr,25,probe,18,238.571
 hash,8,itr,24,probe,18,238.5
 hash,8,itr,23,probe,18,238.929
@@ -47,7 +46,6 @@ hash,8,itr,5,probe,18,238.429
 hash,8,itr,4,probe,18,240.643
 hash,8,itr,3,probe,18,239.571
 hash,8,itr,2,probe,18,233.714
-hash,8,itr,1,probe,18,204.357
 hash,8,itr,25,probe,16,235.929
 hash,8,itr,24,probe,16,235.357
 hash,8,itr,23,probe,16,236.786
@@ -72,7 +70,6 @@ hash,8,itr,5,probe,16,235.429
 hash,8,itr,4,probe,16,235.143
 hash,8,itr,3,probe,16,234.143
 hash,8,itr,2,probe,16,230
-hash,8,itr,1,probe,16,201.5
 hash,8,itr,25,probe,14,234.857
 hash,8,itr,24,probe,14,234.714
 hash,8,itr,23,probe,14,234.643
@@ -97,7 +94,6 @@ hash,8,itr,5,probe,14,234.214
 hash,8,itr,4,probe,14,235.857
 hash,8,itr,3,probe,14,233.5
 hash,8,itr,2,probe,14,229.786
-hash,8,itr,1,probe,14,201.714
 hash,8,itr,25,probe,12,232.643
 hash,8,itr,24,probe,12,231.786
 hash,8,itr,23,probe,12,232.143
@@ -122,7 +118,6 @@ hash,8,itr,5,probe,12,233.071
 hash,8,itr,4,probe,12,233.857
 hash,8,itr,3,probe,12,232.429
 hash,8,itr,2,probe,12,227.929
-hash,8,itr,1,probe,12,198.857
 hash,8,itr,25,probe,10,228.714
 hash,8,itr,24,probe,10,229.357
 hash,8,itr,23,probe,10,229.643
@@ -147,7 +142,6 @@ hash,8,itr,5,probe,10,229.5
 hash,8,itr,4,probe,10,228.143
 hash,8,itr,3,probe,10,228.429
 hash,8,itr,2,probe,10,224.071
-hash,8,itr,1,probe,10,194.857
 hash,8,itr,25,probe,8,226.857
 hash,8,itr,24,probe,8,227.857
 hash,8,itr,23,probe,8,228.143
@@ -172,7 +166,6 @@ hash,8,itr,5,probe,8,226.643
 hash,8,itr,4,probe,8,227.714
 hash,8,itr,3,probe,8,226.929
 hash,8,itr,2,probe,8,222.429
-hash,8,itr,1,probe,8,194.857
 hash,8,itr,25,probe,6,223.5
 hash,8,itr,24,probe,6,223.357
 hash,8,itr,23,probe,6,222.714
@@ -197,7 +190,6 @@ hash,8,itr,5,probe,6,222.929
 hash,8,itr,4,probe,6,222
 hash,8,itr,3,probe,6,221.714
 hash,8,itr,2,probe,6,219.071
-hash,8,itr,1,probe,6,189.643
 hash,8,itr,25,probe,4,219.571
 hash,8,itr,24,probe,4,220.571
 hash,8,itr,23,probe,4,220.357
@@ -222,7 +214,6 @@ hash,8,itr,5,probe,4,220.357
 hash,8,itr,4,probe,4,219.214
 hash,8,itr,3,probe,4,218.643
 hash,8,itr,2,probe,4,213.929
-hash,8,itr,1,probe,4,187.286
 hash,8,itr,25,probe,2,204.357
 hash,8,itr,24,probe,2,204.571
 hash,8,itr,23,probe,2,204.143
@@ -247,7 +238,6 @@ hash,8,itr,5,probe,2,204.429
 hash,8,itr,4,probe,2,204.643
 hash,8,itr,3,probe,2,203.5
 hash,8,itr,2,probe,2,199.286
-hash,8,itr,1,probe,2,172.643
 hash,6,itr,25,probe,20,234.571
 hash,6,itr,24,probe,20,234.929
 hash,6,itr,23,probe,20,234.929
