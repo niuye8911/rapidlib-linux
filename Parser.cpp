@@ -460,7 +460,7 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			basic -> setContinuous();
 			basic -> setCostOrder(order2, order1, constant);
 		}
-		else if (f_name.compare("contcost") == 0) {
+		else if (f_name.compare("contmv") == 0) {
                         double order2 = 0.0;
                         double order1 = 0.0;
                         double constant = 0.0;
@@ -485,7 +485,7 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			double max = stof(fields->value());
 			basic -> setContMax(max);
 		}
-		else if (f_name.compare("contmax") == 0) {
+		else if (f_name.compare("contmin") == 0) {
 			double min = stof(fields->value());
 			basic -> setContMin(min);
 		}
@@ -1171,7 +1171,7 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 				else{
                                         // continuous nodes
                                         vector<double> node_value_orders;
-                                        b->getCostOrder(node_value_orders);
+                                        b->getValueOrder(node_value_orders);
                                         int i = 0;
                                         string node_name = b->getName();
                                         if(node_value_orders[i] >= THRESHOLD || node_value_orders[i] <= -THRESHOLD) {
@@ -1340,10 +1340,10 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 				constraintCont.str("");
 				vector<string> segment_for_this_service;
 				// All continuous edges	
+				int segID = 0;
 				for (vector<cont_edge_t> vec: *(b->getContEdges())){
 					// each vec is a group of or edges
 					if (vec.size()<1) continue;
-					int segID = 0;
 					for (cont_edge_t e: vec){
 						// each e is a range edge
 						// setup a variable indicating the range
@@ -1361,15 +1361,16 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 						constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<sourceBname<<" >= "<<sourceMin<<endl;
 						constraintCont<<"c"<<c++<<":"<<segmentName <<" = 1 -> "<<sourceBname<<" <= "<<sourceMax<<endl;
 					}	
-					// service = 1 -> sum_of_segments = 1
-					string segments_string = "";
-					segments_string += segment_for_this_service[0];
-					for (int i = 1; i<segment_for_this_service.size(); i++){
-						segments_string += " + ";
-						segments_string += segment_for_this_service[i];
-					}
-					constraintCont<<"c"<<c++<<":"<<service_name<<" = 1 -> "<< segments_string<<" = 1"<<endl;
 				}
+				// service = 1 -> sum_of_segments = 1
+                                string segments_string = "";
+				if(segment_for_this_service.size()==0)continue;
+				segments_string += segment_for_this_service[0];
+				for (int i = 1; i<segment_for_this_service.size(); i++){
+                                                segments_string += " + ";
+                                                segments_string += segment_for_this_service[i];
+                                }
+                                constraintCont<<"c"<<c++<<":"<<service_name<<" = 1 -> "<< segments_string<<" = 1"<<endl;
 				out<<constraintCont.str();
 	}}}
 
