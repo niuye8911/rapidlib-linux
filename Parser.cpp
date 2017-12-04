@@ -460,6 +460,26 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			basic -> setContinuous();
 			basic -> setCostOrder(order2, order1, constant);
 		}
+		else if (f_name.compare("contcost") == 0) {
+                        double order2 = 0.0;
+                        double order1 = 0.0;
+                        double constant = 0.0;
+                        for (xml_node<> *order_value = fields->first_node(); order_value; order_value = order_value->next_sibling()){
+                                string name = order_value->name();
+                                if (name.compare("o2") == 0){
+                                        order2 = stof(order_value->value());
+                                }
+                                else if (name.compare("o1") == 0){
+                                        order1 = stof(order_value->value());
+                                }
+                                else if (name.compare("c") == 0){
+                                        constant = stof(order_value -> value());
+                                }
+                        }
+                        // indicate the node being continuous
+                        basic -> setContinuous();
+                        basic -> setValueOrder(order2, order1, constant);
+                }
 		// the boundaries for continuous service
 		else if (f_name.compare("contmax") == 0) {
 			double max = stof(fields->value());
@@ -1122,7 +1142,7 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	//Node *node = NULL;
 	ofstream out(outfile);
 	//vector<vector<xml_edge_t>> *edges;
-	stringstream obj, net_obj, net_quadobj; //net_obj is the final representation for cost function
+	stringstream obj, net_obj, net_quadvalue, net_quadobj; //net_obj is the final representation for cost function
 	string objective, net_objective;
 	vector<string> segments;
 	// Maximize {{{
@@ -1136,20 +1156,45 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	else out<<"min:"<<endl;
 	}
 	net_quadobj <<"[ ";
+	net_quadvalue <<"[ ";
 	for( Top *top : xml_rsdg) { 
 		for(Level *lvl : *(top->getLevelNodes())) {
 			for(Basic *b : *(lvl->getBasicNodes())) { 
-				if(obj.str().size()==0){
-					obj <<  b->getValue() << " " << b->getName();
-				}else { 
-					obj << " + " << b->getValue() <<" " << b->getName();
+				// setup the mv function
+				if(!(b->isContinuous())) {
+					if(obj.str().size()==0){
+						obj <<  b->getValue() << " " << b->getName();
+					}else { 
+						obj << " + " << b->getValue() <<" " << b->getName();
+					}
 				}
+				else{
+                                        // continuous nodes
+                                        vector<double> node_value_orders;
+                                        b->getCostOrder(node_value_orders);
+                                        int i = 0;
+                                        string node_name = b->getName();
+                                        if(node_value_orders[i] >= THRESHOLD || node_value_orders[i] <= -THRESHOLD) {
+                                                if(net_quadvalue.str().size()>=3)net_quadvalue<<" + ";
+                                                net_quadvalue << node_value_orders[i] <<" "<<node_name<<" ^ 2 ";
+                                        }
+                                        i++;
+                                        if(node_value_orders[i] >= THRESHOLD || node_value_orders[i] <= -THRESHOLD) {
+                                                if(obj.str().size()>0)obj<<" + ";
+                                                obj << node_value_orders[i] <<" "<<node_name<<" ";
+                                        }
+                                        i++;
+                                        if(node_value_orders[i] >= THRESHOLD || node_value_orders[i] <= -THRESHOLD) {
+                                                if(obj.str().size()>0)obj<<" + ";
+                                                obj << node_value_orders[i] <<" "<<"indicator "<<"\n";
+                                        }
+                                }
+				// setup the cost function
 				if(!(b->isContinuous())) {
 					if(net_obj.str().size()!=0)
 						net_obj << " + " <<  b->getCost() <<" "<<b->getName();
 					else 
 						net_obj<< b->getCost() << " " <<b->getName();
-					cout<<net_obj.str()<<endl;
 				}
 				else{
 					// continuous nodes
@@ -1157,7 +1202,6 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					b->getCostOrder(node_cost_orders);
 					int i = 0;
 					string node_name = b->getName();
-					cout<<"got higher order value:"<<node_cost_orders[0]<<node_cost_orders[1]<<node_cost_orders[2]<<endl;
 				        if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) {
 						if(net_quadobj.str().size()>=3)net_quadobj<<" + ";
 						net_quadobj << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
@@ -1187,11 +1231,14 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 		}
 	}
 	net_quadobj <<"]";
-
+	net_quadvalue <<"]";
 	// combine the linear and quad cost
 	
 	if(net_quadobj.str().size()>3) {
 		net_obj << " + " <<  net_quadobj.str();
+	}
+	if(net_quadvalue.str().size()>3) {
+		obj << " + " << net_quadvalue.str();
 	}
 
 	if(minmax)//maximize MV
@@ -1494,6 +1541,10 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 	if(!lp)out << endl << "Binaries" << endl;
 	else out<<endl<<"int"<<endl;
 	out << integers.str();
+	// add all segments to binaries
+	for (string seg:segments){
+		out<< seg<<endl;
+	}
 	if(lp)out<<";";
 	out << endl;
 	if(!lp)out << "End";
