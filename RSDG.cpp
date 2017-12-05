@@ -167,6 +167,22 @@ double Basic::getValue()
     return value;
 }
 
+void Basic::addContCoeff(string name, float coeff){
+	coeffs[name] = coeff;
+}
+
+void Basic::addContMVCoeff(string name, float coeff){
+	mvcoeffs[name] = coeff;
+}
+
+map<string,float>& Basic::getCoeffs(){
+	return coeffs;
+}
+
+map<string, float>& Basic::getMVCoeffs(){
+	return mvcoeffs;
+}
+
 void Basic::getValueOrder(vector<double>& orders){
 	orders.clear();
 	orders.push_back(mvo2);

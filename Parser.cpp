@@ -529,6 +529,14 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
                         basic->setValue(cost);
                         //cout << "Node cost: " << cost << endl;
                 }
+		// there's an inter-relationship with other service
+		else if (f_name.compare("contwith") == 0){
+			string name = fields->first_node("name") -> value();// the inter-service name
+			float para = stof(fields->first_node("mvcoeff") ->value()); // the inter-service value
+			basic->addContMVCoeff(name, para);
+			float costpara = stof(fields->first_node("costcoeff") -> value());
+			basic -> addContCoeff(name, costpara);
+		}
 		else if (f_name.compare("contand") == 0) {
 			// the AND edge for continuous service
 			vector<cont_edge_t> edges;
@@ -1187,6 +1195,14 @@ void RSDG::writeXMLLp(string outfile, bool lp)
                                         if(node_value_orders[i] >= THRESHOLD || node_value_orders[i] <= -THRESHOLD) {
                                                 if(obj.str().size()>0)obj<<" + ";
                                                 obj << node_value_orders[i] <<" "<<"indicator "<<"\n";
+	
+                                        }
+					// write the coeff
+                                        map<string, float> mvcoeffs = b->getMVCoeffs();
+                                        for (auto coeff: mvcoeffs){
+                                                string coeff_name = coeff.first;
+                                                float coeff_value = coeff.second;
+                                                net_quadvalue << " + " << coeff_value << " " << coeff_name << " * " << node_name << " ";
                                         }
                                 }
 				// setup the cost function
@@ -1215,6 +1231,14 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) { 
 						if(net_obj.str().size()>0)net_obj<<" + ";
 						net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n";
+					}
+					// write the coeff
+					map<string, float> coeffs = b->getCoeffs();
+					
+					for (auto coeff: coeffs){
+						string coeff_name = coeff.first;
+						float coeff_value = coeff.second;
+						net_quadobj << " + " << coeff_value << " " << coeff_name << " * " << node_name << " ";
 					}
 				}	
 				// print all edge costs
