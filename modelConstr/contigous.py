@@ -34,31 +34,47 @@ def getContRSDG(paras):
 
 
 def readContFactAndGenConstraint(fact):
-    services = set()
-    constraints = []
-    paras = set()
+    services = {}
+    constraints = [] #list of constraints
+    paras = set() #set of parameters, o2, o1, and c for each service
+    # added this for inter-relationship higher order constraint
     num = 0
     f = open(fact, 'r')
     for line in f:
         col = line.split(',')
         length = len(col)
         name = ""
-        lvl = -1
         constraint = ""
+        quadconstraint = "" # this is the inter-service relationship
         for i in range (0,length):
             if i == length-1:
                 #the last column which is the cost
                 cost = float(col[i])
+                # at this point, "services" contains all the services being used in current observation
+                # clean up the last "+"
+                length = len(quadconstraint)
+                quadconstraint = quadconstraint[:length-2]
+                # append the quadconstraint to constraint
+                # uncomment the line below to support quad terms
+                #constraint += quadconstraint
+                #constraint += " + "
                 constraint += "err"+str(num+1)+" = "+str(cost)+"\n"
                 constraints.append(constraint)
+                #clear the constraint
                 constraint = ""
+                quadconstraint = ""
+                services.clear()
                 continue
             cur = col[i]
             if not (cur.isdigit()): # this is a service name
                 name = cur
-                services.add(name)
             else:
                 value = float(cur)
+                # add the inter-service relationship to the quad constraint
+                for service in services:
+                    inter_para = value * services[service]
+                    quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
+                services[name] = value  # record the current value for this service
                 # write the 2-order constraint
                 o2para = name+"_2"
                 o1para = name+"_1"
