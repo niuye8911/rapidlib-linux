@@ -97,6 +97,8 @@ class Basic : public Node
 		double minValue = INT_MIN;
 		bool CONTINUOUS = false;
 		bool MINMAX = false;
+		map<string, float> coeffs;
+		map<string, float> mvcoeffs;
 	public:
 		void setValue(double );
 		void setValueOrder(double, double, double);
@@ -113,6 +115,10 @@ class Basic : public Node
 		void setContMin(double);
 		double getMaxValue();
 		double getMinValue();
+		void addContCoeff(string, float);
+		void addContMVCoeff(string, float);
+		map<string, float> &getCoeffs();
+		map<string, float> &getMVCoeffs();
 		Basic(index_t *, string = "");		// Scheme
 		Basic(string);			// XML
 };
