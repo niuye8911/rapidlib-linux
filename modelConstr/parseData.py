@@ -53,6 +53,7 @@ def checkRate(rsdg,fact,target):
                 if err >= target : outlier.append(line)
                 if err >= maxErr : maxId = lineNum
                 maxErr = max(maxErr,err)
+                # the line below caused the calculation error
                 TotConfig += 1
                 estV = 0
                 continue
@@ -68,6 +69,8 @@ def checkRate(rsdg,fact,target):
                     estV += rsdg[name][lvl-1]
                 else:
                     estV += rsdg[name][0]
+    print TotErr
+    print TotConfig
     meanErr = TotErr/TotConfig
     report.write("Mean:"+str(meanErr))
     report.close()
