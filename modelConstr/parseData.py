@@ -11,6 +11,7 @@ observed = ""
 fact = ""
 KF = ""
 app = ""
+remote = False
 targetMax = 0.05 
 targetMean = 0.02
 
@@ -90,7 +91,7 @@ def populateRSDG(observedFile, factFile, cont):
     observed_configs, dummy = generateConfigsFromTraining(observedFile)
     if cont==False:#if it's a discrete
         genProblem(service_levels, observed_configs)
-    rsdg = solveAndPopulate(service_levels, True)
+    rsdg = solveAndPopulate(service_levels, True, remote)
     [meanErr, maxErr, maxId, dummy] = checkRate(rsdg, fact, targetMax)
     print "Mean:" + str(meanErr) + "\tMax:" + str(maxErr)
     print "maxConfig:" + str(maxId)
@@ -183,7 +184,7 @@ def polyfit():
 
 
 def main(argv):
-    global config, observed, fact, KF, app
+    global config, observed, fact, KF, app, remote
 
     #parse the argument
     parser = optparse.OptionParser()
@@ -196,6 +197,7 @@ def main(argv):
     parser.add_option('--r1', dest="r1")
     parser.add_option('--r2', dest='r2')
     parser.add_option('-a', dest='app')
+    parser.add_option('-r', dest='remote')
 
     options, args = parser.parse_args()
     observed = options.observed
@@ -204,6 +206,7 @@ def main(argv):
     KF1 = options.KF1
     KF2 = options.KF2
     app = options.app
+    remote = options.remote
     mode = options.mode
 
     if(mode=="genrs"):

@@ -14,19 +14,22 @@ from configClass import RAPIDConfig
 #             res[name].append(float(col[i]))
 #     return res
 
-def solveAndPopulate(service_levels, PRINT):
-    url = "http://algaesim.cs.rutgers.edu/solver/index.php"
-    file = {'upload_file[]' : ('hello', open("./problem.lp", 'rb'))}
-    response = requests.post(url, files = file)
-    result = response.text
-    item = result.split("\\n")
-    maxsol = open("max.sol", 'w')
-    for i in item:
-	if i=="\"":
-		continue
-	maxsol.write(i)
-	maxsol.write("\n")
-    maxsol.close()
+def solveAndPopulate(service_levels, PRINT, remote):
+    if remote == True:
+        url = "http://algaesim.cs.rutgers.edu/solver/index.php"
+        file = {'upload_file[]' : ('hello', open("./problem.lp", 'rb'))}
+        response = requests.post(url, files = file)
+        result = response.text
+        item = result.split("\\n")
+        maxsol = open("max.sol", 'w')
+        for i in item:
+	    if i=="\"":
+    		continue
+    	maxsol.write(i)
+    	maxsol.write("\n")
+        maxsol.close()
+    else:
+        os.system("gurobi_cl ResultFile=max.sol problem.lp")
     resFile = open("max.sol",'r')
     rsdg = {}
     for line in resFile:
