@@ -1,7 +1,7 @@
 # Tools needed for generating contigous RSDG
 def genContProblem(fact):
     prob = open("contproblem.lp", 'w')
-    constraints, num, paras = readContFactAndGenConstraint(fact)
+    constraints, num, paras = readContFactAndGenModConstraint(fact)
     # write obj
     obj = "[ "
     for i in range(1,num+1):
