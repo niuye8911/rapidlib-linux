@@ -1,0 +1,232 @@
+
+Gurobi 7.5.2 (linux64) logging started Sun Jan 21 14:30:49 2018
+
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 7.5.2 build v7.5.2rc1 (linux64)
+Copyright (c) 2017, Gurobi Optimization, Inc.
+
+Read LP format model from file contproblem.lp
+Reading time = 0.00 seconds
+: 9 rows, 12 columns, 36 nonzeros
+Optimize a model with 9 rows, 12 columns and 36 nonzeros
+Model has 9 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 9e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [5e+02, 3e+03]
+Presolve removed 9 rows and 12 columns
+Presolve time: 0.01s
+Presolve: All rows and columns removed
+
+Barrier solved model in 0 iterations and 0.01 seconds
+Optimal objective 0.00000000e+00
+
+Wrote result file 'max.sol'
+
+
+Gurobi 7.5.2 (linux64) logging started Sun Jan 21 14:31:37 2018
+
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 7.5.2 build v7.5.2rc1 (linux64)
+Copyright (c) 2017, Gurobi Optimization, Inc.
+
+Read LP format model from file contproblem.lp
+Reading time = 0.00 seconds
+: 10 rows, 13 columns, 40 nonzeros
+Optimize a model with 10 rows, 13 columns and 40 nonzeros
+Model has 10 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+06]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+02, 3e+03]
+Presolve removed 10 rows and 13 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+
+Barrier solved model in 0 iterations and 0.00 seconds
+Optimal objective 0.00000000e+00
+
+Wrote result file 'max.sol'
+
+
+Gurobi 7.5.2 (linux64) logging started Sun Jan 21 14:32:39 2018
+
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 7.5.2 build v7.5.2rc1 (linux64)
+Copyright (c) 2017, Gurobi Optimization, Inc.
+
+Error reading LP format file contproblem.lp at line 5
+Malformed term in expression
+Neighboring tokens: " +  err1 = 2823.1 8.1e+11 num_2 + 900000.0 "
+
+
+ERROR 10012: Unable to read file
+
+
+Gurobi 7.5.2 (linux64) logging started Sun Jan 21 14:35:03 2018
+
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 7.5.2 build v7.5.2rc1 (linux64)
+Copyright (c) 2017, Gurobi Optimization, Inc.
+
+Read LP format model from file contproblem.lp
+Reading time = 0.00 seconds
+: 10 rows, 13 columns, 40 nonzeros
+Optimize a model with 10 rows, 13 columns and 40 nonzeros
+Model has 10 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+12]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+02, 3e+03]
+Warning: Model contains large matrix coefficients
+         Consider reformulating model or setting NumericFocus parameter
+         to avoid numerical issues.
+Presolve time: 0.02s
+Presolved: 10 rows, 13 columns, 40 nonzeros
+Presolved model has 10 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 4.500e+01
+ Factor NZ  : 5.500e+01
+ Factor Ops : 3.850e+02 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   2.50000173e+06 -2.50000173e+06  2.35e+03 0.00e+00  1.00e+06     0s
+   1   6.81932395e+05 -6.82118367e+05  2.46e+00 0.00e+00  1.05e+05     0s
+   2   4.78353664e+05 -6.17657682e+05  1.13e+00 0.00e+00  4.28e+04     0s
+   3   2.00375719e+05  1.03022341e+05  2.58e-01 0.00e+00  8.60e+03     0s
+   4   2.53999277e+05  2.31537949e+05  7.14e-03 0.00e+00  7.31e+02     0s
+   5   2.39510700e+05  2.39481978e+05  8.82e-06 1.22e-04  1.50e+00     0s
+   6   2.39499193e+05  2.39499157e+05  8.82e-12 4.58e-05  2.78e-03     0s
+   7   2.39499191e+05  2.39499191e+05  8.84e-18 8.08e-05  2.79e-06     0s
+   8   2.39499191e+05  2.39499191e+05  5.08e-21 1.31e-05  2.79e-09     0s
+   9   2.39499191e+05  2.39499191e+05  2.14e-20 3.05e-05  2.79e-12     0s
+  10   2.39499191e+05  2.39499191e+05  1.90e-19 2.44e-04  2.80e-15     0s
+  11   6.25000017e+07 -6.25000017e+07  1.17e+04 0.00e+00  2.50e+07     0s
+  12   6.22664602e+02 -3.92881607e+02  2.63e-01 0.00e+00  1.04e+02     0s
+  13   5.40855599e+07 -5.38525210e+07  5.35e+01 1.99e-13  5.37e+06     0s
+  14   1.75805989e+07 -1.74820587e+07  3.04e+01 4.52e-13  1.73e+06     0s
+  15   2.17006906e+06 -2.13596784e+06  1.07e+01 0.00e+00  2.14e+05     0s
+  16   5.32385035e+04 -4.60998948e+04  1.46e+00 0.00e+00  4.21e+03     0s
+  17   2.54271019e+06 -2.46683307e+06  2.18e+00 2.18e-14  3.16e+05     0s
+  18   4.19984453e+05 -9.32584538e+04  6.26e-01 1.51e-14  2.91e+04     0s
+  19   3.26522630e+05  1.66020346e+05  4.80e-03 5.34e-14  4.99e+03     0s
+  20   2.41146862e+05  2.37888739e+05  5.75e-05 7.44e-14  1.93e+02     0s
+  21   2.39500056e+05  2.39497228e+05  6.70e-10 4.39e-06  2.19e-01     0s
+  22   2.39499192e+05  2.39499189e+05  6.69e-16 3.00e-14  2.19e-04     0s
+  23   2.39499191e+05  2.39499191e+05  9.63e-20 2.60e-14  2.19e-07     0s
+  24   2.39499191e+05  2.39499191e+05  6.52e-20 1.12e-04  2.20e-10     0s
+  25   2.39499191e+05  2.39499191e+05  1.78e-16 3.36e-04  2.20e-13     0s
+  26   2.39507382e+05  2.39499191e+05  3.77e-12 1.12e-04  2.20e-16     0s
+  27   5.36508802e+05  1.80410787e+05  6.32e-07 1.67e-04  1.15e-14     0s
+  28   5.39053816e+05  1.79564171e+05  6.32e-07 6.77e-04  6.29e-11     0s
+  29   5.39501491e+05  1.79414830e+05  6.32e-07 4.49e-04  4.86e-08     0s
+  30   5.39464626e+05  1.79423203e+05  6.32e-07 1.12e-04  8.96e-05     0s
+  31   5.39404173e+05  1.79438763e+05  6.32e-07 9.15e-05  2.29e-04     0s
+  32   5.39878295e+05  1.79250968e+05  6.32e-07 3.38e-04  5.11e-04     0s
+  33   4.07807940e+05  2.05117605e+05  7.92e-07 3.51e-06  1.31e+02     0s
+  34   3.08590841e+05  1.33854344e+05  2.47e-07 2.44e-04  6.68e+03     0s
+  35   2.39753145e+05  2.37984483e+05  1.91e-13 9.08e-06  1.38e+02     0s
+  36   2.39499446e+05  2.39497671e+05  1.71e-18 4.53e-04  1.39e-01     0s
+  37   2.39499191e+05  2.39499190e+05  2.85e-20 3.99e-05  1.39e-04     0s
+  38   2.39499191e+05  2.39499191e+05  2.04e-20 2.61e-06  1.39e-07     0s
+  39   2.39499191e+05  2.39499191e+05  4.75e-21 1.62e-04  1.39e-10     0s
+  40   2.39499191e+05  2.39499191e+05  6.17e-20 1.37e-04  1.39e-13     0s
+  41   2.39499191e+05  2.39499191e+05  1.62e-16 1.37e-04  1.40e-16     0s
+  42   2.39497799e+05  2.39499191e+05  6.61e-13 1.37e-04  1.39e-16     0s
+  43   2.39497095e+05  2.39499191e+05  9.06e-13 2.74e-04  1.39e-16     0s
+  44   2.39496636e+05  2.39499191e+05  1.21e-12 1.37e-04  1.39e-16     0s
+  45   2.39494602e+05  2.39499191e+05  1.92e-12 4.11e-04  1.39e-16     0s
+  46   2.15371830e+06 -7.17314749e+05  7.75e-07 4.11e-04  1.93e-13     0s
+  47   2.16833336e+06 -7.27064358e+05  7.74e-07 8.23e-04  1.47e-09     0s
+  48   2.16872213e+06 -7.27323963e+05  7.73e-07 9.09e-05  2.79e-06     0s
+  49   2.16855897e+06 -7.27220865e+05  7.73e-07 5.90e-04  4.33e-04     0s
+  50   7.34559678e+05 -5.39591727e+04  7.66e-07 1.10e-04  1.03e+04     0s
+  51   2.43172386e+05  2.09111358e+05  1.78e-10 2.00e-04  2.54e+03     0s
+  52   2.39507650e+05  2.39418367e+05  1.75e-16 3.89e-04  6.67e+00     0s
+  53   2.39499200e+05  2.39499110e+05  6.92e-21 1.01e-05  6.68e-03     0s
+  54   2.39499191e+05  2.39499191e+05  3.11e-21 7.92e-05  6.68e-06     0s
+  55   2.39499191e+05  2.39499191e+05  6.92e-21 2.35e-04  6.69e-09     0s
+  56   2.39499191e+05  2.39499191e+05  4.84e-21 1.88e-04  6.70e-12     0s
+  57   2.39499191e+05  2.39499191e+05  9.74e-18 1.99e-04  6.70e-15     0s
+  58   2.39498922e+05  2.39499191e+05  2.08e-13 4.99e-05  3.53e-15     0s
+  59   4.29770629e+05  2.11882605e+05  1.01e-07 5.34e-04  1.91e-16     0s
+  60   4.29766028e+05  2.11883771e+05  1.01e-07 1.33e-04  1.81e-13     0s
+  61   7.48843140e+05  9.81452338e+04  3.00e-07 1.10e-05  2.50e-08     0s
+  62   1.04166906e+06 -4.27118093e+04  3.39e-07 1.25e-03  6.87e-06     0s
+  63   1.28333365e+06 -1.74537364e+05  3.48e-07 1.39e-03  1.73e-04     0s
+  64   3.39251892e+03  5.14366125e+04  2.46e-07 4.64e-06  4.81e+00     0s
+  65   3.31802492e+03  5.07390136e+04  2.43e-07 8.57e-07  4.72e+00     0s
+  66   4.00728569e+03  5.58632259e+04  2.40e-07 5.28e-14  9.20e+00     0s
+  67   4.92221803e+03  6.18491198e+04  2.36e-07 5.00e-05  1.78e+01     0s
+  68   6.16474505e+03  6.89023302e+04  2.31e-07 2.89e-14  3.42e+01     0s
+  69   7.89662506e+03  7.72786768e+04  2.25e-07 6.65e-05  6.50e+01     0s
+  70   1.03819678e+04  8.72845913e+04  2.17e-07 3.32e-05  1.22e+02     0s
+  71   1.40620105e+04  9.92566538e+04  2.08e-07 8.06e-05  2.23e+02     0s
+
+Barrier performed 71 iterations in 0.05 seconds
+Numerical trouble encountered
+
+
+Unable to retrieve attribute 'X'
+
+
+Gurobi 7.5.2 (linux64) logging started Sun Jan 21 14:36:40 2018
+
+Academic license - for non-commercial use only
+
+Gurobi Optimizer version 7.5.2 build v7.5.2rc1 (linux64)
+Copyright (c) 2017, Gurobi Optimization, Inc.
+
+Read LP format model from file contproblem.lp
+Reading time = 0.00 seconds
+: 10 rows, 13 columns, 40 nonzeros
+Optimize a model with 10 rows, 13 columns and 40 nonzeros
+Model has 10 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+06]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+02, 3e+03]
+Presolve time: 0.00s
+Presolved: 10 rows, 13 columns, 40 nonzeros
+Presolved model has 10 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 4.500e+01
+ Factor NZ  : 5.500e+01
+ Factor Ops : 3.850e+02 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   2.55910504e+06 -2.55910504e+06  2.88e+03 0.00e+00  9.42e+05     0s
+   1   7.22098266e+05 -5.09472045e+05  7.13e+00 0.00e+00  9.57e+04     0s
+   2   2.82182885e+05  4.27202597e+04  8.15e-01 0.00e+00  1.85e+04     0s
+   3   2.41921508e+05  2.18304535e+05  8.15e-07 0.00e+00  1.82e+03     0s
+   4   2.39502348e+05  2.39387645e+05  8.30e-13 1.30e-10  8.82e+00     0s
+   5   2.39499194e+05  2.39499080e+05  1.86e-13 2.79e-11  8.82e-03     0s
+   6   2.39499191e+05  2.39499191e+05  1.80e-13 1.52e-10  8.83e-06     0s
+   7   2.39499191e+05  2.39499191e+05  1.20e-13 1.30e-10  8.84e-09     0s
+
+Barrier solved model in 7 iterations and 0.00 seconds
+Optimal objective 2.39499191e+05
+
+
+Wrote result file 'max.sol'
+

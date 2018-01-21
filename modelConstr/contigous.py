@@ -1,7 +1,7 @@
 # Tools needed for generating contigous RSDG
 def genContProblem(fact):
     prob = open("contproblem.lp", 'w')
-    constraints, num, paras = readContFactAndGenModConstraint(fact)
+    constraints, num, paras = readContFactAndGenConstraint(fact)
     # write obj
     obj = "[ "
     for i in range(1,num+1):
@@ -57,7 +57,9 @@ def readContFactAndGenConstraint(fact):
                 # append the quadconstraint to constraint
                 # uncomment the line below to support quad terms
                 constraint += quadconstraint
-                constraint += " + "
+                # in case there's only 1 quad-constraints
+                if quadconstraint != "":
+                    constraint += " + "
                 constraint += "err"+str(num+1)+" = "+str(cost)+"\n"
                 constraints.append(constraint)
                 #clear the constraint

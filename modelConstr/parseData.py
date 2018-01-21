@@ -89,8 +89,7 @@ def populateRSDG(observedFile, factFile, cont):
     # setup the configuration
     configs, service_levels = generateConfigsFromTraining(factFile)
     observed_configs, dummy = generateConfigsFromTraining(observedFile)
-    if cont==False:#if it's a discrete
-        genProblem(service_levels, observed_configs)
+    genProblem(service_levels, observed_configs)
     rsdg = solveAndPopulate(service_levels, True, remote)
     [meanErr, maxErr, maxId, dummy] = checkRate(rsdg, fact, targetMax)
     print "Mean:" + str(meanErr) + "\tMax:" + str(maxErr)
