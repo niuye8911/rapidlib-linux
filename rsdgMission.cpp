@@ -277,6 +277,7 @@ void rsdgMission::updateSelection(vector<string>& result){
 		string curNode = currentNode;
 		cout<<"getting node "+currentNode<<endl;
 		std::size_t found = curNode.find(" ");
+		// this might be a cont service
 		if (found!=std::string::npos){
 			string nodeName = "";
 			int i = 0; 
@@ -308,6 +309,10 @@ void rsdgMission::updateSelection(vector<string>& result){
 		}
 		svc->setStatus(false);
 		selected[s] = curNode; 
+		// special case where the cont service value is set to 1
+		if(contParaList.find(curNode)!=contParaList.end() && contServiceValue.find(curNode)== contServiceValue.end()){
+			contServiceValue[curNode] = 1;
+		}
 	}	
 }
 

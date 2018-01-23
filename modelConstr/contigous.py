@@ -68,10 +68,13 @@ def readContFactAndGenConstraint(fact):
                 services.clear()
                 continue
             cur = col[i]
-            if not (cur.isdigit()): # this is a service name
+            print("cur="+cur)
+            if not (cur.replace(".", "", 1).isdigit()): # this is a service name
+
                 name = cur
             else:
                 value = float(cur)
+                print("Get value:"+str(value))
                 # add the inter-service relationship to the quad constraint
                 for service in services:
                     inter_para = value * services[service]

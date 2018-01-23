@@ -11,7 +11,7 @@ using namespace rapidxml;
 // Message Printing
 extern bool DEBUG_MSGS, SUPPRESS_ERRORS;
 
-#define THRESHOLD 1e-3
+#define THRESHOLD 1e-5
 /*
 * Parser for a scheme list representation of an RSDG into an in memory representation.
 */
