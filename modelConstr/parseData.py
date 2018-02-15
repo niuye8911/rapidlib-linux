@@ -82,7 +82,8 @@ def populateRSDG(observedFile, factFile, cont):
     if cont == True:
         paras = genContProblem(factFile)
         os.system("gurobi_cl ResultFile=max.sol contproblem.lp")
-        getContRSDG(paras)
+        print paras
+        getContRSDGandCheckRate(paras,factFile)
         return
 
     global configs, service_levels

@@ -9,18 +9,31 @@ def genContProblem(fact):
         if not (i==num):
             obj += " + "
     obj += " ]\n"
-    #prob.write("Minimize\n[ err ^ 2 ]\n\n")
     prob.write("Minimize\n")
     prob.write(obj + "\n")
     # write constraint
     prob.write("Subject To\n")
     for c in constraints:
         prob.write(c)
+    # write Boudns
+    bounds = genBounds(len(constraints),paras)
+    prob.write(bounds)
     return paras
 
-def getContRSDG(paras):
+def genBounds(num_of_err, paras):
+    bounds = "Bounds \n"
+    para_copy = paras.copy()
+    for i in range(1,num_of_err+1):
+        para_copy.add("err"+str(i))
+    for j in para_copy:
+        bounds += "-99999 < " + j + " < 99999\n"
+    return bounds
+
+def getContRSDGandCheckRate(paras, factfile):
     result = open("max.sol", 'r')
     rsdg = open("rsdgcont",'w')
+    fact = open(factfile,"r")
+    rsdg_map = {}
     for line in result:
         col = line.split()
         if not (len(col) == 2):
@@ -29,9 +42,44 @@ def getContRSDG(paras):
         val = col[1]
         if not (name in paras):
             continue
+        curPara = name.split("_")
+        service = curPara[0]
+        coeff = curPara[1]
+        lvl = 0
+        if coeff == "2":
+            lvl = 2
+        elif coeff == "1":
+            lvl = 1
+        if not(service in rsdg_map):
+            rsdg_map[service] = [0.0] * 3
+        rsdg_map[service][lvl] = float(val)
         rsdg.write(name + " " + val + "\n")
     rsdg.close()
-
+    #now check the rate
+    report = open("report",'w')
+    for line in fact:
+        col = line.split(',')
+        curPredict = 0.0
+        totErr = 0.0
+        curService = ""
+        for i in range(0,len(col)):
+            if(i == len(col)-1):
+                measurement = float(col[i])
+                totErr += abs((measurement - curPredict)/measurement)
+                report.write(str(curPredict) + " " + str(measurement) + " " + str(abs((measurement - curPredict)/measurement)) + "\n")
+                curService = ""
+                curPredict = 0.0
+                continue
+            if (col[i].isdigit() and curService!=""):
+                val = float(col[i])
+                o2 = rsdg_map[curService][2]
+                o1 = rsdg_map[curService][1]
+                c = rsdg_map[curService][0]
+                curPredict += o2*val*val + o1*val + c
+            else:
+                curService = col[i]
+    report.write("Mean Error:" + str(totErr / len(col)))
+    report.close()
 
 def readContFactAndGenConstraint(fact):
     services = {}
@@ -59,7 +107,7 @@ def readContFactAndGenConstraint(fact):
                 constraint += quadconstraint
                 # in case there's only 1 quad-constraints
                 if quadconstraint != "":
-                    constraint += " + "
+                    constraint += " - "
                 constraint += "err"+str(num+1)+" = "+str(cost)+"\n"
                 constraints.append(constraint)
                 #clear the constraint
