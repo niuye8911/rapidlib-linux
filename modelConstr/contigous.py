@@ -1,14 +1,18 @@
 # Tools needed for generating contigous RSDG
-def genContProblem(fact):
+def genContProblem(fact,model):
     prob = open("contproblem.lp", 'w')
-    constraints, num, paras = readContFactAndGenConstraint(fact)
-    # write obj
-    obj = "[ "
+    constraints, num, paras = readContFactAndGenConstraint(fact,model)
+    # write obj, err^2 - 2 err +1
+    obj = ""
+    quadobj = "[ "
     for i in range(1,num+1):
-        obj += "err"+str(i) + " ^ 2"
+        obj += "-2 err"+str(i)
+        quadobj += "err"+str(i)+" ^ 2"
         if not (i==num):
             obj += " + "
-    obj += " ]\n"
+            quadobj += " + "
+    quadobj += " ]\n"
+    obj += " + " + quadobj
     prob.write("Minimize\n")
     prob.write(obj + "\n")
     # write constraint
@@ -29,11 +33,12 @@ def genBounds(num_of_err, paras):
         bounds += "-99999 < " + j + " < 99999\n"
     return bounds
 
-def getContRSDGandCheckRate(paras, factfile):
+def getContRSDGandCheckRate(paras, factfile,quad):
     result = open("max.sol", 'r')
     rsdg = open("rsdgcont",'w')
     fact = open(factfile,"r")
     rsdg_map = {}
+    relation_map = {}
     for line in result:
         col = line.split()
         if not (len(col) == 2):
@@ -46,42 +51,71 @@ def getContRSDGandCheckRate(paras, factfile):
         service = curPara[0]
         coeff = curPara[1]
         lvl = 0
+        dependent = ""
         if coeff == "2":
             lvl = 2
         elif coeff == "1":
             lvl = 1
+        elif coeff == "c":
+            lvl = 0
+        else:
+            lvl = -1
+            dependent = coeff
         if not(service in rsdg_map):
             rsdg_map[service] = [0.0] * 3
-        rsdg_map[service][lvl] = float(val)
+        if not(service in relation_map):
+            relation_map[service] = {}
+        if not lvl==-1:
+            rsdg_map[service][lvl] = float(val)
+        else:
+            relation_map[service][dependent] = float(val)
         rsdg.write(name + " " + val + "\n")
     rsdg.close()
     #now check the rate
-    report = open("report",'w')
+    report = open("report.csv",'w')
+    total = 0.0
+    totErr = 0.0
     for line in fact:
+        total += 1
         col = line.split(',')
         curPredict = 0.0
-        totErr = 0.0
         curService = ""
+        value_map = {}
         for i in range(0,len(col)):
             if(i == len(col)-1):
+                # add the interrelation
+                if quad:
+                    for svc in value_map.items():
+                        svc_name = svc[0]
+                        svc_val = svc[1]
+                        for dep in relation_map[svc_name].items():
+                            dep_name = dep[0]
+                            inter_val = dep[1]
+                            curPredict+=svc_val * inter_val * value_map[dep_name]
                 measurement = float(col[i])
-                totErr += abs((measurement - curPredict)/measurement)
-                report.write(str(curPredict) + " " + str(measurement) + " " + str(abs((measurement - curPredict)/measurement)) + "\n")
+                abs_err = abs((measurement - curPredict)/measurement)
+                totErr += abs_err
+                report.write(str(curPredict) + "," + str(measurement) + "," + str(1.0-abs_err) + "\n")
                 curService = ""
                 curPredict = 0.0
-                continue
+                break
             if (col[i].isdigit() and curService!=""):
                 val = float(col[i])
-                o2 = rsdg_map[curService][2]
+                value_map[curService] = float(col[i])
+                if quad:
+                    o2 = rsdg_map[curService][2]
                 o1 = rsdg_map[curService][1]
                 c = rsdg_map[curService][0]
-                curPredict += o2*val*val + o1*val + c
+                if quad:
+                    curPredict += o2*val*val + o1*val + c
+                else:
+                    curPredict += o1*val + c
             else:
                 curService = col[i]
-    report.write("Mean Error:" + str(totErr / len(col)))
+    report.write("Mean Error:" + str(totErr / total))
     report.close()
 
-def readContFactAndGenConstraint(fact):
+def readContFactAndGenConstraint(fact,quad):
     services = {}
     constraints = [] #list of constraints
     paras = set() #set of parameters, o2, o1, and c for each service
@@ -104,11 +138,12 @@ def readContFactAndGenConstraint(fact):
                 quadconstraint = quadconstraint[:length-2]
                 # append the quadconstraint to constraint
                 # uncomment the line below to support quad terms
-                constraint += quadconstraint
+                if quad:
+                    constraint += quadconstraint
                 # in case there's only 1 quad-constraints
-                if quadconstraint != "":
-                    constraint += " - "
-                constraint += "err"+str(num+1)+" = "+str(cost)+"\n"
+                #if quadconstraint != "":
+                #    constraint += " - "
+                constraint += " -"+str(cost)+" err"+str(num+1)+" = 0\n"
                 constraints.append(constraint)
                 #clear the constraint
                 constraint = ""
@@ -118,24 +153,27 @@ def readContFactAndGenConstraint(fact):
             cur = col[i]
             print("cur="+cur)
             if not (cur.replace(".", "", 1).isdigit()): # this is a service name
-
                 name = cur
             else:
                 value = float(cur)
-                print("Get value:"+str(value))
                 # add the inter-service relationship to the quad constraint
                 for service in services:
                     inter_para = value * services[service]
                     quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
+                    if quad:
+                        paras.add(name + "_" + service)
                 services[name] = value  # record the current value for this service
                 # write the 2-order constraint
                 o2para = name+"_2"
                 o1para = name+"_1"
                 cpara = name + "_c"
-                paras.add(o2para)
+                if quad:
+                    paras.add(o2para)
                 paras.add(o1para)
                 paras.add(cpara)
-                constraint +=  str(value*value) + " " + o2para + " + " + str(value) + " " + o1para + " + " + cpara + " + "
+                if quad:
+                    constraint +=  str(value*value) + " " + o2para + " + "
+                constraint += str(value) + " " + o1para + " + " + cpara + " + "
         num += 1
 
     return constraints,num, paras

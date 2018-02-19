@@ -11,6 +11,7 @@ observed = ""
 fact = ""
 KF = ""
 app = ""
+model = "quad"
 remote = False
 targetMax = 0.05 
 targetMean = 0.02
@@ -78,12 +79,15 @@ def checkRate(rsdg,fact,target):
     return [meanErr,maxErr, maxId, outlier]
 
 # populate a fully blown RSDG with observed measurement
-def populateRSDG(observedFile, factFile, cont):
+def populateRSDG(observedFile, factFile, cont,model):
     if cont == True:
-        paras = genContProblem(factFile)
+        quad = True
+        if not (model == "" or model == "quad"):
+            quad = False
+        paras = genContProblem(factFile,quad)
         os.system("gurobi_cl ResultFile=max.sol contproblem.lp")
         print paras
-        getContRSDGandCheckRate(paras,factFile)
+        getContRSDGandCheckRate(paras,factFile,quad)
         return
 
     global configs, service_levels
@@ -184,7 +188,7 @@ def polyfit():
 
 
 def main(argv):
-    global config, observed, fact, KF, app, remote
+    global config, observed, fact, KF, app, remote,model
 
     #parse the argument
     parser = optparse.OptionParser()
@@ -198,6 +202,7 @@ def main(argv):
     parser.add_option('--r2', dest='r2')
     parser.add_option('-a', dest='app')
     parser.add_option('-r', dest='remote')
+    parser.add_option('--model', dest="model")
 
     options, args = parser.parse_args()
     observed = options.observed
@@ -206,6 +211,7 @@ def main(argv):
     KF1 = options.KF1
     KF2 = options.KF2
     app = options.app
+    model = options.model
     remote = options.remote
     mode = options.mode
 
@@ -235,11 +241,11 @@ def main(argv):
         return 0
 
     if (mode == "consrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact, False)
+        populateRSDG(observed, fact, False, "linear")
         return 0
 
     if (mode == "conscontrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact, True)
+        populateRSDG(observed, fact, True, model)
         return 0
 
     if (mode == "qos"): #check the QoS loss of two different runtime behavior
