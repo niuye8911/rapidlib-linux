@@ -1,6 +1,6 @@
 # Tools needed for generating contigous RSDG
 def genContProblem(fact,model):
-    prob = open("contproblem.lp", 'w')
+    prob = open("outputs/contproblem.lp", 'w')
     constraints, num, paras = readContFactAndGenConstraint(fact,model)
     # write obj, err^2 - 2 err +1
     obj = ""
@@ -34,8 +34,8 @@ def genBounds(num_of_err, paras):
     return bounds
 
 def getContRSDGandCheckRate(paras, factfile,quad):
-    result = open("max.sol", 'r')
-    rsdg = open("rsdgcont",'w')
+    result = open("outputs/max.sol", 'r')
+    rsdg = open("outputs/rsdgcont",'w')
     fact = open(factfile,"r")
     rsdg_map = {}
     relation_map = {}
@@ -72,7 +72,7 @@ def getContRSDGandCheckRate(paras, factfile,quad):
         rsdg.write(name + " " + val + "\n")
     rsdg.close()
     #now check the rate
-    report = open("report.csv",'w')
+    report = open("outputs/report.csv",'w')
     total = 0.0
     totErr = 0.0
     for line in fact:

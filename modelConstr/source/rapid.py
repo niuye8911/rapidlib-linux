@@ -44,11 +44,27 @@ def main(argv):
     remote = options.remote
     mode = options.mode
 
+    os.system("mkdir outputs")
+
     if(mode=="genrs"):
         if (rs=="set"):
             genRS(fact,True,targetMax,targetMean)
         else:
             genRS(fact,False,targetMax,targetMean)
+        return 0
+
+    if (mode == "consrsdg"):# construct RSDG based on observation of RS
+        populateRSDG(observed, fact, False, "linear", remote)
+        return 0
+
+    if (mode == "conscontrsdg"):# construct RSDG based on observation of RS
+        populateRSDG(observed, fact, True, model,remote)
+        return 0
+
+    if (mode == "qos"): #check the QoS loss of two different runtime behavior
+        # fact will be the golden truth
+        # observed will be the actual runtime data
+        checkAccuracy()
         return 0
 
     if(mode=="merge"):
@@ -70,20 +86,6 @@ def main(argv):
         rsdgMerge = naiveMerge(r1, r2)
         [meanErr, maxErr, maxId, out] = checkRate(rsdgMerge, fact, targetMax)
         printRSDG(rsdgMerge,False)
-        return 0
-
-    if (mode == "consrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact, False, "linear", remote)
-        return 0
-
-    if (mode == "conscontrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact, True, model,remote)
-        return 0
-
-    if (mode == "qos"): #check the QoS loss of two different runtime behavior
-        # fact will be the golden truth
-        # observed will be the actual runtime data
-        checkAccuracy()
         return 0
 
     return 0

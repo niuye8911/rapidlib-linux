@@ -38,7 +38,7 @@ def genRS(fact,set,targetMax,targetMean):
             genProblem(service_levels, curConfigs)
             # fetch the resulting rsdg
             rsdg = solveAndPopulate(service_levels, False, False)
-            [meanErr,maxErr, maxId,out] = checkRate(rsdg,fact, targetMax)
+            [meanErr,maxErr, maxId] = checkRate(rsdg,fact)
             if(meanErr <= maxErrTmp):
                 maxErrTmp = meanErr
                 curMeanErr = meanErr
@@ -66,7 +66,7 @@ def genRS(fact,set,targetMax,targetMean):
     checkRate(rsdg, fact)
 
     #write result to a file
-    resFile = open("RS",'w')
+    resFile = open("./outputs/RS",'w')
     for eachConfig in represented_set:
         resFile.write(eachConfig.print_yourself())
         resFile.write("\n")
@@ -79,7 +79,7 @@ def populateRSDG(observedFile, factFile, cont,model,remote):
         if not (model == "" or model == "quad"):
             quad = False
         paras = genContProblem(factFile,quad)
-        os.system("gurobi_cl ResultFile=max.sol contproblem.lp")
+        os.system("gurobi_cl ResultFile=outputs/max.sol outputs/contproblem.lp")
         print paras
         getContRSDGandCheckRate(paras,factFile,quad)
         return
@@ -90,6 +90,6 @@ def populateRSDG(observedFile, factFile, cont,model,remote):
     observed_configs, dummy = generateConfigsFromTraining(observedFile)
     genProblem(service_levels, observed_configs)
     rsdg = solveAndPopulate(service_levels, True, remote)
-    [meanErr, maxErr, maxId, dummy] = checkRate(rsdg, factFile)
+    [meanErr, maxErr, maxId] = checkRate(rsdg, factFile)
     print "Mean:" + str(meanErr) + "\tMax:" + str(maxErr)
     print "maxConfig:" + str(maxId)

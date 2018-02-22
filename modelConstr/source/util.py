@@ -4,7 +4,7 @@ from qos_checker import *
 
 def checkRate(rsdg,fact):
     factCost = open(fact,'r')
-    report = open("report",'w')
+    report = open("outputs/report",'w')
     meanErr = 0.0
     maxErr = 0.0
     maxId = -1
