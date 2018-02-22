@@ -18,8 +18,8 @@ def solveAndPopulate(service_levels, PRINT, remote):
     	maxsol.write("\n")
         maxsol.close()
     else:
-        os.system("gurobi_cl ResultFile=max.sol problem.lp")
-    resFile = open("max.sol",'r')
+        os.system("gurobi_cl ResultFile=outputs/max.sol outputs/problem.lp")
+    resFile = open("outputs/max.sol",'r')
     rsdg = {}
     for line in resFile:
         col = line.split()
@@ -48,7 +48,7 @@ def solveAndPopulate(service_levels, PRINT, remote):
     return rsdg
 
 def printRSDG(rsdg,output):
-    rsdgF = open("rsdg",'w')
+    rsdgF = open("outputs/rsdg",'w')
     for i in rsdg:
         strg = ""
         lvls = rsdg[i]
@@ -59,7 +59,7 @@ def printRSDG(rsdg,output):
 
 # generate the optimization problem that tries to find a value distribution that minimizes the error
 def genProblem(service_levels, configs):
-    prob = open("problem.lp",'w')
+    prob = open("./outputs/problem.lp",'w')
     #write obj
     #prob.write("Minimize\nerr\n\n")
     prob.write("Minimize\n")
