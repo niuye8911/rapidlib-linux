@@ -1,1 +1,0 @@
-python parseData.py -m conscontrsdg -f bodyPort/facts/fact_dell_cont.csv -o bodyPort/facts/fact_dell_cont.csv --model quad
