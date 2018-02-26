@@ -1,6 +1,7 @@
 import optparse
 from LP_Util.merge import *
 from representset import *
+from xmlgen import *
 
 configs = []
 service_levels = {}
@@ -32,6 +33,9 @@ def main(argv):
     parser.add_option('--model', dest="model")
     parser.add_option('--rs', dest="rs")
 
+    parser.add_option('--rsdg', dest="rsdg")
+    parser.add_option('--dep', dest="dep")
+
     options, args = parser.parse_args()
     observed = options.observed
     fact = options.fact
@@ -45,6 +49,9 @@ def main(argv):
     mode = options.mode
 
     os.system("mkdir outputs")
+
+    if (mode == "genxml"):
+        genxml(options.rsdg,True,options.dep)
 
     if(mode=="genrs"):
         if (rs=="set"):

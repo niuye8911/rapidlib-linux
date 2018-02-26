@@ -30,6 +30,12 @@ def genBounds(num_of_err, paras):
     for i in range(1,num_of_err+1):
         para_copy.add("err"+str(i))
     for j in para_copy:
+        # the quad term has to be greater than 0
+        col = j.split('_')
+        if len(col) == 2:
+            if col[1]=='2':
+                bounds += "0 < " + j + "\n"
+                continue
         bounds += "-99999 < " + j + " < 99999\n"
     return bounds
 
