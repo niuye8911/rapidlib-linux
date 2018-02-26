@@ -34,6 +34,7 @@ def main(argv):
     parser.add_option('--rs', dest="rs")
 
     parser.add_option('--rsdg', dest="rsdg")
+    parser.add_option('--rsdgmv', dest="rsdgmv")
     parser.add_option('--dep', dest="dep")
 
     options, args = parser.parse_args()
@@ -51,7 +52,7 @@ def main(argv):
     os.system("mkdir outputs")
 
     if (mode == "genxml"):
-        genxml(options.rsdg,True,options.dep)
+        genxml(options.rsdg,options.rsdgmv,True,options.dep)
 
     if(mode=="genrs"):
         if (rs=="set"):

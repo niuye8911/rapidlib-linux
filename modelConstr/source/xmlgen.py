@@ -1,8 +1,9 @@
 from lxml import etree
 from xml.dom import minidom
 
-def genxml(rsdgfile,cont,depfile):
+def genxml(rsdgfile,rsdgmvfile,cont,depfile):
     rsdg_map,relationmap = readcontrsdg(rsdgfile)
+    rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
     and_list,or_list,range_map = readcontdep(depfile)
 
     #write the root:resource
@@ -31,8 +32,19 @@ def genxml(rsdgfile,cont,depfile):
             etree.SubElement(contcost, "o1").text = str(paras[1])
             etree.SubElement(contcost, "c").text = str(paras[2])
 
+    #create all contmv
+    for service,paras in rsdgmv_map.items():
+        for services in xml.findall("service"):
+            name = services.find("servicelayer").find("basicnode").find("nodename").text
+            if not name==service:
+                continue
+            node = services.find("servicelayer").find("basicnode")
+            contmv = etree.SubElement(node,"contmv")
+            etree.SubElement(contmv,"o2").text = str(paras[0])
+            etree.SubElement(contmv, "o1").text = str(paras[1])
+            etree.SubElement(contmv, "c").text = str(paras[2])
+
     #create all contwith
-    print relationmap
     for sink,sourcelist in relationmap.items():
         for source,coeff in sourcelist.items():
             for services in xml.findall("service"):
@@ -44,6 +56,17 @@ def genxml(rsdgfile,cont,depfile):
                 etree.SubElement(contwith,"name").text = source
                 etree.SubElement(contwith, "costcoeff").text = str(coeff)
                 etree.SubElement(contwith, "mvcoeff").text = "0"
+
+    #create all contwithmv
+    for sink,sourcelist in relationmvmap.items():
+        for source,coeff in sourcelist.items():
+            for services in xml.findall("service"):
+                node = services.find("servicelayer").find("basicnode")
+                nodename = node.find("nodename").text
+                if not nodename == sink:
+                    continue
+                for contwiths in node.findall("contwith"):
+                    mvcoeff = contwiths.find("mvcoeff")
 
     #create all contand and contor
     for and_edge in and_list:
