@@ -137,6 +137,7 @@ void rsdgMission::regContService(string sName, string bName, void*(*func)(void*)
 	regService(sName, bName, func, false);
 	// register the value for parameter
 	contParaList[bName] = para;
+	CONT = true;
 }
 
 void rsdgService::addNode(string nodeName){
@@ -371,10 +372,16 @@ void rsdgMission::printToLog(){
 			if(nodelist[lvl]==basic){
 				break;	
 			}
-		} 
-	        logfile<<service<<","<<lvl+1<<",";
-		if(TRAINING_MODE)fact<<service<<","<<lvl+1<<",";
-		if(update)RS_fact<<service<<","<<lvl+1<<",";
+		}
+		lvl++;
+		if(CONT && contServiceValue.find(basic)!=contServiceValue.end()){
+		//check if this service is a cont service
+			lvl = contServiceValue[basic];
+				
+		}
+	        logfile<<service<<","<<lvl<<",";
+		if(TRAINING_MODE)fact<<service<<","<<lvl<<",";
+		if(update)RS_fact<<service<<","<<lvl<<",";
         }
 	logfile<<predictedCost<<",";
 	logfile<<realCost<<endl;
@@ -1002,6 +1009,27 @@ vector<string> rsdgMission::searchProfile(){
 
 void rsdgMission::setOfflineSearch(){
 	offline_search = true;
+}
+
+/**
+ * Training a continuous RSDG
+ */
+void rsdgMission::readContTrainingSet(){
+	ifstream trainingSet;
+	trainingSet.open("trainingset");
+        string line;            
+        while(getline(trainingSet, line)){
+		vector<string> singleConfig;
+                istringstream configs(line);
+		string curSVC;
+		string curSVCval;
+                while(configs>>curSVC){
+                        configs>>curSVCval;            
+			string singleSelect = curSVC + " " + curSVCval;
+			singleConfig.push_back(singleSelect);
+                }
+		all_configs.push_back(singleConfig);
+        }
 }
 /*
 void rsdgMission::scaleup(string service, int scale){

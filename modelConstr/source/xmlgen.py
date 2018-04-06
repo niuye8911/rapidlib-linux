@@ -21,52 +21,56 @@ def genxml(rsdgfile,rsdgmvfile,cont,depfile):
             etree.SubElement(node, "contmin").text = node_range[1]
 
     #create all contcost
-    for service,paras in rsdg_map.items():
-        for services in xml.findall("service"):
-            name = services.find("servicelayer").find("basicnode").find("nodename").text
-            if not name==service:
-                continue
-            node = services.find("servicelayer").find("basicnode")
-            contcost = etree.SubElement(node,"contcost")
-            etree.SubElement(contcost,"o2").text = str(paras[0])
-            etree.SubElement(contcost, "o1").text = str(paras[1])
-            etree.SubElement(contcost, "c").text = str(paras[2])
+    if not rsdg_map is None:
+        for service,paras in rsdg_map.items():
+            for services in xml.findall("service"):
+                name = services.find("servicelayer").find("basicnode").find("nodename").text
+                if not name==service:
+                    continue
+                node = services.find("servicelayer").find("basicnode")
+                contcost = etree.SubElement(node,"contcost")
+                etree.SubElement(contcost,"o2").text = str(paras[0])
+                etree.SubElement(contcost, "o1").text = str(paras[1])
+                etree.SubElement(contcost, "c").text = str(paras[2])
 
     #create all contmv
-    for service,paras in rsdgmv_map.items():
-        for services in xml.findall("service"):
-            name = services.find("servicelayer").find("basicnode").find("nodename").text
-            if not name==service:
-                continue
-            node = services.find("servicelayer").find("basicnode")
-            contmv = etree.SubElement(node,"contmv")
-            etree.SubElement(contmv,"o2").text = str(paras[0])
-            etree.SubElement(contmv, "o1").text = str(paras[1])
-            etree.SubElement(contmv, "c").text = str(paras[2])
+    if not rsdgmv_map is None:
+        for service,paras in rsdgmv_map.items():
+            for services in xml.findall("service"):
+                name = services.find("servicelayer").find("basicnode").find("nodename").text
+                if not name==service:
+                    continue
+                node = services.find("servicelayer").find("basicnode")
+                contmv = etree.SubElement(node,"contmv")
+                etree.SubElement(contmv,"o2").text = str(paras[0])
+                etree.SubElement(contmv, "o1").text = str(paras[1])
+                etree.SubElement(contmv, "c").text = str(paras[2])
 
     #create all contwith
-    for sink,sourcelist in relationmap.items():
-        for source,coeff in sourcelist.items():
-            for services in xml.findall("service"):
-                node = services.find("servicelayer").find("basicnode")
-                nodename = node.find("nodename").text
-                if not nodename == sink:
-                    continue
-                contwith = etree.SubElement(node,"contwith")
-                etree.SubElement(contwith,"name").text = source
-                etree.SubElement(contwith, "costcoeff").text = str(coeff)
-                etree.SubElement(contwith, "mvcoeff").text = "0"
+    if not relationmap is None:
+        for sink,sourcelist in relationmap.items():
+            for source,coeff in sourcelist.items():
+                for services in xml.findall("service"):
+                    node = services.find("servicelayer").find("basicnode")
+                    nodename = node.find("nodename").text
+                    if not nodename == sink:
+                        continue
+                    contwith = etree.SubElement(node,"contwith")
+                    etree.SubElement(contwith,"name").text = source
+                    etree.SubElement(contwith, "costcoeff").text = str(coeff)
+                    etree.SubElement(contwith, "mvcoeff").text = "0"
 
     #create all contwithmv
-    for sink,sourcelist in relationmvmap.items():
-        for source,coeff in sourcelist.items():
-            for services in xml.findall("service"):
-                node = services.find("servicelayer").find("basicnode")
-                nodename = node.find("nodename").text
-                if not nodename == sink:
-                    continue
-                for contwiths in node.findall("contwith"):
-                    mvcoeff = contwiths.find("mvcoeff")
+    if not relationmvmap is None:
+        for sink,sourcelist in relationmvmap.items():
+            for source,coeff in sourcelist.items():
+                for services in xml.findall("service"):
+                    node = services.find("servicelayer").find("basicnode")
+                    nodename = node.find("nodename").text
+                    if not nodename == sink:
+                        continue
+                    for contwiths in node.findall("contwith"):
+                        mvcoeff = contwiths.find("mvcoeff")
 
     #create all contand and contor
     for and_edge in and_list:
@@ -128,6 +132,9 @@ def readcontdep(depfile):
     return and_list,or_list,range_map
 
 def readcontrsdg(rsdgfile):
+    if rsdgfile=="":
+        print "[WARNING] RSDG not provided, generating strucutral info only"
+        return [None,None]
     rsdg = open(rsdgfile,'r')
     rsdg_map = {}
     relation_map = {}

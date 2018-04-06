@@ -36,7 +36,7 @@ def genTrainingSet(cfg):
             beautify(finallist,outfile)
         else:
             invalid+=1
-    print("ommited in total "+str(invalid)+" settings")
+    print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
     outfile.close()
 
 def beautify(finallist,outfile):
@@ -65,7 +65,7 @@ def genAllTraining(knobs):
         step = (max-min)/9.0
         if step<1:
             step = 1
-        print "step size for "+name + "is " + str(step)
+        #print "step size for "+name + "is " + str(step)
         i = min
         while i <= max:
             single_set.append(config(name,int(i)))
@@ -79,7 +79,7 @@ def genAllTraining(knobs):
            pro = itertools.product(pro, i)
 
        else:
-           print "init pro"
+           #print "init pro"
            pro = i
            inited = True
     return pro
@@ -145,5 +145,3 @@ class knob:
         self.set_name = set_name
         self.min = int(min)
         self.max = int(max)
-
-genTrainingSet("./tmpdepfile")

@@ -2,6 +2,7 @@ import optparse
 from LP_Util.merge import *
 from representset import *
 from xmlgen import *
+from tranning import *
 
 configs = []
 service_levels = {}
@@ -32,10 +33,11 @@ def main(argv):
     parser.add_option('-r', dest='remote')
     parser.add_option('--model', dest="model")
     parser.add_option('--rs', dest="rs")
-
     parser.add_option('--rsdg', dest="rsdg")
     parser.add_option('--rsdgmv', dest="rsdgmv")
     parser.add_option('--dep', dest="dep")
+    parser.add_option('--desc',dest="desc")
+    parser.add_option('--stage',dest='stage')
 
     options, args = parser.parse_args()
     observed = options.observed
@@ -48,11 +50,23 @@ def main(argv):
     rs = options.rs
     remote = options.remote
     mode = options.mode
+    desc = options.desc
+    stage = int(options.stage)
 
-    os.system("mkdir outputs")
+    if not os.path.exists("./outputs"):
+        os.system("mkdir outputs")
 
-    if (mode == "genxml"):
-        genxml(options.rsdg,options.rsdgmv,True,options.dep)
+    #first stage: generate structural RSDG and training set
+    if (stage == 1):
+        #generate training set
+        if desc=="" or desc==None:
+            print "required a description of program with option --desc"
+            return
+        genTrainingSet(desc)
+        print "RAPID-C / STAGE-1 : generated training set in file ./trainingset"
+        print "RAPID-C / STAGE-1 : generating... structural RSDG xml"
+        #genxml(options.rsdg,options.rsdgmv,True,options.dep)
+        genxml("","",True,desc)
 
     if(mode=="genrs"):
         if (rs=="set"):

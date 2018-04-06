@@ -102,6 +102,7 @@ class rsdgMission{
 	long long startTime = -1;
 	bool TRAINING_MODE = false;
 	int unitBetweenCheckPoints = 0;
+	bool CONT = false;
 	ofstream logfile;
 
 	//mission related;
@@ -196,5 +197,6 @@ class rsdgMission{
 		void readCostProfile();
 		vector<string> searchProfile();
 		void setOfflineSearch();
+		void readContTrainingSet();
 };
 #endif
