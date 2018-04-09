@@ -1,4 +1,5 @@
 import itertools
+from Classes import *
 
 "stage-1 generate valid training set from constraints"
 def genTrainingSet(cfg):
@@ -28,16 +29,22 @@ def genTrainingSet(cfg):
             else:
                 and_constriants.add(constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
     all_training = genAllTraining(knobs)
+    flatted_all_training = []
     invalid = 0
     for configs in all_training:
         finallist = []
+        configuration = Configuration()
         flat(configs,finallist)
         if validate(finallist,knobs,and_constriants,or_constraints):
+            # add the list to configs
+            configuration.addConfig(finallist)
+            flatted_all_training.append(configuration)
             beautify(finallist,outfile)
         else:
             invalid+=1
     print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
     outfile.close()
+    return flatted_all_training
 
 def beautify(finallist,outfile):
     for i in range(len(finallist)):
@@ -124,24 +131,3 @@ def validate(configs,knobs,and_constraints,or_constraints):
         #TBD
     return True
 
-class config:
-    def __init__(self,setting,val):
-        self.setting = setting
-        self.val = val
-
-class constraint:
-    def __init__(self,type,source,sink,source_min,source_max,sink_min,sink_max):
-        self.type = type
-        self.source = source
-        self.sink = sink
-        self.source_min = int(source_min)
-        self.source_max = int(source_max)
-        self.sink_min = int(sink_min)
-        self.sink_max = int(sink_max)
-
-class knob:
-    def __init__(self,svc_name,set_name,min,max):
-        self.svc_name = svc_name
-        self.set_name = set_name
-        self.min = int(min)
-        self.max = int(max)

@@ -3,6 +3,7 @@ from LP_Util.merge import *
 from representset import *
 from xmlgen import *
 from tranning import *
+from Parsing_Util.readFact import *
 
 configs = []
 service_levels = {}
@@ -15,6 +16,8 @@ rs = "set"
 remote = False
 targetMax = 0.05 
 targetMean = 0.02
+profile = {}
+profile_configs = []
 
 def main(argv):
     global config, observed, fact, KF, app, remote,model,rs
@@ -62,11 +65,27 @@ def main(argv):
         if desc=="" or desc==None:
             print "required a description of program with option --desc"
             return
-        genTrainingSet(desc)
+        global profile_configs
+        profile_configs = genTrainingSet(desc)
         print "RAPID-C / STAGE-1 : generated training set in file ./trainingset"
         print "RAPID-C / STAGE-1 : generating... structural RSDG xml"
         #genxml(options.rsdg,options.rsdgmv,True,options.dep)
         genxml("","",True,desc)
+    #second stage: Binding, nothing to be done here, all done in source
+
+    #third stage: Training, the source library will take care of the training, the output is a fact.csv file
+
+    #forth stage, explore the trained profile and generate representative list
+    elif (stage==4):
+        fact = open("fact.csv",'r')
+        if fact==None:
+            print "RAPID-C / STAGE-4 : reading trained profile failed"
+            return
+        # read in the trained profile, the profile key is a string representing the configuration, value is the cost
+        profile = readFact(fact)
+        print "RAPID-C / STAGE-4 : trained profile constructed"
+        # construct the RL iteratively given a threshold
+        genRL(profile,profile_configs)
 
     if(mode=="genrs"):
         if (rs=="set"):
