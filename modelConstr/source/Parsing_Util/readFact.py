@@ -11,9 +11,11 @@ def readFact(fact):
             if i==len(col)-1:
                 cost = float(col[i])
                 continue
-            knob_name = col[i]
-            knob_val = float(col[i+1])
-            config_name+=knob_name+","+str(knob_val)
-            i+=1
+            if knob_name=="":
+                knob_name = col[i]
+                continue
+            else:
+                knob_val = float(col[i])
+                config_name+=knob_name+","+str(knob_val)
         final_profile[config_name] = cost
     return final_profile

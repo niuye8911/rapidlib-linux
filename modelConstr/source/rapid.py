@@ -4,6 +4,7 @@ from representset import *
 from xmlgen import *
 from tranning import *
 from Parsing_Util.readFact import *
+from representList import *
 
 configs = []
 service_levels = {}
@@ -18,6 +19,9 @@ targetMax = 0.05
 targetMean = 0.02
 profile = {}
 profile_configs = []
+knob_samples = {}
+
+THRESHOLD = 0.05
 
 def main(argv):
     global config, observed, fact, KF, app, remote,model,rs
@@ -60,32 +64,35 @@ def main(argv):
         os.system("mkdir outputs")
 
     #first stage: generate structural RSDG and training set
+
+    #generate training set
+    if desc=="" or desc==None:
+        print "required a description of program with option --desc"
+        return
+    global profile_configs, knob_samples
+    profile_configs, knob_samples = genTrainingSet(desc)
+    print "RAPID-C / STAGE-1 : generated training set in file ./trainingset"
+    print "RAPID-C / STAGE-1 : generating... structural RSDG xml"
+    #genxml(options.rsdg,options.rsdgmv,True,options.dep)
+    genxml("","",True,desc)
     if (stage == 1):
-        #generate training set
-        if desc=="" or desc==None:
-            print "required a description of program with option --desc"
-            return
-        global profile_configs
-        profile_configs = genTrainingSet(desc)
-        print "RAPID-C / STAGE-1 : generated training set in file ./trainingset"
-        print "RAPID-C / STAGE-1 : generating... structural RSDG xml"
-        #genxml(options.rsdg,options.rsdgmv,True,options.dep)
-        genxml("","",True,desc)
+        return
     #second stage: Binding, nothing to be done here, all done in source
 
     #third stage: Training, the source library will take care of the training, the output is a fact.csv file
 
     #forth stage, explore the trained profile and generate representative list
-    elif (stage==4):
-        fact = open("fact.csv",'r')
-        if fact==None:
-            print "RAPID-C / STAGE-4 : reading trained profile failed"
-            return
-        # read in the trained profile, the profile key is a string representing the configuration, value is the cost
-        profile = readFact(fact)
-        print "RAPID-C / STAGE-4 : trained profile constructed"
-        # construct the RL iteratively given a threshold
-        genRL(profile,profile_configs)
+    fact = open("fact.csv",'r')
+    if fact==None:
+        print "RAPID-C / STAGE-4 : reading trained profile failed"
+        return
+    # read in the trained profile, the profile key is a string representing the configuration, value is the cost
+    profile = readFact(fact)
+    print "RAPID-C / STAGE-4 : trained profile constructed"
+    # construct the RL iteratively given a threshold
+    genRL(profile,knob_samples, THRESHOLD)
+    if (stage == 4):
+        return
 
     if(mode=="genrs"):
         if (rs=="set"):

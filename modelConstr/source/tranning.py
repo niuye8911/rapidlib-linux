@@ -28,7 +28,7 @@ def genTrainingSet(cfg):
                 or_constraints.add(constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
             else:
                 and_constriants.add(constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
-    all_training = genAllTraining(knobs)
+    all_training, knob_samples = genAllTraining(knobs)
     flatted_all_training = []
     invalid = 0
     for configs in all_training:
@@ -44,7 +44,7 @@ def genTrainingSet(cfg):
             invalid+=1
     print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
     outfile.close()
-    return flatted_all_training
+    return flatted_all_training, knob_samples
 
 def beautify(finallist,outfile):
     for i in range(len(finallist)):
@@ -64,6 +64,7 @@ def flat(tup,finallist):
 
 def genAllTraining(knobs):
     final_sets = set()
+    knob_samples = {}
     for knob in knobs:
         single_set = []
         name = knob.set_name
@@ -73,22 +74,27 @@ def genAllTraining(knobs):
         if step<1:
             step = 1
         #print "step size for "+name + "is " + str(step)
+        knob_samples[name] = []
         i = min
         while i <= max:
             single_set.append(config(name,int(i)))
+            knob_samples[name].append(int(i))
             i= i + step
         frozen_single = frozenset(single_set)
         final_sets.add(frozen_single)
+    pro = crossproduct(final_sets)
+    return pro, knob_samples
+
+def crossproduct(final_sets):
     pro = {}
     inited = False;
     for i in final_sets:
-       if inited:
-           pro = itertools.product(pro, i)
-
-       else:
-           #print "init pro"
-           pro = i
-           inited = True
+        if inited:
+            pro = itertools.product(pro, i)
+        else:
+            # print "init pro"
+            pro = i
+            inited = True
     return pro
 
 def validate(configs,knobs,and_constraints,or_constraints):
