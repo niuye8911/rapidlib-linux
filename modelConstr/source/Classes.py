@@ -1,19 +1,41 @@
-# configuration consists of multiple config's, each of which represents a setting for a knob
-class Configuration:
+# Neccesary Data-Structures used in RAPID-C
+
+class Knobs:
     def __init__(self):
-        self.knobs = []
-    def addConfig(self,config):
-        for c in config:
-            self.knobs.append(c)
+        self.knobs = {}
+    def addKnob(self,knob):
+        self.knobs[knob.set_name] = knob
+    def getKnob(self,name):
+        return self.knobs[name]
+
+# a knob setting with max and min settings, smallest unit for RAPID-C
+class Knob:
+    def __init__(self,svc_name,set_name,min,max):
+        self.svc_name = svc_name
+        self.set_name = set_name
+        self.min = int(min)
+        self.max = int(max)
 
 # a config for a certain knob
-class config:
-    def __init__(self,setting,val):
-        self.setting = setting
+class Config:
+    def __init__(self,knob,val):
+        self.knob = knob
         self.val = val
 
-# a continuous constraint
-class constraint:
+# configuration consists of multiple config's, each of which represents a knob configuration
+class Configuration:
+    def __init__(self):
+        self.knob_settings = []
+    def addConfig(self,config):
+        for c in config:
+            self.knob_settings.append(c)
+    def retrieve_configs(self):
+        return self.knob_settings
+
+###################problem generation#########################
+
+# a continuous constraint with source and sink
+class Constraint:
     def __init__(self,type,source,sink,source_min,source_max,sink_min,sink_max):
         self.type = type
         self.source = source
@@ -23,10 +45,41 @@ class constraint:
         self.sink_min = int(sink_min)
         self.sink_max = int(sink_max)
 
-# a knob setting
-class knob:
-    def __init__(self,svc_name,set_name,min,max):
-        self.svc_name = svc_name
-        self.set_name = set_name
-        self.min = int(min)
-        self.max = int(max)
+
+###################parsing classes#############################
+
+# a profile table, could be observed, or ground truth
+class Profile:
+    def __init__(self):
+        self.profile_table = {}
+    def addEntry(self,config,cost):
+        self.profile_table[self.hashConfig(config)]=cost
+        return
+    def hashConfig(self,configuration):
+        tmp_map = {}
+        settings = configuration.retrieve_configs()
+        for c in settings:
+            name = c.knob.set_name
+            val = c.val
+            tmp_map[name] = val
+        hash_result = ""
+        sorted(settings)
+        for m in tmp_map:
+            hash_result+=m+","+str(tmp_map[m])+","
+        hash_result = hash_result[:-1]
+        return hash_result
+    def setCost(self,configuration,cost):
+        self.profile_table[self.hashConfig(configuration)] = cost
+    def getCost(self,configuration):
+        entry = self.hashConfig(configuration)
+        return self.profile_table[entry]
+    def hasEntry(self,configuration):
+        return self.hashConfig(configuration) in self.profile_table
+    def printProfile(self,outputfile):
+        output = open(outputfile,'w')
+        for i in sorted(self.profile_table):
+            output.write(i)
+            output.write(",")
+            output.write(str(self.profile_table[i]))
+            output.write("\n")
+        output.close()

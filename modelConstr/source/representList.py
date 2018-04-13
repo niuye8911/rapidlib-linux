@@ -1,6 +1,5 @@
-from tranning import crossproduct
 # contains functions to compute the representative list of a RSDG, given the fact profile
-def genRL(groundTruth,knob_samples, threshold):
+def genRL(gt,knob_samples, threshold):
     #gT is a dictionary where entry is the config and value is hte cost
     #profile_configs is the structured configuration
 
@@ -14,9 +13,9 @@ def genRL(groundTruth,knob_samples, threshold):
             break
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
-        observed = retrieve(partitions, groundTruth)
+        observed = retrieve(partitions, gt)
         rsdg = populate(observed)
-        error = compare(rsdg,groundTruth)
+        error = compare(rsdg,gt)
     return
 
 # given a partion level, return a list of configurations

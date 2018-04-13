@@ -1,21 +1,45 @@
 import itertools
-from Classes import *
+from source.Classes import *
 
-"stage-1 generate valid training set from constraints"
-def genTrainingSet(cfg):
-    configs = open(cfg, 'r')
+#stage-1 generate valid training set from constraints
+def genTrainingSet(cfg_file):
+    config_file = open(cfg_file, 'r') #input file
+    outfile = open('trainingset','w') #output file
+    # parsing the file
+    knobs,and_constriants,or_constraints = processFile(config_file)
+    # generate the training
+    all_training, knob_samples = genAllTraining(knobs)
+    # flat the all_training
+    flatted = flatAll(all_training)
+    # filter out the invalid configs
+    flatted_all_training = []
+    invalid = 0
+    for config in flatted:
+        if validate(config,knobs,and_constriants,or_constraints):
+            # add the list to configs
+            configuration = Configuration()
+            configuration.addConfig(config)
+            flatted_all_training.append(configuration)
+            beautifyAndWriteOut(config, outfile)
+        else:
+            invalid+=1
+    print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
+    outfile.close()
+    return flatted_all_training, knob_samples
+
+# read in a description file
+def processFile(cfg_file):
     knobs = set()
     and_constriants = set()
     or_constraints = set()
-    outfile = open('trainingset','w')
-    for line in configs:
+    for line in cfg_file:
         col = line.split(' ')
         if len(col)==4:#knob definition
             knob_name = col[0]
             setting = col[1]
             setting_min = col[2]
             setting_max = col[3]
-            knobs.add(knob(knob_name,setting,setting_min,setting_max))
+            knobs.add(Knob(knob_name,setting,setting_min,setting_max))
         elif len(col)==7:#it's a edge
             type = col[0]
             sink = col[1]
@@ -25,34 +49,12 @@ def genTrainingSet(cfg):
             sink_min = col[3]
             sink_max = col[4]
             if type=="or":
-                or_constraints.add(constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
+                or_constraints.add(Constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
             else:
-                and_constriants.add(constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
-    all_training, knob_samples = genAllTraining(knobs)
-    flatted_all_training = []
-    invalid = 0
-    for configs in all_training:
-        finallist = []
-        configuration = Configuration()
-        flat(configs,finallist)
-        if validate(finallist,knobs,and_constriants,or_constraints):
-            # add the list to configs
-            configuration.addConfig(finallist)
-            flatted_all_training.append(configuration)
-            beautify(finallist,outfile)
-        else:
-            invalid+=1
-    print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
-    outfile.close()
-    return flatted_all_training, knob_samples
+                and_constriants.add(Constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
+    return knobs,and_constriants,or_constraints
 
-def beautify(finallist,outfile):
-    for i in range(len(finallist)):
-        outfile.write(finallist[i].setting + "," + str(finallist[i].val))
-        if not (i == len(finallist)-1):
-            outfile.write(",")
-    outfile.write("\n")
-
+# flat a single tuple
 def flat(tup,finallist):
     if type(tup) is tuple:
         if (len(tup)==0):
@@ -62,6 +64,19 @@ def flat(tup,finallist):
     else:
         finallist.append(tup)
 
+# flatten a list of tuples
+def flatAll(listOfTuples):
+    result = []
+    for t in listOfTuples:
+        tmp_result = []
+        flat(t,tmp_result)
+        result.append(tmp_result)
+    return result
+
+# generate all possible combinations given a set of knobs
+# return:
+# product - a cross product containing bunch of Configurations
+# knob_samples - a disctionary contains all sampled configs
 def genAllTraining(knobs):
     final_sets = set()
     knob_samples = {}
@@ -77,14 +92,15 @@ def genAllTraining(knobs):
         knob_samples[name] = []
         i = min
         while i <= max:
-            single_set.append(config(name,int(i)))
+            single_set.append(Config(name,int(i)))
             knob_samples[name].append(int(i))
             i= i + step
         frozen_single = frozenset(single_set)
         final_sets.add(frozen_single)
-    pro = crossproduct(final_sets)
-    return pro, knob_samples
+    product = crossproduct(final_sets)
+    return product, knob_samples
 
+# do a cross product of a set of configuration lists
 def crossproduct(final_sets):
     pro = {}
     inited = False;
@@ -97,6 +113,7 @@ def crossproduct(final_sets):
             inited = True
     return pro
 
+# validate if a config is valid
 def validate(configs,knobs,and_constraints,or_constraints):
     config_map = dict()
     # setup the map
@@ -137,3 +154,10 @@ def validate(configs,knobs,and_constraints,or_constraints):
         #TBD
     return True
 
+# write out to the training file
+def beautifyAndWriteOut(finallist, outfile):
+    for i in range(len(finallist)):
+        outfile.write(finallist[i].setting + "," + str(finallist[i].val))
+        if not (i == len(finallist)-1):
+            outfile.write(",")
+    outfile.write("\n")

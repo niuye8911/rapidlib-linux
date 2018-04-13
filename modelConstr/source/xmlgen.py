@@ -2,6 +2,7 @@ from lxml import etree
 from xml.dom import minidom
 
 def genxml(rsdgfile,rsdgmvfile,cont,depfile):
+    print "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map,relationmap = readcontrsdg(rsdgfile)
     rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
     and_list,or_list,range_map = readcontdep(depfile)
