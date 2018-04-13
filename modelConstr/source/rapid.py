@@ -19,7 +19,7 @@ remote = False
 targetMax = 0.05 
 targetMean = 0.02
 groundTruth_profile = Profile()
-knobs = {}
+knobs = Knobs()
 knob_samples = {}
 desc = ""
 stage = -1
@@ -63,7 +63,7 @@ def main(argv):
     readFact("fact.csv",knobs,groundTruth_profile)
     groundTruth_profile.printProfile("profile.csv")
     # construct the RL iteratively given a threshold
-    genRL(groundTruth_profile,knob_samples, THRESHOLD)
+    genRL(groundTruth_profile,knob_samples, THRESHOLD, knobs)
     if (stage == 4):
         return
 

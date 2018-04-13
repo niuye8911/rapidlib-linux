@@ -1,5 +1,8 @@
+from stage_1.training import *
+from Classes import *
+from representset import *
 # contains functions to compute the representative list of a RSDG, given the fact profile
-def genRL(gt,knob_samples, threshold):
+def genRL(gt,knob_samples, threshold, knobs):
     #gT is a dictionary where entry is the config and value is hte cost
     #profile_configs is the structured configuration
 
@@ -9,12 +12,12 @@ def genRL(gt,knob_samples, threshold):
     error = 1.0
 
     while error>=threshold:
-        if seglvl > 4:
+        if seglvl >= 1:
             break
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
-        observed = retrieve(partitions, gt)
-        rsdg = populate(observed)
+        observed_profile = retrieve(partitions, gt, knobs)
+        rsdg = populate(observed_profile)
         error = compare(rsdg,gt)
     return
 
@@ -38,10 +41,32 @@ def partition(seglvl, knob_samples):
     return partitions
 
 # given a partition list, retrieve the data points in ground truth
-def retrieve(partitions, gt):
-    return 0
+# return a profile by observation
+def retrieve(partitions, gt, knobs):
+    observed_profile = Profile()
+    final_sets = set()
+    # partitions contains a dictionary of all knob samples
+    for knob in partitions:
+        samples = partitions[knob]
+        single_set = []
+        for sample in samples:
+            single_set.append(Config(knobs.getKnob(knob),sample))
+        final_sets.add(frozenset(single_set))
+    product = crossproduct(final_sets)
+    flatted_observed = flatAll(product)
+    for config in flatted_observed:
+        configuration = Configuration()
+        configuration.addConfig(config)
+        costVal = gt.getCost(configuration)
+        print costVal
+        observed_profile.addEntry(configuration,costVal)
+    return observed_profile
 
+# given an observed profile, generate the continuous problem and populate the rsdg
 def populate(observed):
+    # write the observation to an observed file
+    observed.printProfile("observed.csv")
+    populateRSDG("observed.csv","profile.csv",True,"quad",False)
     return 0
 
 def compare(rsdg,groundTruth):
