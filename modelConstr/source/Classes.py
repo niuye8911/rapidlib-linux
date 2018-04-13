@@ -45,6 +45,13 @@ class Constraint:
         self.sink_min = int(sink_min)
         self.sink_max = int(sink_max)
 
+class Segment:
+    def __init__(self,seg_name,knob_name,min,max):
+        self.seg_name =seg_name
+        self.knob_name = knob_name
+        self.min = min
+        self.max = max
+
 
 ###################parsing classes#############################
 

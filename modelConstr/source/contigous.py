@@ -1,7 +1,7 @@
 # Tools needed for generating contigous RSDG
-def genContProblem(fact,model):
+def genContProblem(observed,model):
     prob = open("outputs/contproblem.lp", 'w')
-    constraints, num, paras = readContFactAndGenConstraint(fact,model)
+    constraints, num, paras = readContFactAndGenConstraint(observed,model)
     # write obj, err^2 - 2 err +1
     obj = ""
     quadobj = "[ "
