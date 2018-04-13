@@ -1,10 +1,10 @@
 import itertools
-from source.Classes import *
+from Classes import *
 
-#stage-1 generate valid training set from constraints
+#stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
+    print "RAPID-C / STAGE-1.1 : generating... training set in file ./trainingset"
     config_file = open(cfg_file, 'r') #input file
-    outfile = open('trainingset','w') #output file
     # parsing the file
     knobs,and_constriants,or_constraints = processFile(config_file)
     # generate the training
@@ -12,20 +12,26 @@ def genTrainingSet(cfg_file):
     # flat the all_training
     flatted = flatAll(all_training)
     # filter out the invalid configs
-    flatted_all_training = []
+    flatted_all_training = Profile()
     invalid = 0
     for config in flatted:
         if validate(config,knobs,and_constriants,or_constraints):
             # add the list to configs
             configuration = Configuration()
             configuration.addConfig(config)
-            flatted_all_training.append(configuration)
-            beautifyAndWriteOut(config, outfile)
+            flatted_all_training.addEntry(configuration,0.0)
         else:
             invalid+=1
     print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
+    # write all valid configs to file
+    outfile = open('trainingset', 'w')  # output file
+    beautifyAndWriteOut(flatted_all_training,outfile)
     outfile.close()
-    return flatted_all_training, knob_samples
+    # prepare a Knobs
+    knobs_class = Knobs()
+    for k in knobs:
+        knobs_class.addKnob(k)
+    return knobs_class,flatted_all_training, knob_samples
 
 # read in a description file
 def processFile(cfg_file):
@@ -92,7 +98,7 @@ def genAllTraining(knobs):
         knob_samples[name] = []
         i = min
         while i <= max:
-            single_set.append(Config(name,int(i)))
+            single_set.append(Config(knob,int(i)))
             knob_samples[name].append(int(i))
             i= i + step
         frozen_single = frozenset(single_set)
@@ -118,7 +124,7 @@ def validate(configs,knobs,and_constraints,or_constraints):
     config_map = dict()
     # setup the map
     for config in configs:
-        config_map[config.setting]=config.val
+        config_map[config.knob.set_name]=config.val
     # iterate through range constraints
     for knob in knobs:
         set_name = knob.set_name
@@ -155,9 +161,17 @@ def validate(configs,knobs,and_constraints,or_constraints):
     return True
 
 # write out to the training file
-def beautifyAndWriteOut(finallist, outfile):
-    for i in range(len(finallist)):
-        outfile.write(finallist[i].setting + "," + str(finallist[i].val))
-        if not (i == len(finallist)-1):
-            outfile.write(",")
-    outfile.write("\n")
+def beautifyAndWriteOut(empty_profile, outfile):
+    output_buffer = set()
+    flatted_configurations = empty_profile.profile_table
+    for configuration_string in flatted_configurations:
+        #config_list = configuration.retrieve_configs()
+        #tmp_output = ""
+        #for i in range(len(config_list)):
+        #    tmp_output+=config_list[i].knob.set_name + "," + str(config_list[i].val)
+        #    if not (i == len(config_list)-1):
+        #        tmp_output+=","
+        output_buffer.add(configuration_string)
+    for o in sorted(output_buffer):
+        outfile.write(o)
+        outfile.write("\n")
