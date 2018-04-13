@@ -1,10 +1,8 @@
 import optparse
 from LP_Util.merge import *
-from representset import *
 from xmlgen import *
-from stage_1.training import *
 from Parsing_Util.readFact import *
-from representList import *
+from source.stage_4.detGranularity import *
 from Classes import  *
 
 configs = []
@@ -63,7 +61,7 @@ def main(argv):
     readFact("fact.csv",knobs,groundTruth_profile)
     groundTruth_profile.printProfile("profile.csv")
     # construct the RL iteratively given a threshold
-    genRL(groundTruth_profile,knob_samples, THRESHOLD, knobs)
+    detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs)
     if (stage == 4):
         return
 

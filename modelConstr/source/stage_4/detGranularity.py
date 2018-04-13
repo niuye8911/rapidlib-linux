@@ -1,8 +1,9 @@
-from stage_1.training import *
-from Classes import *
-from representset import *
+from source.stage_1.training import *
+from source.Classes import *
+from source.representset import *
+from segmentProb import *
 # contains functions to compute the representative list of a RSDG, given the fact profile
-def genRL(gt,knob_samples, threshold, knobs):
+def detGranularity(gt, knob_samples, threshold, knobs):
     #gT is a dictionary where entry is the config and value is hte cost
     #profile_configs is the structured configuration
 
@@ -17,7 +18,7 @@ def genRL(gt,knob_samples, threshold, knobs):
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        rsdg = populate(observed_profile)
+        rsdg = populate(observed_profile,partitions)
         error = compare(rsdg,gt)
     return
 
@@ -63,9 +64,10 @@ def retrieve(partitions, gt, knobs):
     return observed_profile
 
 # given an observed profile, generate the continuous problem and populate the rsdg
-def populate(observed):
+def populate(observed,partitions):
     # write the observation to an observed file
     observed.printProfile("observed.csv")
+    getSegments(partitions)
     populateRSDG("observed.csv","profile.csv",True,"quad",False)
     return 0
 
