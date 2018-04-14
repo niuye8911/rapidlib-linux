@@ -1,6 +1,21 @@
 from Classes import *
+from contigous import *
+
+# generate a cont problem
+def generateContProblem(observed,partitions,mode):
+    if mode=="quad":
+        # write the observation to an observed file
+        observed.printProfile("observed.csv")
+        genContProblem("observed.csv","quad")
+    else:
+        # get the segments
+        segments = getSegments(partitions)
+        # get the variables
+        variables = getVariables(partitions)
+        return
+
 #construct variables
-def getSegments(samples,mode):
+def getSegments(samples):
     segments = {}
     for knob in samples:
         name = knob
@@ -15,6 +30,9 @@ def getSegments(samples,mode):
             min = points[i]
     return segments
 
+# construct variables
+def getVariables(partitions):
+    pass
 
 #construct costFunction based on modes
 # mode=="piece-wise" || mode == "quadratic"
