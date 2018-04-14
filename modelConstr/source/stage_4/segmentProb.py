@@ -14,10 +14,10 @@ def generateContProblem(observed,partitions,mode):
         segments = getSegments(partitions)
         # get the variables
         seg_indicators, seg_values, knob_values = getVariables(partitions,segments)
-        # get cost functions
-        obj = errorFunction(segments,observed,mode)
         # get the constraints
         costConstraints, segConstraints, errors = genConstraints(segments,observed, mode)
+        # get obj functions
+        obj = errorFunction(errors)
         # get the bounds
         intBounds, floatBounds = genBounds(seg_indicators, seg_values, knob_values, errors)
         # beatutifyProblem
@@ -60,14 +60,14 @@ def getVariables(partitions,segments):
     return seg_indicators,seg_values,knob_values
 
 # generate the error function
-def errorFunction(segments, observed,mode):
-    observation_num = len(observed.profile_table)
+def errorFunction(errors):
+    num = len(errors)
     obj = ""
     quadobj = "[ "
-    for i in range(0, observation_num):
-        obj += "-2 err" + str(i)
-        quadobj += "err" + str(i) + " ^ 2"
-        if not (i == observation_num-1):
+    for i in range(0, num):
+        obj += "-2 " + errors[i]
+        quadobj += errors[i] + " ^ 2"
+        if not (i == num-1):
             obj += " + "
             quadobj += " + "
     quadobj += " ]\n"
@@ -99,13 +99,10 @@ def genConstraints(segments,observed, mode):
         # generate piece wise linear cost fuctions
         costConstraints = set()
         segConstraints = set()
-        errors = set()
+        errors = []
         # generate the cost Constraints"
         err_id = 0
         for configuration in observed.configurations:
-            err_name= "err"+str(err_id)
-            err_id+=1
-            errors.add(err_name)
             costVal = observed.getCost(configuration)
             fall_within_segs = {}
             for config in configuration.retrieve_configs():
@@ -150,6 +147,9 @@ def genConstraints(segments,observed, mode):
                 inter_cost = inter_cost[:-3]
             for costEstimate in costEstimates:
                 costEstimate += inter_cost
+                err_name = "err" + str(err_id)
+                err_id += 1
+                errors.append(err_name)
                 constraint = costEstimate + " + " + err_name + " = " + str(costVal)
                 costConstraints.add(constraint)
     return costConstraints,segConstraints,errors
