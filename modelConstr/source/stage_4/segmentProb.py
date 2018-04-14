@@ -100,9 +100,9 @@ def genConstraints(segments,observed, mode):
         costConstraints = set()
         segConstraints = set()
         errors = set()
-        # generate the cost Constraints
+        # generate the cost Constraints"
+        err_id = 0
         for configuration in observed.configurations:
-            err_id = 0
             err_name= "err"+str(err_id)
             err_id+=1
             errors.add(err_name)
