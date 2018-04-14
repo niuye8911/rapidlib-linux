@@ -13,13 +13,13 @@ def generateContProblem(observed,partitions,mode):
         # get the segments
         segments = getSegments(partitions)
         # get the variables
-        seg_indicators, seg_values, knob_values = getVariables(partitions,segments)
+        seg_indicators, seg_values,segconst, knob_values = getVariables(partitions,segments)
         # get the constraints
         costConstraints, segConstraints, errors = genConstraints(segments,observed, mode)
         # get obj functions
         obj = errorFunction(errors)
         # get the bounds
-        intBounds, floatBounds = genBounds(seg_indicators, seg_values, knob_values, errors)
+        intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
         # beatutifyProblem
         beautifyProblem(obj,costConstraints,segConstraints,intBounds,floatBounds,seg_indicators)
         return
@@ -47,6 +47,7 @@ def getSegments(samples):
 def getVariables(partitions,segments):
     seg_indicators = set()
     seg_values = set()
+    seg_const  = set()
     knob_values = set()
     for knob in partitions:
         name = knob
@@ -57,7 +58,8 @@ def getVariables(partitions,segments):
         for knob_seg in knob_segs:
             seg_indicators.add(knob_seg.printID())
             seg_values.add(knob_seg.printVar())
-    return seg_indicators,seg_values,knob_values
+            seg_const.add(knob_seg.printConst())
+    return seg_indicators,seg_values,seg_const,knob_values
 
 # generate the error function
 def errorFunction(errors):
@@ -165,7 +167,7 @@ def getFlattedSeg(fall_within_segs):
     flatted = flatAll(prod)
     return flatted
 
-def genBounds(seg_indicators, seg_values, knob_values, errors):
+def genBounds(seg_indicators, seg_values, segconst,knob_values, errors):
     integerBounds = set()
     floatBounds = set()
     # segIDs
@@ -173,6 +175,9 @@ def genBounds(seg_indicators, seg_values, knob_values, errors):
         bound = seg_indicator + " <= 1"
         integerBounds.add(bound)
     for seg_value in seg_values:
+        floatBound = "-99999 <= " + seg_value + " <= 99999"
+        floatBounds.add(floatBound)
+    for seg_value in segconst:
         floatBound = "-99999 <= " + seg_value + " <= 99999"
         floatBounds.add(floatBound)
     for knob_value in knob_values:
