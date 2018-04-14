@@ -1,5 +1,6 @@
 from Classes import *
 from contigous import *
+from stage_1.training import *
 
 # generate a cont problem
 
@@ -103,24 +104,37 @@ def genConstraints(segments,observed, mode):
         for configuration in observed.configurations:
             err_id = 0
             err_name= "err"+str(err_id)
+            err_id+=1
             errors.add(err_name)
-            costEstimate = ""
             costVal = observed.getCost(configuration)
+            fall_within_segs = {}
             for config in configuration.retrieve_configs():
                 knob_name = config.knob.set_name
                 knob_val = config.val
-                seg_sum = ""
+                #seg_sum = ""
                 for seg in segments[knob_name]:
-                    costEstimate += str(knob_val) + " " + seg.printVar() + " + " + str(knob_val) + " " + seg.printID() + " + "
+                    if knob_val<seg.min or knob_val > seg.max:
+                        continue
+                    if not knob_name in fall_within_segs:
+                        fall_within_segs[knob_name] = []
+                    fall_within_segs[knob_name].append(seg)
                     # generate the seg Constraints
-                    posSegConstraint = seg.printID() + " = 1 -> " + seg.printVar() + " = " + knob_name
-                    negSegConstraint = seg.printID() + " = 0 -> " + seg.printVar() + " = 0"
-                    seg_sum += seg.printID() + " + "
-                    segConstraints.add(posSegConstraint)
-                    segConstraints.add(negSegConstraint)
-                seg_sum = seg_sum[:-3]
-                segConstraints.add(seg_sum+ " = 1")
-            costEstimate = costEstimate[:-3]
+                    #posSegConstraint = seg.printID() + " = 1 -> " + seg.printVar() + " = " + knob_name
+                    #negSegConstraint = seg.printID() + " = 0 -> " + seg.printVar() + " = 0"
+                    #seg_sum += seg.printID() + " + "
+                    #segConstraints.add(posSegConstraint)
+                    #segConstraints.add(negSegConstraint)
+                #seg_sum = seg_sum[:-3]
+                #segConstraints.add(seg_sum+ " = 1")
+                # get all combinations of fall_within_segs
+            flatted_segs = getFlattedSeg(fall_within_segs)
+            costEstimates = []
+            for flatted_seg_list in flatted_segs:
+                costEstimate = ""
+                for flatted_seg in flatted_seg_list:
+                    costEstimate += str(knob_val) + " " + flatted_seg.printVar() + " + " + flatted_seg.printConst() + " + "
+                costEstimate = costEstimate[:-3]
+                costEstimates.append(costEstimate)
             # generate inter-service
             inter_cost = ""
             if not len(configuration.retrieve_configs())==1:
@@ -134,12 +148,22 @@ def genConstraints(segments,observed, mode):
                         s2_val = configs[j].val
                         inter_cost+=str(s1_val * s2_val) + " " + s1+"_"+s2 + " + "
                 inter_cost = inter_cost[:-3]
-            costEstimate += inter_cost
-            constraint = costEstimate + " + " + err_name + " = " + str(costVal)
-            costConstraints.add(constraint)
-        print segConstraints
+            for costEstimate in costEstimates:
+                costEstimate += inter_cost
+                constraint = costEstimate + " + " + err_name + " = " + str(costVal)
+                costConstraints.add(constraint)
     return costConstraints,segConstraints,errors
 
+# get a combination of cost estimates
+def getFlattedSeg(fall_within_segs):
+    result = []
+    finalsets = set()
+    for knob in fall_within_segs:
+        singleset = frozenset(fall_within_segs[knob])
+        finalsets.add(singleset)
+    prod = crossproduct(finalsets)
+    flatted = flatAll(prod)
+    return flatted
 
 def genBounds(seg_indicators, seg_values, knob_values, errors):
     integerBounds = set()

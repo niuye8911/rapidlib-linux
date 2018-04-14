@@ -57,6 +57,8 @@ class Segment:
         return self.seg_name+"_"+str(self.id)
     def printVar(self):
         return self.seg_name+"_"+str(self.id)+"_V"
+    def printConst(self):
+        return self.seg_name + "_" + str(self.id) + "_C"
     def setCoeff(self,a,b):
         self.a = a
         self.b = b
