@@ -13,7 +13,7 @@ def detGranularity(gt, knob_samples, threshold, knobs):
     error = 1.0
 
     while error>=threshold:
-        if seglvl >= 1:
+        if seglvl >= 2:
             break
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
@@ -59,14 +59,13 @@ def retrieve(partitions, gt, knobs):
         configuration = Configuration()
         configuration.addConfig(config)
         costVal = gt.getCost(configuration)
-        print costVal
         observed_profile.addEntry(configuration,costVal)
     return observed_profile
 
 # given an observed profile, generate the continuous problem and populate the rsdg
 def populate(observed,partitions):
     # get the segments
-    generateContProblem(observed,partitions,"quad")
+    generateContProblem(observed,partitions,"piecewise")
 #    populateRSDG("observed.csv","profile.csv",True,"quad",False)
     return 0
 

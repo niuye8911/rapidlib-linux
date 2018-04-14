@@ -51,7 +51,15 @@ class Segment:
         self.knob_name = knob_name
         self.min = min
         self.max = max
-
+    def setID(self,id):
+        self.id = id
+    def printID(self):
+        return self.seg_name+"_"+str(self.id)
+    def printVar(self):
+        return self.seg_name+"_"+str(self.id)+"_V"
+    def setCoeff(self,a,b):
+        self.a = a
+        self.b = b
 
 ###################parsing classes#############################
 
@@ -59,8 +67,10 @@ class Segment:
 class Profile:
     def __init__(self):
         self.profile_table = {}
+        self.configurations = set()
     def addEntry(self,config,cost):
         self.profile_table[self.hashConfig(config)]=cost
+        self.configurations.add(config)
         return
     def hashConfig(self,configuration):
         tmp_map = {}

@@ -175,8 +175,8 @@ def readContFactAndGenConstraint(fact,quad):
                 cpara = name + "_c"
                 if quad:
                     paras.add(o2para)
-                paras.add(o1para)
-                paras.add(cpara)
+                    paras.add(o1para)
+                    paras.add(cpara)
                 if quad:
                     constraint +=  str(value*value) + " " + o2para + " + "
                 constraint += str(value) + " " + o1para + " + " + cpara + " + "
