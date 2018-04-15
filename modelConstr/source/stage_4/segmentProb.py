@@ -255,5 +255,6 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
             knob_b = cols[1]
             rsdg.addInterCoeff(knob_a, knob_b, val)
     rsdg.printRSDG()
+    return rsdg
 
 

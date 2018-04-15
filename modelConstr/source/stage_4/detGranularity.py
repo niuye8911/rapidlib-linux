@@ -11,15 +11,15 @@ def detGranularity(gt, knob_samples, threshold, knobs):
     seglvl = 0
     # initial error rate set to 100%
     error = 1.0
-
     while error>=threshold:
-        if seglvl >= 2:
+        if seglvl >= 4:
             break
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
         rsdg = populate(observed_profile,partitions)
         error = compare(rsdg,gt)
+    print error, seglvl
     return
 
 # given a partion level, return a list of configurations
@@ -39,6 +39,9 @@ def partition(seglvl, knob_samples):
             step = 1
         for i in range(min,max+1,step):
             partitions[knob].append(val_range[i])
+        #extend the last one to the end
+        length = len(partitions[knob])
+        partitions[knob][length-1]=val_range[max]
     return partitions
 
 # given a partition list, retrieve the data points in ground truth
@@ -68,8 +71,14 @@ def populate(observed,partitions):
     segments, seg_values, segconst,inter_coeff= generateContProblem(observed,partitions,"piecewise")
     #  solve and retrieve the result
     rsdg = solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff)
-
-    return 0
+    return rsdg
 
 def compare(rsdg,groundTruth):
-    return 1.0
+    error = 0.0
+    count = 0
+    for configuration in groundTruth.configurations:
+        count += 1
+        rsdgCost = rsdg.calCost(configuration)
+        measurement = groundTruth.getCost(configuration)
+        error += abs(measurement-rsdgCost)/measurement
+    return error / count

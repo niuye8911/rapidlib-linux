@@ -142,14 +142,14 @@ class pieceRSDG:
     def calCost(self,configuration):
         totalcost = 0.0
         #calculate linear cost
-        for config in configuration:
+        for config in configuration.retrieve_configs():
             knob_name = config.knob.set_name
             knob_val = config.val
             seg = self.findSeg(knob_name, knob_val)
             totalcost += knob_val * seg.a + seg.b
         #calculate inter cost
         configs = []
-        for config in configuration:
+        for config in configuration.retrieve_configs():
             configs.append(config)
         for i in range(0,len(configs)-1):
             for j in range(1,len(configs)):
@@ -160,6 +160,13 @@ class pieceRSDG:
 
     def findSeg(self,knob_name,knob_val):
         seglist = self.knob_table[knob_name]
+        highest = -1
+        highest_seg = None
         for seg in seglist:
+            if seg.max>highest:
+                highest = seg.max
+                highest_seg = seg
             if knob_val>=seg.min and knob_val <= seg.max:
                 return seg
+        # IF NOTHING MATCHES, USE THE HIGHEST SEG
+        return highest_seg
