@@ -51,6 +51,8 @@ class Segment:
         self.knob_name = knob_name
         self.min = min
         self.max = max
+        self.a = 0.0
+        self.b = 0.0
     def setID(self,id):
         self.id = id
     def printID(self):
@@ -59,8 +61,9 @@ class Segment:
         return self.seg_name+"_"+str(self.id)+"_V"
     def printConst(self):
         return self.seg_name + "_" + str(self.id) + "_C"
-    def setCoeff(self,a,b):
+    def setLinearCoeff(self,a):
         self.a = a
+    def setConstCoeff(self, b):
         self.b = b
 
 ###################parsing classes#############################
@@ -104,12 +107,59 @@ class Profile:
         output.close()
 
 
-class RSDG:
+class pieceRSDG:
     def __init__(self):
         self.knob_table = {}
+        self.coeffTable = {}
     def addKnob(self,knob):
         self.knob_table[knob] = []
     def addSeg(self,knob,seg):
         self.knob_table[knob].append(seg)
     def getCost(self,configuration):
         return 0
+    def addInterCoeff(self,a,b,val):
+        if not a in self.coeffTable:
+            self.coeffTable[a] = {}
+        self.coeffTable[a][b] = val
+        if not b in self.coeffTable:
+            self.coeffTable[b] = {}
+        self.coeffTable[b][a] = val
+    def printRSDG(self):
+        rsdg = open("./rsdg",'w')
+        # print the segments
+        for knob in self.knob_table:
+            seglist = self.knob_table[knob]
+            rsdg.write(knob+"\n")
+            for seg in seglist:
+                rsdg.write(seg.printID() + "->"+"l:"+str(seg.a) + "c:"+str(seg.b)+"/")
+            rsdg.write("\n")
+        # print the coeff
+        rsdg.write("COEFF")
+        for knob in self.coeffTable:
+            for b in self.coeffTable[knob]:
+                rsdg.write(knob + "_" + b + ":"+str(self.coeffTable[knob][b])+"\n")
+        rsdg.close()
+    def calCost(self,configuration):
+        totalcost = 0.0
+        #calculate linear cost
+        for config in configuration:
+            knob_name = config.knob.set_name
+            knob_val = config.val
+            seg = self.findSeg(knob_name, knob_val)
+            totalcost += knob_val * seg.a + seg.b
+        #calculate inter cost
+        configs = []
+        for config in configuration:
+            configs.append(config)
+        for i in range(0,len(configs)-1):
+            for j in range(1,len(configs)):
+                knoba_val = configs[i].val
+                knobb_val = configs[j].val
+                totalcost+= self.coeffTable[configs[i].knob.set_name][configs[j].knob.set_name]
+        return totalcost
+
+    def findSeg(self,knob_name,knob_val):
+        seglist = self.knob_table[knob_name]
+        for seg in seglist:
+            if knob_val>=seg.min and knob_val <= seg.max:
+                return seg

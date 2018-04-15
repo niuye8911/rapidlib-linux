@@ -214,12 +214,46 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
 def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
     system("gurobi_cl ResultFile=outputs/max.sol ./fitting.lp")
     result = open("outputs/max.sol",'r')
+    rsdg = pieceRSDG()
+    # setup the knob table
+    for knob in segments:
+        rsdg.addKnob(knob)
+        for seg in segments[knob]:
+            rsdg.addSeg(knob,seg)
     for line in result:
         col = line.split()
         if not (len(col) == 2):
             continue
         name = col[0]
-        val = col[1]
-        if not (name in seg_values and name in segconst and name in inter_coeff):
-            continue
+        val = float(col[1])
+        if name in seg_values:
+            print "found seg_value"
+            # knob_id_V
+            cols = name.split("_")
+            knob_name = cols[0]
+            id = cols[1]
+            seglist = rsdg.knob_table[knob_name]
+            for seg in seglist:
+                segname = seg.printVar()
+                if segname == name:
+                    seg.setLinearCoeff(val)
+                    continue
+        if name in segconst:
+            # knob_id_V
+            cols = name.split("_")
+            knob_name = cols[0]
+            id = cols[1]
+            seglist = rsdg.knob_table[knob_name]
+            for seg in seglist:
+                segname = seg.printConst()
+                if segname == name:
+                    seg.setConstCoeff(val)
+                    continue
+        if name in inter_coeff:
+            cols = name.split("_")
+            knob_a = cols[0]
+            knob_b = cols[1]
+            rsdg.addInterCoeff(knob_a, knob_b, val)
+    rsdg.printRSDG()
+
 
