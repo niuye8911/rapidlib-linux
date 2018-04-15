@@ -102,3 +102,14 @@ class Profile:
             output.write(str(self.profile_table[i]))
             output.write("\n")
         output.close()
+
+
+class RSDG:
+    def __init__(self):
+        self.knob_table = {}
+    def addKnob(self,knob):
+        self.knob_table[knob] = []
+    def addSeg(self,knob,seg):
+        self.knob_table[knob].append(seg)
+    def getCost(self,configuration):
+        return 0

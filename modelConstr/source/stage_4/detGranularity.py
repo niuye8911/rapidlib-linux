@@ -65,8 +65,10 @@ def retrieve(partitions, gt, knobs):
 # given an observed profile, generate the continuous problem and populate the rsdg
 def populate(observed,partitions):
     # get the segments
-    generateContProblem(observed,partitions,"piecewise")
-#    populateRSDG("observed.csv","profile.csv",True,"quad",False)
+    segments, seg_values, segconst,inter_coeff= generateContProblem(observed,partitions,"piecewise")
+    #  solve and retrieve the result
+    rsdg = solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff)
+
     return 0
 
 def compare(rsdg,groundTruth):

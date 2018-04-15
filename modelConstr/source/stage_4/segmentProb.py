@@ -1,9 +1,9 @@
 from Classes import *
 from contigous import *
 from stage_1.training import *
+from os import system
 
 # generate a cont problem
-
 def generateContProblem(observed,partitions,mode):
     if mode=="quad":
         # write the observation to an observed file
@@ -15,14 +15,14 @@ def generateContProblem(observed,partitions,mode):
         # get the variables
         seg_indicators, seg_values,segconst, knob_values = getVariables(partitions,segments)
         # get the constraints
-        costConstraints, segConstraints, errors = genConstraints(segments,observed, mode)
+        costConstraints, segConstraints, errors,inter_coeff = genConstraints(segments,observed, mode)
         # get obj functions
         obj = errorFunction(errors)
         # get the bounds
         intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
         # beatutifyProblem
         beautifyProblem(obj,costConstraints,segConstraints,intBounds,floatBounds,seg_indicators)
-        return
+    return segments, seg_values, segconst,inter_coeff
 
 #construct variables
 def getSegments(samples):
@@ -101,6 +101,7 @@ def genConstraints(segments,observed, mode):
         # generate piece wise linear cost fuctions
         costConstraints = set()
         segConstraints = set()
+        inter_coeff = set()
         errors = []
         # generate the cost Constraints"
         err_id = 0
@@ -146,6 +147,7 @@ def genConstraints(segments,observed, mode):
                         s2 = configs[j].knob.set_name
                         s2_val = configs[j].val
                         inter_cost+=str(s1_val * s2_val) + " " + s1+"_"+s2 + " + "
+                        inter_coeff.add(s1+"_"+s2)
                 inter_cost = inter_cost[:-3]
             for costEstimate in costEstimates:
                 costEstimate += inter_cost
@@ -154,7 +156,7 @@ def genConstraints(segments,observed, mode):
                 errors.append(err_name)
                 constraint = costEstimate + " + " + err_name + " = " + str(costVal)
                 costConstraints.add(constraint)
-    return costConstraints,segConstraints,errors
+    return costConstraints,segConstraints,errors,inter_coeff
 
 # get a combination of cost estimates
 def getFlattedSeg(fall_within_segs):
@@ -208,3 +210,16 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
     for seg in seg_indicators:
         probfile.write(seg + "\n")
     probfile.close()
+
+def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
+    system("gurobi_cl ResultFile=outputs/max.sol ./fitting.lp")
+    result = open("outputs/max.sol",'r')
+    for line in result:
+        col = line.split()
+        if not (len(col) == 2):
+            continue
+        name = col[0]
+        val = col[1]
+        if not (name in seg_values and name in segconst and name in inter_coeff):
+            continue
+
