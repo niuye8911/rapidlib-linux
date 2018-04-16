@@ -143,4 +143,8 @@ void readCostProfile(void* mission){
 	rsdgMission * target = (rsdgMission*) mission;
 	target -> readCostProfile();
 }
+void readContTrainingSet(void * mission){
+	rsdgMission* target = (rsdgMission*) mission;
+	target->readContTrainingSet();
+}
 }//extern "C"

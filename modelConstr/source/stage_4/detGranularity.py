@@ -1,9 +1,9 @@
-from source.stage_1.training import *
-from source.Classes import *
-from source.representset import *
+from stage_1.training import *
+from Classes import *
+from representset import *
 from segmentProb import *
 # contains functions to compute the representative list of a RSDG, given the fact profile
-def detGranularity(gt, knob_samples, threshold, knobs):
+def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
     #gT is a dictionary where entry is the config and value is hte cost
     #profile_configs is the structured configuration
 
@@ -13,13 +13,16 @@ def detGranularity(gt, knob_samples, threshold, knobs):
     error = 1.0
     while error>=threshold:
         if seglvl >= 4:
+            print "Reached Highest Segmentation Granularity"
             break
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
         rsdg = populate(observed_profile,partitions)
-        error = compare(rsdg,gt)
-    print error, seglvl
+        error = compare(rsdg,gt,False)
+    if PRINT:
+        compare(rsdg,gt,True)
+        print "Granulatiry = "+ str(seglvl)
     return
 
 # given a partion level, return a list of configurations
@@ -61,6 +64,9 @@ def retrieve(partitions, gt, knobs):
     for config in flatted_observed:
         configuration = Configuration()
         configuration.addConfig(config)
+        # filter out the invalid config, invalid if not present in groundTruth
+        if not gt.hasEntry(configuration):
+            continue
         costVal = gt.getCost(configuration)
         observed_profile.addEntry(configuration,costVal)
     return observed_profile
@@ -73,7 +79,10 @@ def populate(observed,partitions):
     rsdg = solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff)
     return rsdg
 
-def compare(rsdg,groundTruth):
+def compare(rsdg,groundTruth,PRINT):
+    outfile = None
+    if PRINT:
+        outfile = open("modelValid.csv",'w')
     error = 0.0
     count = 0
     for configuration in groundTruth.configurations:
@@ -81,4 +90,19 @@ def compare(rsdg,groundTruth):
         rsdgCost = rsdg.calCost(configuration)
         measurement = groundTruth.getCost(configuration)
         error += abs(measurement-rsdgCost)/measurement
+        if PRINT:
+            for config in configuration.retrieve_configs():
+                outfile.write(config.knob.set_name)
+                outfile.write(",")
+                outfile.write(str(config.val))
+                outfile.write(",")
+            outfile.write(str(measurement))
+            outfile.write(",")
+            outfile.write(str(rsdgCost))
+            outfile.write(",")
+            outfile.write(str(abs(measurement-rsdgCost)/measurement))
+            outfile.write("\n")
+    if PRINT:
+        outfile.close()
+        print error/count
     return error / count

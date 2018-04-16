@@ -31,6 +31,15 @@ class Configuration:
             self.knob_settings.append(c)
     def retrieve_configs(self):
         return self.knob_settings
+    def getCost(self,knob_name):
+        for c in self.knob_settings:
+            if knob_name == c.knob.set_name:
+                return c.val
+    def printSelf(self):
+        result = ""
+        for config in self.knob_settings:
+            result+="/"+config.knob.set_name + "/" + str(config.val)
+        return result
 
 ###################problem generation#########################
 
@@ -77,6 +86,14 @@ class Profile:
         self.profile_table[self.hashConfig(config)]=cost
         self.configurations.add(config)
         return
+    def updateEntry(self,config,cost):
+        if not self.hashConfig(config) in self.profile_table:
+            print "cannot found entry"
+            hashcode = self.hashConfig(config)
+            print config.printSelf(),hashcode
+            print self.profile_table
+            return
+        self.profile_table[self.hashConfig(config)] = cost
     def hashConfig(self,configuration):
         tmp_map = {}
         settings = configuration.retrieve_configs()
@@ -85,8 +102,9 @@ class Profile:
             val = c.val
             tmp_map[name] = val
         hash_result = ""
-        sorted(settings)
-        for m in tmp_map:
+        # sort the map
+        tmp_map_sorted = sorted(tmp_map)
+        for m in tmp_map_sorted:
             hash_result+=m+","+str(tmp_map[m])+","
         hash_result = hash_result[:-1]
         return hash_result
@@ -115,8 +133,6 @@ class pieceRSDG:
         self.knob_table[knob] = []
     def addSeg(self,knob,seg):
         self.knob_table[knob].append(seg)
-    def getCost(self,configuration):
-        return 0
     def addInterCoeff(self,a,b,val):
         if not a in self.coeffTable:
             self.coeffTable[a] = {}
@@ -151,11 +167,14 @@ class pieceRSDG:
         configs = []
         for config in configuration.retrieve_configs():
             configs.append(config)
+
         for i in range(0,len(configs)-1):
-            for j in range(1,len(configs)):
+            for j in range(i+1,len(configs)):
                 knoba_val = configs[i].val
                 knobb_val = configs[j].val
-                totalcost+= self.coeffTable[configs[i].knob.set_name][configs[j].knob.set_name]
+                coeff_entry =self.coeffTable[configs[i].knob.set_name]
+                coeff_val = coeff_entry[configs[j].knob.set_name]
+                totalcost+=float(knobb_val) * float(knoba_val) * coeff_val
         return totalcost
 
     def findSeg(self,knob_name,knob_val):

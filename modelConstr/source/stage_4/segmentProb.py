@@ -7,9 +7,9 @@ from os import system
 def generateContProblem(observed,partitions,mode):
     if mode=="quad":
         # write the observation to an observed file
-        observed.printProfile("observed.csv")
         genContProblem("observed.csv","quad")
     else:
+        observed.printProfile("observed.csv")
         # get the segments
         segments = getSegments(partitions)
         # get the variables
@@ -67,13 +67,14 @@ def errorFunction(errors):
     obj = ""
     quadobj = "[ "
     for i in range(0, num):
-        obj += "-2 " + errors[i]
+        #obj += "-2 " + errors[i]
         quadobj += errors[i] + " ^ 2"
         if not (i == num-1):
-            obj += " + "
+            #obj += " + "
             quadobj += " + "
     quadobj += " ]\n"
-    obj += " + " + quadobj
+    #obj += " + " + quadobj
+    obj += quadobj
     return obj
 
 #construct costFunction based on modes
@@ -107,11 +108,11 @@ def genConstraints(segments,observed, mode):
         err_id = 0
         for configuration in observed.configurations:
             costVal = observed.getCost(configuration)
+            print configuration.printSelf()
             fall_within_segs = {}
             for config in configuration.retrieve_configs():
                 knob_name = config.knob.set_name
                 knob_val = config.val
-                #seg_sum = ""
                 for seg in segments[knob_name]:
                     if knob_val<seg.min or knob_val > seg.max:
                         continue
@@ -132,6 +133,7 @@ def genConstraints(segments,observed, mode):
             for flatted_seg_list in flatted_segs:
                 costEstimate = ""
                 for flatted_seg in flatted_seg_list:
+                    knob_val = configuration.getCost(flatted_seg.knob_name)
                     costEstimate += str(knob_val) + " " + flatted_seg.printVar() + " + " + flatted_seg.printConst() + " + "
                 costEstimate = costEstimate[:-3]
                 costEstimates.append(costEstimate)
@@ -143,18 +145,20 @@ def genConstraints(segments,observed, mode):
                 for i in range(0,total_num-1):
                     s1 = configs[i].knob.set_name
                     s1_val = configs[i].val
-                    for j in range(1,total_num):
+                    for j in range(i+1,total_num):
                         s2 = configs[j].knob.set_name
                         s2_val = configs[j].val
                         inter_cost+=str(s1_val * s2_val) + " " + s1+"_"+s2 + " + "
                         inter_coeff.add(s1+"_"+s2)
                 inter_cost = inter_cost[:-3]
             for costEstimate in costEstimates:
-                costEstimate += inter_cost
+                if not inter_cost == "":
+                    costEstimate += " + " + inter_cost
                 err_name = "err" + str(err_id)
                 err_id += 1
                 errors.append(err_name)
                 constraint = costEstimate + " + " + err_name + " = " + str(costVal)
+                print constraint
                 costConstraints.add(constraint)
     return costConstraints,segConstraints,errors,inter_coeff
 
@@ -176,15 +180,15 @@ def genBounds(seg_indicators, seg_values, segconst,knob_values, errors):
     for seg_indicator in seg_indicators:
         bound = seg_indicator + " <= 1"
         integerBounds.add(bound)
-    for seg_value in seg_values:
-        floatBound = "-99999 <= " + seg_value + " <= 99999"
-        floatBounds.add(floatBound)
-    for seg_value in segconst:
-        floatBound = "-99999 <= " + seg_value + " <= 99999"
-        floatBounds.add(floatBound)
-    for knob_value in knob_values:
-        floatBound = "-99999 <= " + knob_value + " <= 99999"
-        floatBounds.add(floatBound)
+    #for seg_value in seg_values:
+    #    floatBound = "-99999 <= " + seg_value + " <= 99999"
+    #    floatBounds.add(floatBound)
+    #for seg_value in segconst:
+    #    floatBound = "-99999 <= " + seg_value + " <= 99999"
+    #    floatBounds.add(floatBound)
+    #for knob_value in knob_values:
+    #    floatBound = "-99999 <= " + knob_value + " <= 99999"
+    #    floatBounds.add(floatBound)
     for error in errors:
         floatBound = "-99999 <= " + error + " <= 99999"
         floatBounds.add(floatBound)
@@ -226,8 +230,13 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
             continue
         name = col[0]
         val = float(col[1])
+        if val > 9999 or val < -9999:
+            print "found not derived value", name, val
+            if val > 0:
+                val = 99999-val
+            else:
+                val = -99999-val
         if name in seg_values:
-            print "found seg_value"
             # knob_id_V
             cols = name.split("_")
             knob_name = cols[0]
@@ -253,6 +262,7 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
             cols = name.split("_")
             knob_a = cols[0]
             knob_b = cols[1]
+
             rsdg.addInterCoeff(knob_a, knob_b, val)
     rsdg.printRSDG()
     return rsdg

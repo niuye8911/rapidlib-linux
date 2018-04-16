@@ -2,8 +2,9 @@ import optparse
 from LP_Util.merge import *
 from xmlgen import *
 from Parsing_Util.readFact import *
-from source.stage_4.detGranularity import *
+from stage_4.detGranularity import *
 from Classes import  *
+from representset import populateRSDG, genRS
 
 configs = []
 service_levels = {}
@@ -14,15 +15,15 @@ app = ""
 model = "quad"
 rs = "set"
 remote = False
-targetMax = 0.05 
-targetMean = 0.02
+targetMax = 0.1
+targetMean = 0.05
 groundTruth_profile = Profile()
 knobs = Knobs()
 knob_samples = {}
 desc = ""
 stage = -1
 
-THRESHOLD = 0.05
+THRESHOLD = 0.001
 
 def main(argv):
     #parse the argument
@@ -34,6 +35,28 @@ def main(argv):
     # declare a output path
     if not os.path.exists("./outputs"):
         os.system("mkdir outputs")
+
+    if (mode == "genrs"):
+        if (rs == "set"):
+            genRS(fact, True, targetMax, targetMean)
+        else:
+            genRS(fact, False, targetMax, targetMean)
+        return 0
+
+    if (mode == "consrsdg"):  # construct RSDG based on observation of RS
+        populateRSDG(observed, fact, False, "linear", remote)
+        return 0
+
+    if (mode == "conscontrsdg"):  # construct RSDG based on observation of RS
+        # get an observed file by randomly select some observation
+        populateRSDG(observed, fact, True, model, remote)
+        return 0
+
+    if (mode == "qos"):  # check the QoS loss of two different runtime behavior
+        # fact will be the golden truth
+        # observed will be the actual runtime data
+        checkAccuracy()
+        return 0
 
     #######################STAGE-1########################
     #generate training set
@@ -61,30 +84,11 @@ def main(argv):
     readFact("fact.csv",knobs,groundTruth_profile)
     groundTruth_profile.printProfile("profile.csv")
     # construct the RL iteratively given a threshold
-    detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs)
+    detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
     if (stage == 4):
         return
 
-    if(mode=="genrs"):
-        if (rs=="set"):
-            genRS(fact,True,targetMax,targetMean)
-        else:
-            genRS(fact,False,targetMax,targetMean)
-        return 0
 
-    if (mode == "consrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact, False, "linear", remote)
-        return 0
-
-    if (mode == "conscontrsdg"):# construct RSDG based on observation of RS
-        populateRSDG(observed, fact, True, model,remote)
-        return 0
-
-    if (mode == "qos"): #check the QoS loss of two different runtime behavior
-        # fact will be the golden truth
-        # observed will be the actual runtime data
-        checkAccuracy()
-        return 0
 
     if(mode=="merge"):
         r1 = getRSDG(options.r1)
@@ -143,7 +147,8 @@ def parseCMD(options):
     remote = options.remote
     mode = options.mode
     desc = options.desc
-    stage = int(options.stage)
+    if not options.stage == None:
+        stage = int(options.stage)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
