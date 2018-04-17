@@ -55,7 +55,7 @@ def main(argv):
     if (mode == "qos"):  # check the QoS loss of two different runtime behavior
         # fact will be the golden truth
         # observed will be the actual runtime data
-        checkAccuracy()
+        checkAccuracy(fact,app,"")
         return 0
 
     #######################STAGE-1########################

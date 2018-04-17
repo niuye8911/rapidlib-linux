@@ -8,7 +8,7 @@ appName = ""
 output = ""
 
 # binaries
-bin_swaptions = "/home/niuye8911/Documents/RSDG/parsec-3.0/pkgs/apps/swaptions/src/swaptions"
+bin_swaptions = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src/swaptions"
 bin_bodytrack = "bodytrack"
 bin_ferret = "/home/niuye8911/Documents/RSDG/parsec-3.0/pkgs/apps/ferret/inst/amd64-linux.gcc-serial/bin/ferret"
 
@@ -55,7 +55,7 @@ def run():
         for i in range(0, len(knob_swaptions)):  # run the application for each configuratino
             command = [bin_swaptions,
                        "-ns",
-                       "100",
+                       "10",
                        "-sm",
                        str(knob_swaptions[i])
                        ]
