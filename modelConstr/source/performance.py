@@ -4,6 +4,7 @@ import getopt
 import numpy
 import subprocess
 from Classes import *
+import os
 
 appName = ""
 output = ""
