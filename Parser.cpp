@@ -480,6 +480,59 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
                         basic -> setContinuous();
                         basic -> setValueOrder(order2, order1, constant);
                 }
+		else if (f_name.compare("contpiececost") == 0 ){
+			for (xml_node<> *seg = fields->first_node(); seg; seg = seg->next_sibling()){
+				float segmin = 0.0;
+				float segmax = 0.0;
+				float segLinear = 0.0;
+				float segConst = 0.0;
+				for (xml_node<> *attr = seg->first_node(); attr; attr = attr->next_sibling()){
+					string name = attr->name();
+					if(name.compare("min")==0){
+						segmin = stof(attr->value());
+					}
+					if(name.compare("max")==0){
+                                                segmax = stof(attr->value());
+                                        }
+					if(name.compare("l")==0){
+                                                segLinear = stof(attr->value());
+                                        }
+					if(name.compare("c")==0){
+                                                segLinear = stof(attr->value());
+                                        }
+				}
+				basic->setPieceWise();
+				basic->addSegment("seg",segmin,segmax,segLinear,segConst,true);
+			}
+			
+		}
+		else if (f_name.compare("contpiecemv") == 0 ){
+                        for (xml_node<> *seg = fields->first_node(); seg; seg = seg->next_sibling()){
+                                float segmin = 0.0;
+                                float segmax = 0.0;
+                                float segLinear = 0.0;
+                                float segConst = 0.0;
+                                for (xml_node<> *attr = seg->first_node(); attr; attr = attr->next_sibling()){
+                                        string name = attr->name();
+                                        if(name.compare("min")==0){
+                                                segmin = stof(attr->value());
+                                        }
+                                        if(name.compare("max")==0){
+                                                segmax = stof(attr->value());
+                                        }
+                                        if(name.compare("l")==0){
+                                                segLinear = stof(attr->value());
+                                        }
+                                        if(name.compare("c")==0){
+                                                segLinear = stof(attr->value());
+                                        }
+                                }
+                                basic->setPieceWise();
+                                basic->addSegment("seg",segmin,segmax,segLinear,segConst,false);
+                        }
+                        
+                }
+
 		// the boundaries for continuous service
 		else if (f_name.compare("contmax") == 0) {
 			double max = stof(fields->value());
@@ -1177,7 +1230,10 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					}
 				}
 				else{
-                                        // continuous nodes
+                                        // continuous nodeos
+					if (b->isPieceWise()){
+					// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
+					}
                                         vector<double> node_value_orders;
                                         b->getValueOrder(node_value_orders);
                                         int i = 0;

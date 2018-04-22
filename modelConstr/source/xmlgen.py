@@ -12,7 +12,7 @@ def completeXML(appname,xml,rsdg):
         knobname = services.find("servicelayer").find("basicnode").find("nodename").text
         visited_service.add(knobname)
         node = services.find("servicelayer").find("basicnode")
-        contcost = etree.SubElement(node, "contcost")
+        contcost = etree.SubElement(node, "contpiececost")
         # fill in the cont cost of each segment
         seglist = knob_table[knobname]
         for seg in seglist:

@@ -162,6 +162,22 @@ void Basic::setContinuous(){
 	CONTINUOUS = true;
 }
 
+void Basic::setPieceWise(){
+	PIECEWISE = true;
+}
+
+void Basic::addSegment(string name,float min, float max,float l,float c,bool COST){
+	string segName = name + to_string(min);
+	// add the segment
+	segments[segName] = make_pair(min,max);
+	// add the seg value
+	if (COST)
+		segment_costvalues[segName] = make_pair(l,c);
+	else
+		segment_mvvalues[segName] = make_pair(l,c);
+		
+}
+
 double Basic::getValue()
 {
     return value;
@@ -246,6 +262,10 @@ double Basic::getMinValue(){
 
 bool Basic::isContinuous(){
 	return CONTINUOUS;
+}
+
+bool Basic::isPieceWise(){
+	return PIECEWISE;
 }
 
 Level::Level(index_t *addr)

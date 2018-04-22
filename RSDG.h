@@ -97,9 +97,13 @@ class Basic : public Node
 		double minValue = INT_MIN;
 		bool CONTINUOUS = false;
 		bool MINMAX = false;
+		bool PIECEWISE = false;
 		map<string, float> coeffs;
 		map<string, float> mvcoeffs;
 	public:
+		map<string, pair<float,float>> segments;
+                map<string, pair<float,float>> segment_costvalues;        
+                map<string,pair<float,float>> segment_mvvalues;
 		void setValue(double );
 		void setValueOrder(double, double, double);
 		void setCost(float);
@@ -107,7 +111,10 @@ class Basic : public Node
 		double getValue(void);
 		float getCost(void);
 		bool isContinuous();
+		bool isPieceWise();
 		void setContinuous();
+		void setPieceWise();
+		void addSegment(string,float,float,float,float,bool);
 		void getCostOrder(vector<double>&);
 		void getValueOrder(vector<double>&);
 		bool hasMinMax();

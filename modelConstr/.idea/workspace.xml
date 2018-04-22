@@ -2,28 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="596d2288-d991-4ecf-9a80-6b82f5f9fa76" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modelConstr.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modelConstr.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RSDG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../RSDG.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RSDG.h" beforeDir="false" afterPath="$PROJECT_DIR$/../RSDG.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/Classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/Classes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/contigous.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/contigous.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/fact.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/fitting.lp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/observed.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/outputs/contproblem.lp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/outputs/max.sol" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/profile.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/rapid.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/rapid.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/representset.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/representset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/rsdg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_1/training.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_1/training.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_4/detGranularity.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_4/detGranularity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_4/segmentProb.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_4/segmentProb.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/trainingset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/xml.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/source/xmlgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/xmlgen.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rsdgMissionWrapper.o" beforeDir="false" afterPath="$PROJECT_DIR$/../rsdgMissionWrapper.o" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -33,10 +15,10 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.37434402">
+    <splitter split-orientation="horizontal" split-proportion="0.75838923">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="rapid.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="rapid.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/source/rapid.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="468">
@@ -48,11 +30,20 @@
               </provider>
             </entry>
           </file>
+          <file leaf-file-name="bodytrack.xml" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/outputs/bodytrack.xml">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="135">
+                  <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+                </state>
+              </provider>
+            </entry>
+          </file>
           <file leaf-file-name="xmlgen.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2067">
-                  <caret line="143" column="17" lean-forward="true" selection-start-line="143" selection-start-column="17" selection-end-line="143" selection-end-column="17" />
+                <state relative-caret-position="210">
+                  <caret line="14" column="52" selection-start-line="14" selection-start-column="52" selection-end-line="14" selection-end-column="52" />
                   <folding>
                     <element signature="e#0#22#0" expanded="true" />
                   </folding>
@@ -60,9 +51,16 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="depfileswaptions" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/source/depfileswaptions">
-              <provider selected="true" editor-type-id="text-editor" />
+          <file leaf-file-name="performance.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/source/performance.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="481">
+                  <caret line="39" column="55" selection-start-line="39" selection-start-column="31" selection-end-line="39" selection-end-column="55" />
+                  <folding>
+                    <element signature="e#0#11#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
             </entry>
           </file>
         </leaf>
@@ -111,7 +109,7 @@
           <file leaf-file-name="segmentProb.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/source/stage_4/segmentProb.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="384">
+                <state relative-caret-position="915">
                   <caret line="235" column="12" selection-start-line="235" selection-start-column="12" selection-end-line="235" selection-end-column="12" />
                 </state>
               </provider>
@@ -188,8 +186,8 @@
       <find>genTrainingSet</find>
       <find>ope</find>
       <find>open</find>
-      <find>observed</find>
       <find>print</find>
+      <find>observed</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -217,20 +215,20 @@
         <option value="$PROJECT_DIR$/source/__init__.py" />
         <option value="$PROJECT_DIR$/source/stage_1/training.py" />
         <option value="$PROJECT_DIR$/source/stage_4/detGranularity.py" />
-        <option value="$PROJECT_DIR$/source/xmlgen.py" />
         <option value="$PROJECT_DIR$/source/Classes.py" />
         <option value="$PROJECT_DIR$/source/representset.py" />
         <option value="$PROJECT_DIR$/source/contigous.py" />
         <option value="$PROJECT_DIR$/source/stage_4/segmentProb.py" />
         <option value="$PROJECT_DIR$/source/rapid.py" />
+        <option value="$PROJECT_DIR$/source/xmlgen.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="48" />
-    <option name="y" value="282" />
-    <option name="width" value="1873" />
-    <option name="height" value="1098" />
+  <component name="ProjectFrameBounds" extendedState="4">
+    <option name="x" value="1920" />
+    <option name="y" value="21" />
+    <option name="width" value="1050" />
+    <option name="height" value="1659" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -261,6 +259,12 @@
               <item name="modelConstr" type="b2602c69:ProjectViewProjectNode" />
               <item name="modelConstr" type="462c0819:PsiDirectoryNode" />
               <item name="source" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="modelConstr" type="b2602c69:ProjectViewProjectNode" />
+              <item name="modelConstr" type="462c0819:PsiDirectoryNode" />
+              <item name="source" type="462c0819:PsiDirectoryNode" />
+              <item name="outputs" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="modelConstr" type="b2602c69:ProjectViewProjectNode" />
@@ -403,10 +407,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="48" y="282" width="1873" height="1098" extended-state="6" />
+    <frame x="1920" y="21" width="1050" height="1659" extended-state="4" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.083377875" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14857143" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3296146" />
@@ -435,7 +439,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/LP_Util/readFact.py" />
     <entry file="file://$PROJECT_DIR$/LP_Util/getResult.py" />
     <entry file="file://$PROJECT_DIR$/parseData.py" />
     <entry file="file://$PROJECT_DIR$/parseData.py" />
@@ -505,16 +508,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/performance.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="344">
-          <caret line="56" column="25" selection-start-line="56" selection-start-column="25" selection-end-line="56" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -620,16 +613,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2067">
-          <caret line="143" column="17" lean-forward="true" selection-start-line="143" selection-start-column="17" selection-end-line="143" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#22#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/contigous.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="363">
@@ -646,7 +629,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/source/stage_4/segmentProb.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="384">
+        <state relative-caret-position="915">
           <caret line="235" column="12" selection-start-line="235" selection-start-column="12" selection-end-line="235" selection-end-column="12" />
         </state>
       </provider>
@@ -657,6 +640,33 @@
           <caret line="93" column="13" selection-start-line="93" selection-start-column="13" selection-end-line="93" selection-end-column="13" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/outputs/bodytrack.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="52" selection-start-line="14" selection-start-column="52" selection-end-line="14" selection-end-column="52" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/performance.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="481">
+          <caret line="39" column="55" selection-start-line="39" selection-start-column="31" selection-end-line="39" selection-end-column="55" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>
