@@ -14,8 +14,7 @@ bin_bodytrack = "bodytrack"
 bin_ferret = "ferret"
 
 # knobs
-knob_bodytrack = numpy.linspace(100, 4000, num=40)
-knob_bodytrack_annealing = [1, 2, 3, 4, 5]
+body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/sequenceB_4"
 
 knob_swaptions = [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
 
@@ -26,7 +25,9 @@ knob_ferret_probe = numpy.linspace(2, 20, num=10)
 
 # iterative functions
 def run(appName,config_table):
-    costFact = open("./output/"+appName+".fact",'w')
+    if not os.path.exists("./training_outputs"):
+        os.system("mkdir ./training_outputs")
+    costFact = open("./outputs/"+appName+".fact",'w')
     if appName == "bodytrack":
         # for bodytrack
         costFact.write('{:<10} {:<10} {:<20}'.format("Particles", "Annealing", "elapsedTime(ms)") + '\n')
@@ -41,8 +42,8 @@ def run(appName,config_table):
                 else:
                     layer = config.val
             command = [bin_bodytrack,
-                           "sequenceB_100",
-                           "4", "100",
+                           body_input,
+                           "4", "4",
                            str(int(particle)),
                            str(int(layer)),
                            '4']
@@ -51,7 +52,7 @@ def run(appName,config_table):
             time2 = time.time()
             elapsedTime = (time2 - time1) * 1000
             costFact.write('{:<10d} {:<10d} {:<20f}'.format(int(particle), int(layer),elapsedTime) + '\n')
-            newfileloc = "./outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
+            newfileloc = "./training_outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
             command = ["mv", "./sequenceB_100/poses.txt", newfileloc]
             subprocess.call(command)
         costFact.close()
