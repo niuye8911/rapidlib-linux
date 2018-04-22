@@ -1,0 +1,12 @@
+ferret
+iterationNum iteration 2 25
+hashNum hash 2 8
+probeNum probe 2 20
+and iteration hash 21 25 2 8
+and iteration hash 11 20 4 8
+and iteration hash 6 10 6 8
+and iteration hash 1 5 8 8
+and hash probe 7 8 2 20
+and hash probe 5 6 12 20
+and hash probe 3 4 16 20
+and hash probe 1 2 20 20

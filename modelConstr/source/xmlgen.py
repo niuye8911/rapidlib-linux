@@ -1,7 +1,37 @@
 from lxml import etree
 from xml.dom import minidom
+from Classes import *
 
-def genxml(rsdgfile,rsdgmvfile,cont,depfile):
+def completeXML(appname,xml,rsdg):
+    # fill in the XML with piece wise XML
+    # fill in the knob cont Cost:
+    knob_table = rsdg.knob_table
+    coeff_table = rsdg.coeffTable
+    visited_service = set()
+    for services in xml.findall("service"):
+        knobname = services.find("servicelayer").find("basicnode").find("nodename").text
+        visited_service.add(knobname)
+        node = services.find("servicelayer").find("basicnode")
+        contcost = etree.SubElement(node, "contcost")
+        # fill in the cont cost of each segment
+        seglist = knob_table[knobname]
+        for seg in seglist:
+            segxml = etree.SubElement(contcost, "seg")
+            etree.SubElement(segxml,"min").text = str(seg.min)
+            etree.SubElement(segxml, "max").text = str(seg.max)
+            etree.SubElement(segxml, "l").text = str(seg.a)
+            etree.SubElement(segxml, "c").text = str(seg.b)
+        # fill in the cont with
+        for sink_coeff in coeff_table[knobname]:
+            if(sink_coeff in visited_service):
+                continue
+            contwith = etree.SubElement(node, "contwith")
+            sink = etree.SubElement(contwith,"knob")
+            etree.SubElement(sink, "name").text = sink_coeff
+            etree.SubElement(sink, "costcoeff").text = str(coeff_table[knobname][sink_coeff])
+    writeXML(appname, xml)
+
+def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
     print "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map,relationmap = readcontrsdg(rsdgfile)
     rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
@@ -99,14 +129,15 @@ def genxml(rsdgfile,rsdgmvfile,cont,depfile):
             etree.SubElement(contand, "name").text = and_edge.source
             etree.SubElement(contand, "thenrangemin").text = and_edge.sourcemin
             etree.SubElement(contand, "thenrangemax").text = and_edge.sourcemax
+    writeXML(appname,xml)
+    return xml
 
-    #write to xml
-    #xmlfile = etree.ElementTree(prettify(xml))
+def writeXML(appname,xml):
     xmlfile = prettify(xml)
-    outputfile = open("xml.xml",'w')
+    name = appname[:-1] + ".xml"
+    outputfile = open(name, 'w')
     outputfile.write(xmlfile)
     outputfile.close()
-    #xmlfile.write("xml.xml")
 
 def readcontdep(depfile):
     dep = open(depfile,'r')
@@ -115,6 +146,8 @@ def readcontdep(depfile):
     range_map = {}
     for line in dep:
         col = line.split()
+        if len(col)==1:
+            continue
         if len(col)==4:# this is a range line
             servicename = col[0]
             nodename = col[1]

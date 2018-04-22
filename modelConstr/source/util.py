@@ -51,8 +51,7 @@ def checkRate(rsdg,fact):
     report.close()
     return [meanErr,maxErr, maxId]
 
-def checkAccuracy():
-    global fact, app, observed
+def checkAccuracy(fact,app,observed):
     if app=="ferret":
         checkFerretWrapper(fact, observed)
     elif app == "swaptions":

@@ -147,12 +147,15 @@ class pieceRSDG:
             seglist = self.knob_table[knob]
             rsdg.write(knob+"\n")
             for seg in seglist:
-                rsdg.write(seg.printID() + "->"+"l:"+str(seg.a) + "c:"+str(seg.b)+"/")
+                rsdg.write("\t")
+                rsdg.write(str(seg.min )+ " " + str(seg.max) + " ")
+                rsdg.write(seg.printID() + " "+str(seg.a) + " "+str(seg.b)+"\n")
             rsdg.write("\n")
         # print the coeff
-        rsdg.write("COEFF")
+        rsdg.write("COEFF\n")
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
+                rsdg.write("\t")
                 rsdg.write(knob + "_" + b + ":"+str(self.coeffTable[knob][b])+"\n")
         rsdg.close()
     def calCost(self,configuration):

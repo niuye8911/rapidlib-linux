@@ -64,11 +64,12 @@ def main(argv):
         print "required a description of program with option --desc"
         return
     global groundTruth_profile, knob_samples, knobs
-    knobs,groundTruth_profile, knob_samples = genTrainingSet(desc)
+    appname,knobs,groundTruth_profile, knob_samples = genTrainingSet(desc)
 
     # generate XML files
     #genxml(options.rsdg,options.rsdgmv,True,options.dep)
-    genxml("","",True,desc)
+
+    xml = genxml(appname,"","",True,desc)
     if (stage == 1):
         return
 
@@ -84,11 +85,11 @@ def main(argv):
     readFact("fact.csv",knobs,groundTruth_profile)
     groundTruth_profile.printProfile("profile.csv")
     # construct the RL iteratively given a threshold
-    detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
+    rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
+    # fill in the xml with rsdg
+    completeXML(appname,xml,rsdg)
     if (stage == 4):
         return
-
-
 
     if(mode=="merge"):
         r1 = getRSDG(options.r1)

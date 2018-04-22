@@ -23,7 +23,7 @@ def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
     if PRINT:
         compare(rsdg,gt,True)
         print "Granulatiry = "+ str(seglvl)
-    return
+    return rsdg
 
 # given a partion level, return a list of configurations
 def partition(seglvl, knob_samples):
