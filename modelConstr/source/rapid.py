@@ -2,6 +2,7 @@ import optparse
 from LP_Util.merge import *
 from xmlgen import *
 from Parsing_Util.readFact import *
+from stage_1.training import *
 from stage_4.detGranularity import *
 from Classes import  *
 from representset import populateRSDG, genRS
@@ -35,6 +36,8 @@ def main(argv):
     # declare a output path
     if not os.path.exists("./outputs"):
         os.system("mkdir outputs")
+    if not os.path.exists("./debug"):
+        os.system("mkdir debug")
 
     if (mode == "genrs"):
         if (rs == "set"):
@@ -65,7 +68,7 @@ def main(argv):
         return
     global groundTruth_profile, knob_samples, knobs
     appname,knobs,groundTruth_profile, knob_samples = genTrainingSet(desc)
-
+    appname = appname[:-1]
     # generate XML files
     #genxml(options.rsdg,options.rsdgmv,True,options.dep)
 
@@ -77,17 +80,18 @@ def main(argv):
     #second stage: Binding, nothing to be done here, all done in source
 
     #######################STAGE-3########################
-    #third stage: Training, the source library will take care of the training, the output is a fact.csv file
+    #third stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
 
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
-    readFact("fact.csv",knobs,groundTruth_profile)
-    groundTruth_profile.printProfile("profile.csv")
+    readFact(fact,knobs,groundTruth_profile)
+    groundTruth_profile.printProfile("./outputs/"+appname+".profile")
     # construct the RL iteratively given a threshold
     rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
     # fill in the xml with rsdg
     completeXML(appname,xml,rsdg)
+    os.system("rm gurobi.log")
     if (stage == 4):
         return
 

@@ -82,7 +82,7 @@ def populate(observed,partitions):
 def compare(rsdg,groundTruth,PRINT):
     outfile = None
     if PRINT:
-        outfile = open("modelValid.csv",'w')
+        outfile = open("outputs/modelValid.csv",'w')
     error = 0.0
     count = 0
     for configuration in groundTruth.configurations:

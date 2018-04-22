@@ -157,7 +157,7 @@ def readContFactAndGenConstraint(fact,quad):
                 services.clear()
                 continue
             cur = col[i]
-            print("cur="+cur)
+            #print("cur="+cur)
             if not (cur.replace(".", "", 1).isdigit()): # this is a service name
                 name = cur
             else:
@@ -217,7 +217,7 @@ def readContFactAndGenModConstraint(fact):
                         quadterm_t = inter_service+"_"+cur_service
                         val = services[cur_service]
                         val_inter = services[inter_service]
-                        print(val,val_inter,2*val*val_inter)
+                        #print(val,val_inter,2*val*val_inter)
                         quad_cons = str(val*val) + " " + quadterm + " ^ 2 + " + str(val_inter * val_inter) + " " + quadterm_t + " ^ 2 - " + str(2*val_inter*val) + " "+quadterm + " * " + quadterm_t + " + "
                         quadconstraint += quad_cons
                 # clean the quad constraint

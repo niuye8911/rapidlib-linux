@@ -17,14 +17,14 @@ def genTrainingSet(cfg_file):
     for config in flatted:
         if validate(config,knobs,and_constriants,or_constraints):
             # add the list to configs
-            configuration = Classes.Configuration()
+            configuration = Configuration()
             configuration.addConfig(config)
             flatted_all_training.addEntry(configuration,0.0)
         else:
             invalid+=1
     print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
     # write all valid configs to file
-    outfile = open('trainingset', 'w')  # output file
+    outfile = open('./outputs/trainingset', 'w')  # output file
     beautifyAndWriteOut(flatted_all_training,outfile)
     outfile.close()
     # prepare a Knobs

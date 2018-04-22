@@ -141,7 +141,7 @@ class pieceRSDG:
             self.coeffTable[b] = {}
         self.coeffTable[b][a] = val
     def printRSDG(self):
-        rsdg = open("./rsdg",'w')
+        rsdg = open("./outputs/rsdg",'w')
         # print the segments
         for knob in self.knob_table:
             seglist = self.knob_table[knob]

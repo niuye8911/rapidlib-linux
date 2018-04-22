@@ -79,7 +79,7 @@ def populateRSDG(observedFile, factFile, cont,model,remote):
         if not (model == "" or model == "quad"):
             quad = False
         paras = genContProblem(factFile,quad)
-        os.system("gurobi_cl ResultFile=outputs/max.sol outputs/contproblem.lp")
+        os.system("gurobi_cl LogFile=gurobi.log OutputFlag=0 ResultFile=outputs/max.sol outputs/contproblem.lp")
         print paras
         getContRSDGandCheckRate(paras,factFile,quad)
         return

@@ -9,7 +9,7 @@ def generateContProblem(observed,partitions,mode):
         # write the observation to an observed file
         genContProblem("observed.csv","quad")
     else:
-        observed.printProfile("observed.csv")
+        observed.printProfile("./outputs/observed.csv")
         # get the segments
         segments = getSegments(partitions)
         # get the variables
@@ -94,7 +94,6 @@ def costFunction(segments,observed, mode):
                 for seg in segments[knob_name]:
                     costFunction+=str(knob_val) + " " + seg.printVar() + " + "+str(knob_val) + " + "+ seg.printID() + " + "
             costFunction=costFunction[:-3]
-        print costFunction
     return costFunction
 
 def genConstraints(segments,observed, mode):
@@ -108,7 +107,6 @@ def genConstraints(segments,observed, mode):
         err_id = 0
         for configuration in observed.configurations:
             costVal = observed.getCost(configuration)
-            print configuration.printSelf()
             fall_within_segs = {}
             for config in configuration.retrieve_configs():
                 knob_name = config.knob.set_name
@@ -158,7 +156,6 @@ def genConstraints(segments,observed, mode):
                 err_id += 1
                 errors.append(err_name)
                 constraint = costEstimate + " + " + err_name + " = " + str(costVal)
-                print constraint
                 costConstraints.add(constraint)
     return costConstraints,segConstraints,errors,inter_coeff
 
@@ -195,7 +192,7 @@ def genBounds(seg_indicators, seg_values, segconst,knob_values, errors):
     return integerBounds,floatBounds
 
 def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds,seg_indicators):
-    probfile = open("./fitting.lp",'w')
+    probfile = open("./debug/fitting.lp",'w')
     probfile.write("Minimize\n")
     probfile.write(obj)
     probfile.write("\nSubject To\n")
@@ -216,8 +213,8 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
     probfile.close()
 
 def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
-    system("gurobi_cl ResultFile=outputs/max.sol ./fitting.lp")
-    result = open("outputs/max.sol",'r')
+    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+    result = open("./debug/max.sol",'r')
     rsdg = pieceRSDG()
     # setup the knob table
     for knob in segments:

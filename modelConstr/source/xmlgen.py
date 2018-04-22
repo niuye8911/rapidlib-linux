@@ -134,8 +134,8 @@ def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
 
 def writeXML(appname,xml):
     xmlfile = prettify(xml)
-    name = appname[:-1] + ".xml"
-    outputfile = open(name, 'w')
+    name = appname+ ".xml"
+    outputfile = open("./outputs/"+name, 'w')
     outputfile.write(xmlfile)
     outputfile.close()
 
