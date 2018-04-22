@@ -8,7 +8,7 @@ def readFact(fact_file,knobs,gt):
         return
     next(fact)#skip the first line
     for line in fact:
-        col = line.split()
+        col = line.split(',')
         knob_name = ""
         knob_val = 0.0
         cost = 0.0

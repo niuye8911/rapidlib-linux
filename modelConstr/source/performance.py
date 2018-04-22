@@ -32,7 +32,6 @@ def run(appName,config_table):
     costFact = open("./outputs/"+appName+".fact",'w')
     if appName == "bodytrack":
         # for bodytrack
-        costFact.write('{:<10} {:<10} {:<20}'.format("Particles", "Annealing", "elapsedTime(ms)") + '\n')
         particle = 0
         layer = 0
         for configuration in config_table:
@@ -53,7 +52,7 @@ def run(appName,config_table):
             subprocess.call(command)
             time2 = time.time()
             elapsedTime = (time2 - time1) * 1000 / 4
-            costFact.write('{:<10d} {:<10d} {:<20f}'.format(int(particle), int(layer),elapsedTime) + '\n')
+            costFact.write('particle,{0},layer,{1},{2}\n'.format(int(particle), int(layer), elapsedTime))
             newfileloc = "./training_outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
             command = ["mv", body_input+"/poses.txt", newfileloc]
             subprocess.call(command)
