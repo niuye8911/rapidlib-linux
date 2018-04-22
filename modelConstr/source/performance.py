@@ -26,7 +26,7 @@ knob_ferret_probe = numpy.linspace(2, 20, num=10)
 
 # iterative functions
 def run(appName,config_table):
-    config_table = config_table.profile_table
+    config_table = config_table.configurations
     if not os.path.exists("./training_outputs"):
         os.system("mkdir ./training_outputs")
     costFact = open("./outputs/"+appName+".fact",'w')
