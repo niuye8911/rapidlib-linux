@@ -26,7 +26,7 @@ knob_ferret_probe = numpy.linspace(2, 20, num=10)
 
 # iterative functions
 def run(appName,config_table):
-    config_table = config_table.configurations
+    config_table = config_table.profile_table
     if not os.path.exists("./training_outputs"):
         os.system("mkdir ./training_outputs")
     costFact = open("./outputs/"+appName+".fact",'w')
@@ -52,10 +52,10 @@ def run(appName,config_table):
             time1 = time.time()
             subprocess.call(command)
             time2 = time.time()
-            elapsedTime = (time2 - time1) * 1000
+            elapsedTime = (time2 - time1) * 1000 / 4
             costFact.write('{:<10d} {:<10d} {:<20f}'.format(int(particle), int(layer),elapsedTime) + '\n')
             newfileloc = "./training_outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
-            command = ["mv", "./sequenceB_100/poses.txt", newfileloc]
+            command = ["mv", body_input+"/poses.txt", newfileloc]
             subprocess.call(command)
         costFact.close()
 
