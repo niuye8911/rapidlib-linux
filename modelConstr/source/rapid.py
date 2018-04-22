@@ -81,12 +81,12 @@ def main(argv):
 
     #######################STAGE-3########################
     #third stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
-    genFact(appname,groundTruth_profile)
+    factfile = genFact(appname,groundTruth_profile)
 
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
-    readFact(fact,knobs,groundTruth_profile)
+    readFact(factfile,knobs,groundTruth_profile)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
     # construct the RL iteratively given a threshold
     rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
