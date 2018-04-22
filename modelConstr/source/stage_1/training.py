@@ -102,7 +102,7 @@ def genAllTraining(knobs):
         i = min
         single_set.append(Config(knob, int(i)))
         knob_samples[name].append(int(i))
-        while i <= max:
+        while i < max:
             i = i + step
             if i+step > max:
                 i = max
