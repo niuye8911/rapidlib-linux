@@ -3,14 +3,15 @@ import sys
 import getopt
 import numpy
 import subprocess
+from Classes import *
 
 appName = ""
 output = ""
 
 # binaries
-bin_swaptions = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src/swaptions"
+bin_swaptions = "swaptions"
 bin_bodytrack = "bodytrack"
-bin_ferret = "/home/niuye8911/Documents/RSDG/parsec-3.0/pkgs/apps/ferret/inst/amd64-linux.gcc-serial/bin/ferret"
+bin_ferret = "ferret"
 
 # knobs
 knob_bodytrack = numpy.linspace(100, 4000, num=40)
@@ -24,30 +25,36 @@ knob_ferret_probe = numpy.linspace(2, 20, num=10)
 
 
 # iterative functions
-def run():
-    global appName, output
+def run(appName,config_table):
+    costFact = open("./output/"+appName+".fact",'w')
     if appName == "bodytrack":
         # for bodytrack
-        output.write('{:<10} {:<10} {:<20}'.format("Particles", "Annealing", "elapsedTime(ms)") + '\n')
-        global bin_bodytrack, input_bodytrack, arg_bodytrack
-        for i in range(0, 100):
-            for j in range(0, 5):
-                # command = [bin_bodytrack , "-ns" , "64" , "-sm" , str(knob_swaptions[i])]
-                command = [bin_bodytrack,
+        costFact.write('{:<10} {:<10} {:<20}'.format("Particles", "Annealing", "elapsedTime(ms)") + '\n')
+        particle = 0
+        layer = 0
+        for configuration in config_table:
+            configs = configuration.retrieve_configs()
+            for config in configs:
+                name = config.knob.set_name
+                if name== "particle":
+                    particle = config.val
+                else:
+                    layer = config.val
+            command = [bin_bodytrack,
                            "sequenceB_100",
                            "4", "100",
-                           str(knob_bodytrack[i]),
-                           str(knob_bodytrack_annealing[j]),
+                           str(int(particle)),
+                           str(int(layer)),
                            '4']
-                time1 = time.time()
-                subprocess.call(command)
-                time2 = time.time()
-                elapsedTime = (time2 - time1) * 1000
-                output.write('{:<10d} {:<10d} {:<20f}'.format(int(knob_bodytrack[i]), knob_bodytrack_annealing[j],elapsedTime) + '\n')
-                newfileloc = "./outputs/output_" + str(int(knob_bodytrack[i])) + "_" + str(
-                    int(knob_bodytrack_annealing[j])) + ".txt"
-                command = ["mv", "./sequenceB_100/poses.txt", newfileloc]
-                subprocess.call(command)
+            time1 = time.time()
+            subprocess.call(command)
+            time2 = time.time()
+            elapsedTime = (time2 - time1) * 1000
+            costFact.write('{:<10d} {:<10d} {:<20f}'.format(int(particle), int(layer),elapsedTime) + '\n')
+            newfileloc = "./outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
+            command = ["mv", "./sequenceB_100/poses.txt", newfileloc]
+            subprocess.call(command)
+        costFact.close()
 
     elif appName == "swaptions":
         output.write('{:<10} {:<20}'.format("NumIter", "elapsedTime(ms)") + '\n')

@@ -3,6 +3,7 @@ from LP_Util.merge import *
 from xmlgen import *
 from Parsing_Util.readFact import *
 from stage_1.training import *
+from stage_2.trainApp import *
 from stage_4.detGranularity import *
 from Classes import  *
 from representset import populateRSDG, genRS
@@ -70,8 +71,7 @@ def main(argv):
     appname,knobs,groundTruth_profile, knob_samples = genTrainingSet(desc)
     appname = appname[:-1]
     # generate XML files
-    #genxml(options.rsdg,options.rsdgmv,True,options.dep)
-
+    #genxml(options.rsdg,options.rsdgmv,True,options.dep
     xml = genxml(appname,"","",True,desc)
     if (stage == 1):
         return
@@ -81,6 +81,7 @@ def main(argv):
 
     #######################STAGE-3########################
     #third stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
+    genFact(appname,groundTruth_profile)
 
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
