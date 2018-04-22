@@ -100,10 +100,14 @@ def genAllTraining(knobs):
         #print "step size for "+name + "is " + str(step)
         knob_samples[name] = []
         i = min
+        single_set.append(Config(knob, int(i)))
+        knob_samples[name].append(int(i))
         while i <= max:
+            i = i + step
+            if i+step > max:
+                i = max
             single_set.append(Config(knob,int(i)))
             knob_samples[name].append(int(i))
-            i= i + step
         frozen_single = frozenset(single_set)
         final_sets.add(frozen_single)
     product = crossproduct(final_sets)
