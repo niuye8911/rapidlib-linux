@@ -210,4 +210,4 @@ def checkBodytrack(fact, observed, report=""):
             qos_report.write("\n")
             qos_report.close()
         totDistortion += distortion
-    report.write(str(totDistortion / len(truth_results)))
+    report.write(str(1.0-totDistortion / len(truth_results)))
