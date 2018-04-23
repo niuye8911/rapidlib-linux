@@ -480,12 +480,14 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
                         basic -> setContinuous();
                         basic -> setValueOrder(order2, order1, constant);
                 }
-		else if (f_name.compare("contpiececost") == 0 ){
+		else if (f_name.compare("contpiece") == 0 ){
 			for (xml_node<> *seg = fields->first_node(); seg; seg = seg->next_sibling()){
 				float segmin = 0.0;
 				float segmax = 0.0;
 				float segLinear = 0.0;
 				float segConst = 0.0;
+				float segLinearMV = 0.0;
+				float segConstMV = 0.0;
 				for (xml_node<> *attr = seg->first_node(); attr; attr = attr->next_sibling()){
 					string name = attr->name();
 					if(name.compare("min")==0){
@@ -494,53 +496,37 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 					if(name.compare("max")==0){
                                                 segmax = stof(attr->value());
                                         }
-					if(name.compare("l")==0){
+					if(name.compare("costL")==0){
                                                 segLinear = stof(attr->value());
                                         }
-					if(name.compare("c")==0){
-                                                segLinear = stof(attr->value());
+					if(name.compare("costC")==0){
+                                                segConst = stof(attr->value());
                                         }
+					if(name.compare("mvL")==0){
+                                                segLinearMV = stof(attr->value());
+                                        }
+                                        if(name.compare("mvC")==0){
+                                                segConstMV = stof(attr->value());
+                                        }
+
 				}
 				basic->setPieceWise();
 				basic->addSegment("seg",segmin,segmax,segLinear,segConst,true);
+				basic->addSegment("seg",segmin,segmax,segLinearMV, segConstMV, false);
 			}
 			
 		}
-		else if (f_name.compare("contpiecemv") == 0 ){
-                        for (xml_node<> *seg = fields->first_node(); seg; seg = seg->next_sibling()){
-                                float segmin = 0.0;
-                                float segmax = 0.0;
-                                float segLinear = 0.0;
-                                float segConst = 0.0;
-                                for (xml_node<> *attr = seg->first_node(); attr; attr = attr->next_sibling()){
-                                        string name = attr->name();
-                                        if(name.compare("min")==0){
-                                                segmin = stof(attr->value());
-                                        }
-                                        if(name.compare("max")==0){
-                                                segmax = stof(attr->value());
-                                        }
-                                        if(name.compare("l")==0){
-                                                segLinear = stof(attr->value());
-                                        }
-                                        if(name.compare("c")==0){
-                                                segLinear = stof(attr->value());
-                                        }
-                                }
-                                basic->setPieceWise();
-                                basic->addSegment("seg",segmin,segmax,segLinear,segConst,false);
-                        }
-                        
-                }
 
 		// the boundaries for continuous service
 		else if (f_name.compare("contmax") == 0) {
 			double max = stof(fields->value());
 			basic -> setContMax(max);
+			basic -> setContinuous();
 		}
 		else if (f_name.compare("contmin") == 0) {
 			double min = stof(fields->value());
 			basic -> setContMin(min);
+			basic -> setContinuous();
 		}
 		else if (f_name.compare("contmv") == 0) {
 			double order2 = 0.0;
@@ -1230,14 +1216,22 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					}
 				}
 				else{
-                                        // continuous nodeos
+                                        // continuous nodes
+					string node_name = b->getName();
 					if (b->isPieceWise()){
 					// TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
-					}
+						for( std::map<string,pair<float,float>>::iterator it = b->segment_mvvalues.begin(); it!=b->segment_mvvalues.end(); it++){
+							string segID = it->first;
+							string segVal = segID + "_V";
+							float linearC = it->second.first;
+							float constC = it->second.second;
+							obj<<" + " << linearC << " " << segVal << " + " << constC << " " << segID;
+						}
+						
+					}else{//quad
                                         vector<double> node_value_orders;
                                         b->getValueOrder(node_value_orders);
                                         int i = 0;
-                                        string node_name = b->getName();
                                         if(node_value_orders[i] >= THRESHOLD || node_value_orders[i] <= -THRESHOLD) {
                                                 if(net_quadvalue.str().size()>=3)net_quadvalue<<" + ";
                                                 net_quadvalue << node_value_orders[i] <<" "<<node_name<<" ^ 2 ";
@@ -1253,13 +1247,14 @@ void RSDG::writeXMLLp(string outfile, bool lp)
                                                 obj << node_value_orders[i] <<" "<<"indicator "<<"\n";
 	
                                         }
+					}
 					// write the coeff
                                         map<string, float> mvcoeffs = b->getMVCoeffs();
                                         for (auto coeff: mvcoeffs){
                                                 string coeff_name = coeff.first;
                                                 float coeff_value = coeff.second;
                                                 net_quadvalue << " + " << coeff_value << " " << coeff_name << " * " << node_name << " ";
-                                        }
+                                        }					
                                 }
 				// setup the cost function
 				if(!(b->isContinuous())) {
@@ -1269,11 +1264,21 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 						net_obj<< b->getCost() << " " <<b->getName();
 				}
 				else{
+					string node_name = b->getName();
+					if( b-> isPieceWise()){
+                                                for( std::map<string,pair<float,float>>::iterator it = b->segment_costvalues.begin(); it!=b->segment_costvalues.end(); it++){
+                                                        string segID = it->first;
+                                                        string segVal = segID + "_V";
+                                                        float linearC = it->second.first;
+                                                        float constC = it->second.second;
+                                                        net_obj<<" + " << linearC << " " << segVal << " + " << constC << " " << segID;
+                                                }
+
+					}else{
 					// continuous nodes
 					vector<double> node_cost_orders;
 					b->getCostOrder(node_cost_orders);
 					int i = 0;
-					string node_name = b->getName();
 				        if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) {
 						if(net_quadobj.str().size()>=3)net_quadobj<<" + ";
 						net_quadobj << node_cost_orders[i] <<" "<<node_name<<" ^ 2 ";
@@ -1287,6 +1292,7 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					if(node_cost_orders[i] >= THRESHOLD || node_cost_orders[i] <= -THRESHOLD) { 
 						if(net_obj.str().size()>0)net_obj<<" + ";
 						net_obj << node_cost_orders[i] <<" "<<"indicator "<<"\n";
+					}
 					}
 					// write the coeff
 					map<string, float> coeffs = b->getCoeffs();
@@ -1454,6 +1460,37 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 				out<<constraintCont.str();
 	}}}
 
+
+	// Added by Liu: continuous segments
+	stringstream constraintContSeg;
+	for (Top *top : xml_rsdg) {
+                // get the service name
+                string service_name = top->getName();
+                for (Level *lvl : *(top->getLevelNodes())) {
+                        for (Basic *b : *(lvl->getBasicNodes())) {
+                                string bName = b->getName();
+				 if (b->isPieceWise()){
+					constraintContSeg.str("");
+					string sum_of_segments="";
+                                 	for( std::map<string,pair<float,float>>::iterator it = b->segments.begin(); it!=b->segments.end(); it++){
+                                                        string segID = it->first;
+                                                        string segVal = segID + "_V";
+                                                        float min = it->second.first;
+                                                        float max = it->second.second;
+							constraintContSeg<<"c"<<c++<<":"<<segID<<" = 1 -> "<<bName<<" <= "<<max<<endl;
+							constraintContSeg<<"c"<<c++<<":"<<segID<<" = 1 -> "<<bName<<" >= "<<min<<endl;
+							constraintContSeg<<"c"<<c++<<":"<<segID<<" = 1 -> "<<segVal<<" - " << bName << " = " <<0<<endl;
+							constraintContSeg<<"c"<<c++<<":"<<segID<<" = 0 -> "<<segVal<<" = 0"<<endl;
+							sum_of_segments+=segID+" + ";
+                                                }
+					sum_of_segments = sum_of_segments.substr(0,sum_of_segments.length()-2);	
+					constraintContSeg<<"c"<<c++<<":"<<sum_of_segments<<" = 1"<<endl;
+					out<<constraintContSeg.str();	
+                                }
+			}
+		}
+	}
+
 	//4. Sink - all weighted edges = 0
 	//5. AND Edges: Source - Sink >= 0 
 	//6. OR  Edges: All Sources - Sink >=0 
@@ -1592,6 +1629,11 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 					// write the minmax boundaries if any
 					if (b->hasMinMax()){
 						out<<b->getMinValue() << " <= " << b->getName() << " <= " << b->getMaxValue() << "\n";
+					}
+					if(b->isPieceWise()){
+						for(auto it = b->segments.begin(); it!=b->segments.end(); it++){
+							integers<<it->first<<endl;
+						}
 					}
 				}
 

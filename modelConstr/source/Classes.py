@@ -141,6 +141,20 @@ class Profile:
         output.close()
 
 
+class InterCoeff:
+    def __init__(self):
+        self.a = 0.0
+        self.b = 0.0
+        self.c = 0.0
+    def adda(self,a):
+        self.a = a
+    def addb(self, b):
+        self.b = b
+    def addc(self,c):
+        self.c = c
+    def retrieveABC(self):
+        return self.a,self.b,self.c
+
 class pieceRSDG:
     def __init__(self):
         self.knob_table = {}
@@ -149,13 +163,19 @@ class pieceRSDG:
         self.knob_table[knob] = []
     def addSeg(self,knob,seg):
         self.knob_table[knob].append(seg)
-    def addInterCoeff(self,a,b,val):
+    def addInterCoeff(self,a,b,val,abc):
         if not a in self.coeffTable:
             self.coeffTable[a] = {}
-        self.coeffTable[a][b] = val
+            self.coeffTable[a][b] = InterCoeff()
         if not b in self.coeffTable:
             self.coeffTable[b] = {}
-        self.coeffTable[b][a] = val
+            self.coeffTable[b][a] = InterCoeff()
+        if abc=="a":
+            self.coeffTable[a][b].adda(val)
+        elif abc == "b":
+            self.coeffTable[a][b].addb(val)
+        elif abc=="c":
+            self.coeffTable[a][b].addc(val)
     def printRSDG(self,COST=True):
         outfilename = ""
         if COST:
@@ -177,7 +197,7 @@ class pieceRSDG:
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
                 rsdg.write("\t")
-                rsdg.write(knob + "_" + b + ":"+str(self.coeffTable[knob][b])+"\n")
+                rsdg.write(knob + "_" + b + ":"+str(self.coeffTable[knob][b].a) +"/"+str(self.coeffTable[knob][b].b)+"/"+str(self.coeffTable[knob][b].c)+"\n")
         rsdg.close()
     def calCost(self,configuration):
         totalcost = 0.0
@@ -191,14 +211,14 @@ class pieceRSDG:
         configs = []
         for config in configuration.retrieve_configs():
             configs.append(config)
-
         for i in range(0,len(configs)-1):
             for j in range(i+1,len(configs)):
                 knoba_val = configs[i].val
                 knobb_val = configs[j].val
                 coeff_entry =self.coeffTable[configs[i].knob.set_name]
-                coeff_val = coeff_entry[configs[j].knob.set_name]
-                totalcost+=float(knobb_val) * float(knoba_val) * coeff_val
+                coeff_inter = coeff_entry[configs[j].knob.set_name]
+                a,b,c = coeff_inter.retrieveABC()
+                totalcost+=float(knoba_val) * float(knoba_val) * a + float(knobb_val) * float(knobb_val) * b + float(knobb_val) * float(knoba_val) * c
         return totalcost
 
     def findSeg(self,knob_name,knob_val):

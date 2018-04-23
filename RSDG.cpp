@@ -167,9 +167,20 @@ void Basic::setPieceWise(){
 }
 
 void Basic::addSegment(string name,float min, float max,float l,float c,bool COST){
-	string segName = name + to_string(min);
-	// add the segment
-	segments[segName] = make_pair(min,max);
+	//determine whether the seg has been added before
+	int id = 0;
+	string segName = "";
+	for(auto it = segments.begin(); it!=segments.end(); it++){
+		if (min==it->second.first){
+			segName = it->first;
+		}
+	}
+	// if it's not found
+	if(segName==""){
+		id = segments.size();
+		segName= getName()+"_"+name + to_string(id);
+		segments[segName]=make_pair(min,max);
+	}
 	// add the seg value
 	if (COST)
 		segment_costvalues[segName] = make_pair(l,c);

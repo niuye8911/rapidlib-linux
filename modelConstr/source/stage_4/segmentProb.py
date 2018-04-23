@@ -141,6 +141,7 @@ def genConstraints(segments,observed, mode, COST=True):
             # generate inter-service
             inter_cost = ""
             if not len(configuration.retrieve_configs())==1:
+                #inter_cost = " [ "
                 configs = configuration.retrieve_configs()
                 total_num = len(configs)
                 for i in range(0,total_num-1):
@@ -149,17 +150,29 @@ def genConstraints(segments,observed, mode, COST=True):
                     for j in range(i+1,total_num):
                         s2 = configs[j].knob.set_name
                         s2_val = configs[j].val
-                        inter_cost+=str(s1_val * s2_val) + " " + s1+"_"+s2 + " + "
-                        inter_coeff.add(s1+"_"+s2)
+                        corr_a = s1+"_"+s2+"_a"
+                        corr_b = s1+"_"+s2+"_b"
+                        corr_c = s1+"_"+s2+"_c"
+                        #inter_cost+=str(s1_val * s1_val) + " " + s1+"_"+s2 + " + "
+                        inter_cost += str(s1_val*s1_val) + " " + corr_a  + " + "
+                        inter_cost += str(s2_val * s2_val) + " " + corr_b + " + "
+                        inter_cost += str(s1_val * s2_val) + " " + corr_c + " + "
+                        #inter_coeff.add(s1+"_"+s2)
+                        inter_coeff.add(corr_a)
+                        inter_coeff.add(corr_b)
+                        inter_coeff.add(corr_c)
                 inter_cost = inter_cost[:-3]
+                #inter_cost += " ]"
             for costEstimate in costEstimates:
-                if not inter_cost == "":
-                    costEstimate += " + " + inter_cost
                 err_name = "err" + str(err_id)
                 err_id += 1
                 errors.append(err_name)
-                constraint = costEstimate + " + " + err_name + " = " + str(costVal)
+                costEstimate+=" + " + inter_cost
+                constraint = err_name + " + " + costEstimate  + " = " + str(costVal)
+                # add the PSD constraints
+                constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
                 costConstraints.add(constraint)
+                costConstraints.add(constraint2)
     return costConstraints,segConstraints,errors,inter_coeff
 
 # get a combination of cost estimates
@@ -262,8 +275,8 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
             cols = name.split("_")
             knob_a = cols[0]
             knob_b = cols[1]
-
-            rsdg.addInterCoeff(knob_a, knob_b, val)
+            part = cols[2]
+            rsdg.addInterCoeff(knob_a, knob_b, val, part)
     rsdg.printRSDG(COST)
     return rsdg
 

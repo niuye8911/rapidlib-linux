@@ -37,10 +37,19 @@ def completeXML(appname,xml,rsdg,mv_rsdg):
             if(sink_coeff in visited_service):
                 continue
             contwith = etree.SubElement(node, "contwith")
-            sink = etree.SubElement(contwith,"knob")
+            #sink = etree.SubElement(contwith,"knob")
+            sink = contwith
             etree.SubElement(sink, "name").text = sink_coeff
-            etree.SubElement(sink, "costcoeff").text = str(coeff_table[knobname][sink_coeff])
-            etree.SubElement(sink, "mvcoeff").text = str(coeffmv_table[knobname][sink_coeff])
+            costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveABC()
+            mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
+            cost = etree.SubElement(sink, "costcoeff")
+            etree.SubElement(cost,"a").text = str(costa)
+            etree.SubElement(cost, "b").text = str(costb)
+            etree.SubElement(cost, "c").text = str(costc)
+            mv = etree.SubElement(sink,"mvcoeff")
+            etree.SubElement(mv, "a").text = str(mva)
+            etree.SubElement(mv, "b").text = str(mvb)
+            etree.SubElement(mv, "c").text = str(mvc)
     writeXML(appname, xml)
 
 def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
@@ -60,8 +69,8 @@ def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
             layer = etree.SubElement(servicefield,"servicelayer")
             node = etree.SubElement(layer,"basicnode")
             etree.SubElement(node,"nodename").text = node_name
-            etree.SubElement(node,"contmax").text = node_range[0]
-            etree.SubElement(node, "contmin").text = node_range[1]
+            etree.SubElement(node,"contmin").text = node_range[0]
+            etree.SubElement(node, "contmax").text = node_range[1]
 
     #create all contcost
     if not rsdg_map is None:
