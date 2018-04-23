@@ -115,7 +115,7 @@ def run(appName,config_table):
             command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
             # generate mv fact
-            mvFact.write('num,{0},\n'.format(int(num)))
+            mvFact.write('num,{0},'.format(int(num)))
             checkSwaption(gt_path, newfileloc, mvFact)
             mvFact.write("\n")
         costFact.close()

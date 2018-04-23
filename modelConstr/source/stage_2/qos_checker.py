@@ -158,7 +158,7 @@ def checkSwaption(fact, observed,report=""):
     # close the report
         qos_report.close()
     # write to final total
-    report.write(str(meanQoS) + "\n")
+    report.write(str(meanQoS))
 
 def checkBodytrackWrapper(fact_path, observed_path):
     name = "output_";
