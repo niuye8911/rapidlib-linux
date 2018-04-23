@@ -5,6 +5,7 @@ import numpy
 import subprocess
 from Classes import *
 import os
+from qos_checker import *
 
 appName = ""
 output = ""
@@ -14,7 +15,7 @@ bin_swaptions = "swaptions"
 bin_bodytrack = "bodytrack"
 bin_ferret = "ferret"
 
-# knobs
+# input path
 body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/sequenceB_4"
 
 knob_swaptions = [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
@@ -29,11 +30,25 @@ def run(appName,config_table):
     config_table = config_table.configurations
     if not os.path.exists("./training_outputs"):
         os.system("mkdir ./training_outputs")
-    costFact = open("./outputs/"+appName+".fact",'w')
+    costFact = open("./outputs/"+appName+"-cost"+".fact",'w')
+    mvFact = open("./outputs/"+appName+"-mv"+".fact",'w')
     if appName == "bodytrack":
         # for bodytrack
         particle = 0
         layer = 0
+        # generate the ground truth
+        print "GENERATING GROUND TRUTH for BODYTRACK"
+        command = [bin_bodytrack,
+                   body_input,
+                   "4", "4",
+                   4000,
+                   5,
+                   '4']
+        subprocess.call(command)
+        gt_path = "./training_outputs/grountTruth.txt"
+        command = ["mv", body_input + "/poses.txt", gt_path]
+        subprocess.call(command)
+        # generate the facts
         for configuration in config_table:
             configs = configuration.retrieve_configs()
             for config in configs:
@@ -56,7 +71,12 @@ def run(appName,config_table):
             newfileloc = "./training_outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
             command = ["mv", body_input+"/poses.txt", newfileloc]
             subprocess.call(command)
+            # generate mv fact
+            mvFact.write('particle,{0},layer,{1},'.format(int(particle), int(layer)))
+            checkBodytrack(gt_path, newfileloc, mvFact)
+            mvFact.write("\n")
         costFact.close()
+        mvFact.close()
 
     elif appName == "swaptions":
         output.write('{:<10} {:<20}'.format("NumIter", "elapsedTime(ms)") + '\n')

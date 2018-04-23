@@ -1,5 +1,6 @@
 """QOS loss checker for all apps"""
 import numpy
+from Classes import *
 
 knob_ferret_itr = numpy.linspace(1, 25, num=25)
 knob_ferret_hash = numpy.linspace(2, 8, num=4)
@@ -156,31 +157,31 @@ def checkSwaption(fact, observed,report):
     # write to final total
     report.write(str(meanQoS) + "\n")
 
-def checkBodytrackWrapper(fact, observed=""):
+def checkBodytrackWrapper(fact_path, observed_path):
     name = "output_";
     report = open("finalReport",'w')
-    if (observed == ""):
-        for i in range(0, len(knob_bodytrack)):  # run the application for each configuratino
+    for i in range(0, len(knob_bodytrack)):  # run the application for each configuratino
             for j in range(0, len(knob_bodytrack_annealing)):
                 cur_name = name + str(int(knob_bodytrack[i]))
                 cur_name += "_" + str(int(knob_bodytrack_annealing[j]))
                 report.write(cur_name)
                 report.write(",")
                 cur_name += ".txt"
-                checkBodytrack(fact, cur_name, report)
+                checkBodytrack(fact_path, cur_name, report)
                 report.write("\n")
     else:
-        checkBodytrack(fact, observed, report)
+        checkBodytrack(fact_path, observed_path, report)
     report.close()
 
 weight = [0.01, 0.01, 0.1, 100,100,100, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1, 0.01, 0.1, 0.1, 1, 0.1, 1, 0.1, 0.1, 0.1,
 10, 0.1, 1, 0.1, 0.1, 0.01, 0.01, 0.1, 0.01, 0.1]
 
 #QOS checker for Bodytrack
-def checkBodytrack(fact, observed, report):
+def checkBodytrack(fact, observed, report=""):
     truth = open(fact, "r")
     mission = open(observed, "r")
-    qos_report = open(observed + ".report", "w")
+    if report=="":
+        qos_report = open(observed + ".report", "w")
     totalRound = 0
     truth_results = []
     mission_results = []
@@ -201,11 +202,12 @@ def checkBodytrack(fact, observed, report):
             curmission = float(mission_results[i][j])
             distortion += abs(weight[j]/10*(curtrue - curmission) / curtrue)
         distortion /= len(truth_results[i])
-        qos_report.write("frame")
-        qos_report.write(str(i))
-        qos_report.write(":")
-        qos_report.write(str(distortion))
-        qos_report.write("\n")
+        if report == "":
+            qos_report.write("frame")
+            qos_report.write(str(i))
+            qos_report.write(":")
+            qos_report.write(str(distortion))
+            qos_report.write("\n")
+            qos_report.close()
         totDistortion += distortion
-    qos_report.close()
     report.write(str(totDistortion / len(truth_results)))

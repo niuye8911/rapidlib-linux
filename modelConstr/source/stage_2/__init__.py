@@ -1,1 +1,1 @@
-__all__ = ["trainApp"]
+__all__ = ["trainApp","performance","qos_checker"]

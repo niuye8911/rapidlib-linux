@@ -52,9 +52,10 @@ def checkRate(rsdg,fact):
     return [meanErr,maxErr, maxId]
 
 def checkAccuracy(fact,app,observed):
-    if app=="ferret":
-        checkFerretWrapper(fact, observed)
-    elif app == "swaptions":
-        checkSwaptionWrapper(fact, observed)
-    elif app == "bodytrack":
-        checkBodytrackWrapper(fact, observed)
+    pass
+ #   if app=="ferret":
+ ##       checkFerretWrapper(fact, observed)
+  #  elif app == "swaptions":
+  #      checkSwaptionWrapper(fact, observed)
+  #  elif app == "bodytrack":
+  #      checkBodytrackWrapper(fact, observed)
