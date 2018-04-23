@@ -87,7 +87,7 @@ def main(argv):
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
     readFact(factfile,knobs,groundTruth_profile)
-    readFact(mvfactfile,knobs,groundTruth_profile)
+    readFact(mvfactfile,knobs,groundTruth_profile,False)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
     # construct the cost rsdg iteratively given a threshold
     cost_rsdg,mv_rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
