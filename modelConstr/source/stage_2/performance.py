@@ -91,7 +91,7 @@ def run(appName,config_table):
                    ]
         subprocess.call(command)
         gt_path = "./training_outputs/grountTruth.txt"
-        command = ["mv", swap_output + "/output.txt", gt_path]
+        command = ["mv", "./output.txt", gt_path]
         subprocess.call(command)
         # generate the facts
         for configuration in config_table:

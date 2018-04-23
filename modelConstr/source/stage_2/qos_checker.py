@@ -116,10 +116,11 @@ def checkSwaptionWrapper(fact, observed=""):
     report.close()
 
 #QOS checker for Swaptions
-def checkSwaption(fact, observed,report):
+def checkSwaption(fact, observed,report=""):
     truth = open(fact, "r")
     mission = open(observed, "r")
-    qos_report = open(observed+"_qos_report", "w")
+    if report=="":
+        qos_report = open(observed + ".report", "w")
     truth_map = {}
     mission_map = {}
     totalRound = 0
@@ -141,19 +142,21 @@ def checkSwaption(fact, observed,report):
         truth_res = truth_map[roundname]
         mission_res = mission_map[roundname]
         error = abs((truth_res - mission_res)/truth_res)
-        qos_report.write(roundname)
-        qos_report.write("\t")
-        qos_report.write(str(error))
-        qos_report.write("\n")
+        if report=="":
+            qos_report.write(roundname)
+            qos_report.write("\t")
+            qos_report.write(str(error))
+            qos_report.write("\n")
         toterr += error
     # write the average error
     meanQoS = 1 - toterr / totalRound
     #errfile = open("qos", "w")
     #errfile.write(str(1 - toterr/totalRound))
     #errfile.close()
-    qos_report.write(str(meanQoS) + "\n")
+    if report=="":
+        qos_report.write(str(meanQoS) + "\n")
     # close the report
-    qos_report.close()
+        qos_report.close()
     # write to final total
     report.write(str(meanQoS) + "\n")
 
