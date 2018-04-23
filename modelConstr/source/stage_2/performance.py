@@ -94,7 +94,6 @@ def run(appName,config_table):
         command = ["mv", swap_output + "/output.txt", gt_path]
         subprocess.call(command)
         # generate the facts
-        output.write('{:<10} {:<20}'.format("NumIter", "elapsedTime(ms)") + '\n')
         for configuration in config_table:
             configs = configuration.retrieve_configs()
             for config in configs:
