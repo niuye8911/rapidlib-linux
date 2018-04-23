@@ -31,6 +31,8 @@ def completeXML(appname,xml,rsdg,mv_rsdg):
                     etree.SubElement(segxml, "mvC").text = str(segmv.b)
                     break
         # fill in the cont with
+        if coeff_table==None or len(coeff_table)==0:
+            continue
         for sink_coeff in coeff_table[knobname]:
             if(sink_coeff in visited_service):
                 continue

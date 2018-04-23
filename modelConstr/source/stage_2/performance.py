@@ -18,7 +18,6 @@ bin_ferret = "ferret"
 # input path
 body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/sequenceB_4"
 swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
-knob_swaptions = [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
 
 knob_ferret_itr = numpy.linspace(1, 25, num=25)
 knob_ferret_hash = numpy.linspace(2, 8, num=4)
