@@ -17,7 +17,7 @@ bin_ferret = "ferret"
 
 # input path
 body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/sequenceB_4"
-
+swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
 knob_swaptions = [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
 
 knob_ferret_itr = numpy.linspace(1, 25, num=25)
@@ -79,24 +79,48 @@ def run(appName,config_table):
         mvFact.close()
 
     elif appName == "swaptions":
+        # for bodytrack
+        num = 0.0
+        # generate the ground truth
+        print "GENERATING GROUND TRUTH for SWAPTIONS"
+        command = [bin_swaptions,
+                   "-ns",
+                   "10",
+                   "-sm",
+                   str(1000000)
+                   ]
+        subprocess.call(command)
+        gt_path = "./training_outputs/grountTruth.txt"
+        command = ["mv", swap_output + "/output.txt", gt_path]
+        subprocess.call(command)
+        # generate the facts
         output.write('{:<10} {:<20}'.format("NumIter", "elapsedTime(ms)") + '\n')
-        global bin_swaptions
-        for i in range(0, len(knob_swaptions)):  # run the application for each configuratino
+        for configuration in config_table:
+            configs = configuration.retrieve_configs()
+            for config in configs:
+                name = config.knob.set_name
+                if name== "num":
+                    num = config.val
             command = [bin_swaptions,
                        "-ns",
                        "10",
                        "-sm",
-                       str(knob_swaptions[i])
+                       str(num)
                        ]
             time1 = time.time()
             subprocess.call(command)
             time2 = time.time()
-            elapsedTime = (time2 - time1) * 1000 / 10  # milli second per round(swaption)
-            output.write('{:<10d} {:<20f}'.format(knob_swaptions[i], elapsedTime) + '\n')
-            # cp the result file to somewhere else
-            newfileloc = "output_" + str(knob_swaptions[i]) + ".txt"
-            command = ["mv", "output.txt", newfileloc]
+            elapsedTime = (time2 - time1) * 1000 / 10
+            costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
+            newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
+            command = ["mv", swap_output+"/output.txt", newfileloc]
             subprocess.call(command)
+            # generate mv fact
+            mvFact.write('num,{0},\n'.format(int(num)))
+            checkSwaption(gt_path, newfileloc, mvFact)
+            mvFact.write("\n")
+        costFact.close()
+        mvFact.close()
 
     elif appName == "ferret":
         output.write('{:<10} {:<20} {:<10} {:<20}'.format("NumHash", "NumProbe", "NumItr", "elapsedTime(ms)") + '\n')
