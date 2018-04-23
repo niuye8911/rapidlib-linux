@@ -2,25 +2,34 @@ from lxml import etree
 from xml.dom import minidom
 from Classes import *
 
-def completeXML(appname,xml,rsdg):
+def completeXML(appname,xml,rsdg,mv_rsdg):
     # fill in the XML with piece wise XML
     # fill in the knob cont Cost:
     knob_table = rsdg.knob_table
     coeff_table = rsdg.coeffTable
+    knobmv_table = mv_rsdg.knob_table
+    coeffmv_table = mv_rsdg.coeffTable
     visited_service = set()
     for services in xml.findall("service"):
         knobname = services.find("servicelayer").find("basicnode").find("nodename").text
         visited_service.add(knobname)
         node = services.find("servicelayer").find("basicnode")
-        contcost = etree.SubElement(node, "contpiececost")
+        contpiece = etree.SubElement(node, "contpiece")
         # fill in the cont cost of each segment
         seglist = knob_table[knobname]
+        seglist_mv = knobmv_table[knobname]
         for seg in seglist:
-            segxml = etree.SubElement(contcost, "seg")
+            segxml = etree.SubElement(contpiece, "seg")
             etree.SubElement(segxml,"min").text = str(seg.min)
             etree.SubElement(segxml, "max").text = str(seg.max)
-            etree.SubElement(segxml, "l").text = str(seg.a)
-            etree.SubElement(segxml, "c").text = str(seg.b)
+            etree.SubElement(segxml, "costL").text = str(seg.a)
+            etree.SubElement(segxml, "costC").text = str(seg.b)
+        #find the corresponding mv
+            for segmv in seglist_mv:
+                if segmv.min==seg.min:
+                    etree.SubElement(segxml, "mvL").text = str(segmv.a)
+                    etree.SubElement(segxml, "mvC").text = str(segmv.b)
+                    break
         # fill in the cont with
         for sink_coeff in coeff_table[knobname]:
             if(sink_coeff in visited_service):
@@ -29,6 +38,7 @@ def completeXML(appname,xml,rsdg):
             sink = etree.SubElement(contwith,"knob")
             etree.SubElement(sink, "name").text = sink_coeff
             etree.SubElement(sink, "costcoeff").text = str(coeff_table[knobname][sink_coeff])
+            etree.SubElement(sink, "mvcoeff").text = str(coeffmv_table[knobname][sink_coeff])
     writeXML(appname, xml)
 
 def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):

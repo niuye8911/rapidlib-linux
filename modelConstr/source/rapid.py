@@ -92,7 +92,7 @@ def main(argv):
     # construct the cost rsdg iteratively given a threshold
     cost_rsdg,mv_rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
     # fill in the xml with rsdg
-    completeXML(appname,xml,cost_rsdg)
+    completeXML(appname,xml,cost_rsdg,mv_rsdg)
     os.system("rm gurobi.log")
     if (stage == 4):
         return
