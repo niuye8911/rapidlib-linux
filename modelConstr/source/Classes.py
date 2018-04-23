@@ -31,7 +31,7 @@ class Configuration:
             self.knob_settings.append(c)
     def retrieve_configs(self):
         return self.knob_settings
-    def getCost(self,knob_name):
+    def getSetting(self, knob_name):
         for c in self.knob_settings:
             if knob_name == c.knob.set_name:
                 return c.val
@@ -156,8 +156,13 @@ class pieceRSDG:
         if not b in self.coeffTable:
             self.coeffTable[b] = {}
         self.coeffTable[b][a] = val
-    def printRSDG(self):
-        rsdg = open("./outputs/rsdg",'w')
+    def printRSDG(self,COST=True):
+        outfilename = ""
+        if COST:
+            outfilename = "./outputs/cost.rsdg"
+        else:
+            outfilename = "./outputs/mv.rsdg"
+        rsdg = open(outfilename,'w')
         # print the segments
         for knob in self.knob_table:
             seglist = self.knob_table[knob]

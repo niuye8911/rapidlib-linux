@@ -17,9 +17,7 @@ def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        observedmv_profile = retrieve(partitions, gt, knobs,False)
-        costrsdg = populate(observed_profile,partitions)
-        mvrsdg = populate(observedmv_profile,partitions)
+        costrsdg,mvrsdg = populate(observed_profile,partitions)
         error = compare(costrsdg,gt,False)
     if PRINT:
         compare(costrsdg,gt,True)
@@ -78,9 +76,11 @@ def retrieve(partitions, gt, knobs,COST=False):
 def populate(observed,partitions):
     # get the segments
     segments, seg_values, segconst,inter_coeff= generateContProblem(observed,partitions,"piecewise")
+    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generateContProblem(observed, partitions, "piecewise",False)
     #  solve and retrieve the result
-    rsdg = solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff)
-    return rsdg
+    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff)
+    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
+    return costrsdg,mvrsdg
 
 def compare(rsdg,groundTruth,PRINT):
     outfile = None

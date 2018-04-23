@@ -4,7 +4,7 @@ from stage_1.training import *
 from os import system
 
 # generate a cont problem
-def generateContProblem(observed,partitions,mode):
+def generateContProblem(observed,partitions,mode,COST=True):
     if mode=="quad":
         # write the observation to an observed file
         genContProblem("observed.csv","quad")
@@ -15,7 +15,7 @@ def generateContProblem(observed,partitions,mode):
         # get the variables
         seg_indicators, seg_values,segconst, knob_values = getVariables(partitions,segments)
         # get the constraints
-        costConstraints, segConstraints, errors,inter_coeff = genConstraints(segments,observed, mode)
+        costConstraints, segConstraints, errors,inter_coeff = genConstraints(segments,observed, mode, COST)
         # get obj functions
         obj = errorFunction(errors)
         # get the bounds
@@ -87,7 +87,6 @@ def costFunction(segments,observed, mode):
         const_coeff = 0
         # first order
         for configuration in observed.configurations:
-            cost = observed.getCost(configuration)
             for config in configuration.retrieve_configs():
                 knob_name = config.knob.set_name
                 knob_val = config.val
@@ -96,7 +95,7 @@ def costFunction(segments,observed, mode):
             costFunction=costFunction[:-3]
     return costFunction
 
-def genConstraints(segments,observed, mode):
+def genConstraints(segments,observed, mode, COST=True):
     if mode == "piecewise":
         # generate piece wise linear cost fuctions
         costConstraints = set()
@@ -106,7 +105,11 @@ def genConstraints(segments,observed, mode):
         # generate the cost Constraints"
         err_id = 0
         for configuration in observed.configurations:
-            costVal = observed.getCost(configuration)
+            costVal = 0.0
+            if COST:
+                costVal = observed.getCost(configuration)
+            else:
+                costVal = observed.getMV(configuration)
             fall_within_segs = {}
             for config in configuration.retrieve_configs():
                 knob_name = config.knob.set_name
@@ -131,7 +134,7 @@ def genConstraints(segments,observed, mode):
             for flatted_seg_list in flatted_segs:
                 costEstimate = ""
                 for flatted_seg in flatted_seg_list:
-                    knob_val = configuration.getCost(flatted_seg.knob_name)
+                    knob_val = configuration.getSetting(flatted_seg.knob_name)
                     costEstimate += str(knob_val) + " " + flatted_seg.printVar() + " + " + flatted_seg.printConst() + " + "
                 costEstimate = costEstimate[:-3]
                 costEstimates.append(costEstimate)
@@ -212,7 +215,7 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
         probfile.write(seg + "\n")
     probfile.close()
 
-def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
+def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
     result = open("./debug/max.sol",'r')
     rsdg = pieceRSDG()
@@ -261,7 +264,7 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff):
             knob_b = cols[1]
 
             rsdg.addInterCoeff(knob_a, knob_b, val)
-    rsdg.printRSDG()
+    rsdg.printRSDG(COST)
     return rsdg
 
 
