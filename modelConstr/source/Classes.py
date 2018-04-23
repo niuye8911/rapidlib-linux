@@ -82,18 +82,27 @@ class Profile:
     def __init__(self):
         self.profile_table = {}
         self.configurations = set()
-    def addEntry(self,config,cost):
+        self.mvprofile_table = {}
+    def addCostEntry(self, config, cost):
         self.profile_table[self.hashConfig(config)]=cost
         self.configurations.add(config)
         return
-    def updateEntry(self,config,cost):
-        if not self.hashConfig(config) in self.profile_table:
+    def addMVEntry(self, config, cost):
+        self.mvprofile_table[self.hashConfig(config)]=cost
+        return
+    def updateEntry(self,config,val,COST=True):
+        table = None
+        if COST:
+            table = self.profile_table
+        else:
+            table = self.mvprofile_table
+        if not self.hashConfig(config) in table:
             print "cannot found entry"
             hashcode = self.hashConfig(config)
             print config.printSelf(),hashcode
             print self.profile_table
             return
-        self.profile_table[self.hashConfig(config)] = cost
+        table[self.hashConfig(config)] = val
     def hashConfig(self,configuration):
         tmp_map = {}
         settings = configuration.retrieve_configs()
@@ -108,19 +117,26 @@ class Profile:
             hash_result+=m+","+str(tmp_map[m])+","
         hash_result = hash_result[:-1]
         return hash_result
-    def setCost(self,configuration,cost):
-        self.profile_table[self.hashConfig(configuration)] = cost
+    def setCost(self,configuration,val):
+        self.profile_table[self.hashConfig(configuration)] = val
     def getCost(self,configuration):
         entry = self.hashConfig(configuration)
         return self.profile_table[entry]
+    def setMV(self,configuration,val):
+        self.mvprofile_table[self.hashConfig(configuration)] = val
+    def getMV(self,configuration):
+        entry = self.hashConfig(configuration)
+        return self.mvprofile_table[entry]
     def hasEntry(self,configuration):
-        return self.hashConfig(configuration) in self.profile_table
+        hashedID = self.hashConfig(configuration)
+        return hashedID in self.profile_table
     def printProfile(self,outputfile):
         output = open(outputfile,'w')
         for i in sorted(self.profile_table):
             output.write(i)
             output.write(",")
-            output.write(str(self.profile_table[i]))
+            output.write(str(self.profile_table[i])+",")
+            output.write(str(self.mvprofile_table[i]))
             output.write("\n")
         output.close()
 

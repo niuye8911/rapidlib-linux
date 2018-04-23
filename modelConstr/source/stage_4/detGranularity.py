@@ -4,9 +4,8 @@ from representset import *
 from segmentProb import *
 # contains functions to compute the representative list of a RSDG, given the fact profile
 def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
-    #gT is a dictionary where entry is the config and value is hte cost
-    #profile_configs is the structured configuration
-
+    # gT is a dictionary where entry is the config and value is hte cost
+    # profile_configs is the structured configuration
     # segmentation level
     seglvl = 0
     # initial error rate set to 100%
@@ -18,12 +17,14 @@ def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        rsdg = populate(observed_profile,partitions)
-        error = compare(rsdg,gt,False)
+        observedmv_profile = retrieve(partitions, gt, knobs,False)
+        costrsdg = populate(observed_profile,partitions)
+        mvrsdg = populate(observedmv_profile,partitions)
+        error = compare(costrsdg,gt,False)
     if PRINT:
-        compare(rsdg,gt,True)
+        compare(costrsdg,gt,True)
         print "Granulatiry = "+ str(seglvl)
-    return rsdg
+    return costrsdg,mvrsdg
 
 # given a partion level, return a list of configurations
 def partition(seglvl, knob_samples):
@@ -49,7 +50,7 @@ def partition(seglvl, knob_samples):
 
 # given a partition list, retrieve the data points in ground truth
 # return a profile by observation
-def retrieve(partitions, gt, knobs):
+def retrieve(partitions, gt, knobs,COST=False):
     observed_profile = Profile()
     final_sets = set()
     # partitions contains a dictionary of all knob samples
@@ -67,8 +68,13 @@ def retrieve(partitions, gt, knobs):
         # filter out the invalid config, invalid if not present in groundTruth
         if not gt.hasEntry(configuration):
             continue
-        costVal = gt.getCost(configuration)
-        observed_profile.addEntry(configuration,costVal)
+        val = 0.0
+        if COST:
+            val = gt.getCost(configuration)
+            observed_profile.addCostEntry(configuration, val)
+        else:
+            val = gt.getMV(configuration)
+            observed_profile.addMVEntry(configuration, val)
     return observed_profile
 
 # given an observed profile, generate the continuous problem and populate the rsdg

@@ -81,17 +81,18 @@ def main(argv):
 
     #######################STAGE-3########################
     #third stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
-    factfile = genFact(appname,groundTruth_profile)
+    factfile, mvfactfile = genFact(appname,groundTruth_profile)
 
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
     readFact(factfile,knobs,groundTruth_profile)
+    readFact(mvfactfile,knobs,groundTruth_profile)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
-    # construct the RL iteratively given a threshold
-    rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
+    # construct the cost rsdg iteratively given a threshold
+    cost_rsdg,mv_rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
     # fill in the xml with rsdg
-    completeXML(appname,xml,rsdg)
+    completeXML(appname,xml,cost_rsdg)
     os.system("rm gurobi.log")
     if (stage == 4):
         return

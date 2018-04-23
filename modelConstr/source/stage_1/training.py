@@ -19,7 +19,7 @@ def genTrainingSet(cfg_file):
             # add the list to configs
             configuration = Configuration()
             configuration.addConfig(config)
-            flatted_all_training.addEntry(configuration,0.0)
+            flatted_all_training.addCostEntry(configuration, 0.0)
         else:
             invalid+=1
     print("RAPID-C / STAGE-1 : ommited in total "+str(invalid)+" settings")
