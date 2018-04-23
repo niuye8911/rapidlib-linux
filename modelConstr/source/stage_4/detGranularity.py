@@ -68,13 +68,10 @@ def retrieve(partitions, gt, knobs,COST=False):
         # filter out the invalid config, invalid if not present in groundTruth
         if not gt.hasEntry(configuration):
             continue
-        val = 0.0
-        if COST:
-            val = gt.getCost(configuration)
-            observed_profile.addCostEntry(configuration, val)
-        else:
-            val = gt.getMV(configuration)
-            observed_profile.addMVEntry(configuration, val)
+        costval = gt.getCost(configuration)
+        mvval = gt.getMV(configuration)
+        observed_profile.addCostEntry(configuration, costval)
+        observed_profile.addMVEntry(configuration,mvval)
     return observed_profile
 
 # given an observed profile, generate the continuous problem and populate the rsdg
