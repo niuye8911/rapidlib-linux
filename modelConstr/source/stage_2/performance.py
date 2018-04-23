@@ -112,7 +112,7 @@ def run(appName,config_table):
             elapsedTime = (time2 - time1) * 1000 / 10
             costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
             newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
-            command = ["mv", swap_output+"/output.txt", newfileloc]
+            command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
             # generate mv fact
             mvFact.write('num,{0},\n'.format(int(num)))
