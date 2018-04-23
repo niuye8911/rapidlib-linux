@@ -41,8 +41,8 @@ def run(appName,config_table):
         command = [bin_bodytrack,
                    body_input,
                    "4", "4",
-                   4000,
-                   5,
+                   str(4000),
+                   str(5),
                    '4']
         subprocess.call(command)
         gt_path = "./training_outputs/grountTruth.txt"
