@@ -3,6 +3,19 @@ from contigous import *
 from stage_1.training import *
 from os import system
 
+def populatePieceWiseRSDG(observed, partitions):
+    # get the segments
+    segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(observed, partitions)
+    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
+    system("mv ./debug/max.sol ./debug/maxcost.sol")
+    system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
+    #  solve and retrieve the result
+    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(observed, partitions, False)
+    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
+    system("mv ./debug/max.sol ./debug/maxmv.sol")
+    system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
+    return costrsdg, mvrsdg
+
 # generate a cont problem
 def generatePieceWiseContProblem(observed,partitions,COST=True):
         #genContProblem("observed.csv","quad")
@@ -278,18 +291,7 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
     rsdg.printRSDG(COST)
     return rsdg
 
-def populatePieceWiseRSDG(observed, partitions):
-    # get the segments
-    segments, seg_values, segconst, inter_coeff = generateContProblem(observed, partitions, model)
-    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
-    system("mv ./debug/max.sol ./debug/maxcost.sol")
-    system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
-    #  solve and retrieve the result
-    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generateContProblem(observed, partitions, model, False)
-    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
-    system("mv ./debug/max.sol ./debug/maxmv.sol")
-    system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
-    return costrsdg, mvrsdg
+
 
 def modelValid(rsdg,groundTruth,PRINT):
     outfile = None
