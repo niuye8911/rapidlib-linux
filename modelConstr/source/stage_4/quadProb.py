@@ -56,7 +56,7 @@ def genBounds(num_of_err, paras):
 def getContRSDGandCheckRate(paras, factfile,quad):
     result = open("./debug/max.sol", 'r')
     rsdg = open("./outputs/rsdgcont",'w')
-    fact = open(factfile,"r")
+    fact = open("./outputs/swaptions-cost.fact","r")
     rsdg_map = {}
     relation_map = {}
     for line in result:
