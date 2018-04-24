@@ -93,7 +93,7 @@ def main(argv):
     readFact(mvfactfile,knobs,groundTruth_profile,False)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
     # construct the cost rsdg iteratively given a threshold
-    cost_rsdg,mv_rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
+    cost_rsdg,mv_rsdg = constructRSDG(groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
     draw("outputs/modelValid.csv")
     # fill in the xml with rsdg
     completeXML(appname,xml,cost_rsdg,mv_rsdg)

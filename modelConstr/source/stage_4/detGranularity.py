@@ -3,7 +3,7 @@ from Classes import *
 from representset import *
 from segmentProb import *
 # contains functions to compute the representative list of a RSDG, given the fact profile
-def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
+def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
     # gT is a dictionary where entry is the config and value is hte cost
     # profile_configs is the structured configuration
     # segmentation level
@@ -17,8 +17,8 @@ def detGranularity(gt, knob_samples, threshold, knobs, PRINT):
         seglvl += 1
         partitions = partition(seglvl,knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        costrsdg,mvrsdg = populate(observed_profile,partitions)
-        error = compare(costrsdg,gt,False)
+        costrsdg,mvrsdg = populate(observed_profile,partitions,model)
+        error = compare(costrsdg,gt,False,model)
     if PRINT:
         compare(costrsdg,gt,True)
         print "Granulatiry = "+ str(seglvl)
@@ -73,14 +73,14 @@ def retrieve(partitions, gt, knobs,COST=False):
     return observed_profile
 
 # given an observed profile, generate the continuous problem and populate the rsdg
-def populate(observed,partitions):
+def populate(observed,partitions,model):
     # get the segments
-    segments, seg_values, segconst,inter_coeff= generateContProblem(observed,partitions,"piecewise")
+    segments, seg_values, segconst,inter_coeff= generateContProblem(observed,partitions,model)
     costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     #  solve and retrieve the result
-    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generateContProblem(observed, partitions, "piecewise",False)
+    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generateContProblem(observed, partitions, model,False)
     mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
     system("mv ./debug/max.sol ./debug/maxmv.sol")
     system("mv ./debug/fitting.lp ./debug/fittingmv.lp")

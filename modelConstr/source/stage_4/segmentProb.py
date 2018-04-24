@@ -4,11 +4,11 @@ from stage_1.training import *
 from os import system
 
 # generate a cont problem
-def generateContProblem(observed,partitions,mode,COST=True):
-    if mode=="quad":
+def generateContProblem(observed,partitions,model,COST=True):
+    if model=="quad":
         # write the observation to an observed file
         genContProblem("observed.csv","quad")
-    else:
+    elif model=="piecewise":
         observed.printProfile("./outputs/observed.csv")
         # get the segments
         segments = getSegments(partitions)
@@ -166,7 +166,8 @@ def genConstraints(segments,observed, mode, COST=True):
                 err_name = "err" + str(err_id)
                 err_id += 1
                 errors.append(err_name)
-                costEstimate+=" + " + inter_cost
+                if not inter_cost == "":
+                    costEstimate+=" + " + inter_cost
                 constraint = err_name + " + " + costEstimate  + " = " + str(costVal)
                 costConstraints.add(constraint)
                 # add the PSD constraints
