@@ -22,7 +22,7 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
         costrsdg,mvrsdg = populate(observed_profile,partitions,model)
         error = compare(costrsdg,gt,False,model)
     if PRINT:
-        compare(costrsdg,gt,True)
+        compare(costrsdg,gt,True,model)
         print "Granulatiry = "+ str(seglvl)
     return costrsdg,mvrsdg
 
@@ -78,13 +78,9 @@ def retrieve(partitions, gt, knobs):
 def populate(observed,partitions,model):
     if model=="piecewise":
         return populatePieceWiseRSDG(observed,partitions)
+    elif model=="quad":
+        pass
 
 def compare(rsdg,groundTruth,PRINT,model):
    if model=="piecewise":
        return modelValid(rsdg,groundTruth,PRINT)
-
-def generateContProblem(observed, partitions, model, COST=True):
-    if model=="piecewise":
-        return generatePieceWiseContProblem(observed,partitions,COST)
-    if model=="quad":
-        return generateQuadContProblem(observed,partitions,model,COST)

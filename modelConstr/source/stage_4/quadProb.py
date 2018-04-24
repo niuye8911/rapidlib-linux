@@ -1,3 +1,16 @@
+def populateQuadRSDG(observed, partitions):
+    # get the segments
+    paras = genQuadContProblem(observed, True)#Ture = quad
+    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
+    system("mv ./debug/max.sol ./debug/maxcost.sol")
+    system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
+    #  solve and retrieve the result
+    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(observed, partitions, False)
+    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
+    system("mv ./debug/max.sol ./debug/maxmv.sol")
+    system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
+    return costrsdg, mvrsdg
+
 # Tools needed for generating QUAD contigous RSDG
 def genQuadContProblem(observed,model):
     prob = open("outputs/contproblem.lp", 'w')
