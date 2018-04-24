@@ -26,7 +26,7 @@ knob_samples = {}
 desc = ""
 stage = -1
 
-THRESHOLD = 0.001
+THRESHOLD = 0.05
 
 def main(argv):
     #parse the argument
