@@ -2,6 +2,8 @@ from stage_1.training import *
 from Classes import *
 from representset import *
 from piecewiseProb import *
+from quadProb import *
+
 # contains functions to compute the representative list of a RSDG, given the fact profile
 def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
     # gT is a dictionary where entry is the config and value is hte cost
@@ -74,46 +76,15 @@ def retrieve(partitions, gt, knobs):
 
 # given an observed profile, generate the continuous problem and populate the rsdg
 def populate(observed,partitions,model):
-    # get the segments
-    segments, seg_values, segconst,inter_coeff= generateContProblem(observed,partitions,model)
-    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
-    system("mv ./debug/max.sol ./debug/maxcost.sol")
-    system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
-    #  solve and retrieve the result
-    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generateContProblem(observed, partitions, model,False)
-    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
-    system("mv ./debug/max.sol ./debug/maxmv.sol")
-    system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
-    return costrsdg,mvrsdg
+    if model=="piecewise":
+        return populatePieceWiseRSDG(observed,partitions)
 
-def compare(rsdg,groundTruth,PRINT):
-    outfile = None
-    if PRINT:
-        outfile = open("outputs/modelValid.csv",'w')
-    error = 0.0
-    count = 0
-    for configuration in groundTruth.configurations:
-        count += 1
-        rsdgCost = rsdg.calCost(configuration)
-        measurement = groundTruth.getCost(configuration)
-        error += abs(measurement-rsdgCost)/measurement
-        if PRINT:
-            for config in configuration.retrieve_configs():
-                outfile.write(config.knob.set_name)
-                outfile.write(",")
-                outfile.write(str(config.val))
-                outfile.write(",")
-            outfile.write(str(measurement))
-            outfile.write(",")
-            outfile.write(str(rsdgCost))
-            outfile.write(",")
-            outfile.write(str((measurement-rsdgCost)/measurement))
-            outfile.write("\n")
-    if PRINT:
-        outfile.close()
-        print error/count
-    return error / count
+def compare(rsdg,groundTruth,PRINT,model):
+   if model=="piecewise":
+       return modelValid(rsdg,groundTruth,PRINT)
 
 def generateContProblem(observed, partitions, model, COST=True):
     if model=="piecewise":
         return generatePieceWiseContProblem(observed,partitions,COST)
+    if model=="quad":
+        return generateQuadContProblem(observed,partitions,model,COST)

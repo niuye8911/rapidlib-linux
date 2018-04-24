@@ -278,4 +278,43 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
     rsdg.printRSDG(COST)
     return rsdg
 
+def populatePieceWiseRSDG(observed, partitions):
+    # get the segments
+    segments, seg_values, segconst, inter_coeff = generateContProblem(observed, partitions, model)
+    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
+    system("mv ./debug/max.sol ./debug/maxcost.sol")
+    system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
+    #  solve and retrieve the result
+    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generateContProblem(observed, partitions, model, False)
+    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
+    system("mv ./debug/max.sol ./debug/maxmv.sol")
+    system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
+    return costrsdg, mvrsdg
 
+def modelValid(rsdg,groundTruth,PRINT):
+    outfile = None
+    if PRINT:
+        outfile = open("outputs/modelValid.csv",'w')
+    error = 0.0
+    count = 0
+    for configuration in groundTruth.configurations:
+        count += 1
+        rsdgCost = rsdg.calCost(configuration)
+        measurement = groundTruth.getCost(configuration)
+        error += abs(measurement-rsdgCost)/measurement
+        if PRINT:
+            for config in configuration.retrieve_configs():
+                outfile.write(config.knob.set_name)
+                outfile.write(",")
+                outfile.write(str(config.val))
+                outfile.write(",")
+            outfile.write(str(measurement))
+            outfile.write(",")
+            outfile.write(str(rsdgCost))
+            outfile.write(",")
+            outfile.write(str((measurement-rsdgCost)/measurement))
+            outfile.write("\n")
+    if PRINT:
+        outfile.close()
+        print error/count
+    return error / count
