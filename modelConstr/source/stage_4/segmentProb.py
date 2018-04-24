@@ -168,10 +168,11 @@ def genConstraints(segments,observed, mode, COST=True):
                 errors.append(err_name)
                 costEstimate+=" + " + inter_cost
                 constraint = err_name + " + " + costEstimate  + " = " + str(costVal)
-                # add the PSD constraints
-                constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
                 costConstraints.add(constraint)
-                costConstraints.add(constraint2)
+                # add the PSD constraints
+                if not inter_cost=="":
+                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
+                    costConstraints.add(constraint2)
     return costConstraints,segConstraints,errors,inter_coeff
 
 # get a combination of cost estimates
