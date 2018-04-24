@@ -4,7 +4,7 @@ from xmlgen import *
 from Parsing_Util.readFact import *
 from stage_1.training import *
 from stage_2.trainApp import *
-from stage_4.detGranularity import *
+from stage_4.constructRSDG import *
 from Classes import  *
 from representset import populateRSDG, genRS
 from plot import *

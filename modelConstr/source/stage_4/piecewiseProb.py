@@ -4,24 +4,21 @@ from stage_1.training import *
 from os import system
 
 # generate a cont problem
-def generateContProblem(observed,partitions,model,COST=True):
-    if model=="quad":
-        # write the observation to an observed file
-        genContProblem("observed.csv","quad")
-    elif model=="piecewise":
-        observed.printProfile("./outputs/observed.csv")
+def generatePieceWiseContProblem(observed,partitions,COST=True):
+        #genContProblem("observed.csv","quad")
+    observed.printProfile("./outputs/observed.csv")
         # get the segments
-        segments = getSegments(partitions)
+    segments = getSegments(partitions)
         # get the variables
-        seg_indicators, seg_values,segconst, knob_values = getVariables(partitions,segments)
+    seg_indicators, seg_values,segconst, knob_values = getVariables(partitions,segments)
         # get the constraints
-        costConstraints, segConstraints, errors,inter_coeff = genConstraints(segments,observed, mode, COST)
+    costConstraints, segConstraints, errors,inter_coeff = genConstraints(segments,observed, COST)
         # get obj functions
-        obj = errorFunction(errors)
+    obj = errorFunction(errors)
         # get the bounds
-        intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
+    intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
         # beatutifyProblem
-        beautifyProblem(obj,costConstraints,segConstraints,intBounds,floatBounds,seg_indicators)
+    beautifyProblem(obj,costConstraints,segConstraints,intBounds,floatBounds,seg_indicators)
     return segments, seg_values, segconst,inter_coeff
 
 #construct variables
@@ -78,9 +75,9 @@ def errorFunction(errors):
 
 #construct costFunction based on modes
 # mode=="piece-wise" || mode == "quadratic"
-def costFunction(segments,observed, mode):
+def costFunction(segments,observed):
     costFunction = ""
-    if mode=="piecewise":
+    if True:
         #generate piece wise linear cost fuctions
         first_order_coeff = 0
         const_coeff = 0
@@ -94,8 +91,8 @@ def costFunction(segments,observed, mode):
             costFunction=costFunction[:-3]
     return costFunction
 
-def genConstraints(segments,observed, mode, COST=True):
-    if mode == "piecewise":
+def genConstraints(segments,observed, COST=True):
+    if True:
         # generate piece wise linear cost fuctions
         costConstraints = set()
         segConstraints = set()

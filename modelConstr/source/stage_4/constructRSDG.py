@@ -1,7 +1,7 @@
 from stage_1.training import *
 from Classes import *
 from representset import *
-from segmentProb import *
+from piecewiseProb import *
 # contains functions to compute the representative list of a RSDG, given the fact profile
 def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
     # gT is a dictionary where entry is the config and value is hte cost
@@ -48,7 +48,7 @@ def partition(seglvl, knob_samples):
 
 # given a partition list, retrieve the data points in ground truth
 # return a profile by observation
-def retrieve(partitions, gt, knobs,COST=False):
+def retrieve(partitions, gt, knobs):
     observed_profile = Profile()
     final_sets = set()
     # partitions contains a dictionary of all knob samples
@@ -113,3 +113,7 @@ def compare(rsdg,groundTruth,PRINT):
         outfile.close()
         print error/count
     return error / count
+
+def generateContProblem(observed, partitions, model, COST=True):
+    if model=="piecewise":
+        return generatePieceWiseContProblem(observed,partitions,COST)

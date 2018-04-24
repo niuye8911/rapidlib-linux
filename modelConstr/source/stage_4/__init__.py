@@ -1,1 +1,1 @@
-__all__ = ["detGranularity"]
+__all__ = ["constructRSDG.py"]
