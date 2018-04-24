@@ -25,6 +25,7 @@ knobs = Knobs()
 knob_samples = {}
 desc = ""
 stage = -1
+PLOT=False
 
 THRESHOLD = 0.05
 
@@ -94,7 +95,8 @@ def main(argv):
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
     # construct the cost rsdg iteratively given a threshold
     cost_rsdg,mv_rsdg = constructRSDG(groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
-    draw("outputs/modelValid.csv")
+    if PLOT:
+        draw("outputs/modelValid.csv")
     # fill in the xml with rsdg
     completeXML(appname,xml,cost_rsdg,mv_rsdg)
     os.system("rm gurobi.log")
@@ -137,6 +139,7 @@ def declareParser():
     parser.add_option('-a', dest='app')
     parser.add_option('-r', dest='remote')
     parser.add_option('--model', dest="model")
+    parser.add_option("-p",dest="plot")
     parser.add_option('--rs', dest="rs")
     parser.add_option('--rsdg', dest="rsdg")
     parser.add_option('--rsdgmv', dest="rsdgmv")
@@ -154,6 +157,8 @@ def parseCMD(options):
     KF2 = options.KF2
     app = options.app
     model = options.model
+    if options.plot==t:
+        PLOT=True
     rs = options.rs
     remote = options.remote
     mode = options.mode

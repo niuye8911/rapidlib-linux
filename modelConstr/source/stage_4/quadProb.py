@@ -1,7 +1,8 @@
 def populateQuadRSDG(observed, partitions):
     # get the segments
     paras = genQuadContProblem(observed, True)#Ture = quad
-    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
+    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+    getContRSDGandCheckRate(paras, observed,True)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     #  solve and retrieve the result
@@ -13,7 +14,7 @@ def populateQuadRSDG(observed, partitions):
 
 # Tools needed for generating QUAD contigous RSDG
 def genQuadContProblem(observed,model):
-    prob = open("outputs/contproblem.lp", 'w')
+    prob = open("./debug/fitting.lp", 'w')
     constraints, num, paras = readContFactAndGenConstraint(observed,model)
     # write obj, err^2 - 2 err +1
     obj = ""
@@ -53,8 +54,8 @@ def genBounds(num_of_err, paras):
     return bounds
 
 def getContRSDGandCheckRate(paras, factfile,quad):
-    result = open("outputs/max.sol", 'r')
-    rsdg = open("outputs/rsdgcont",'w')
+    result = open("./debug/max.sol", 'r')
+    rsdg = open("./outputs/rsdgcont",'w')
     fact = open(factfile,"r")
     rsdg_map = {}
     relation_map = {}
@@ -91,7 +92,7 @@ def getContRSDGandCheckRate(paras, factfile,quad):
         rsdg.write(name + " " + val + "\n")
     rsdg.close()
     #now check the rate
-    report = open("outputs/report.csv",'w')
+    report = open("./outputs/ModelValid.csv",'w')
     total = 0.0
     totErr = 0.0
     for line in fact:
