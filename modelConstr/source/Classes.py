@@ -166,6 +166,7 @@ class pieceRSDG:
     def addInterCoeff(self,a,b,val,abc):
         if not a in self.coeffTable:
             self.coeffTable[a] = {}
+        if not b in self.coeffTable[a]:
             self.coeffTable[a][b] = InterCoeff()
         if abc=="a":
             self.coeffTable[a][b].adda(val)

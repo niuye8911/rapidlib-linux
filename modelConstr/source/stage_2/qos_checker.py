@@ -29,14 +29,15 @@ def checkFerretWrapper(fact, observed=""):
     report.close()
 
 #QOS checker for ferret
-def checkFerret(fact, observed, report):
+def checkFerret(fact, observed, report=""):
     truth = open(fact, "r")
     mission = open(observed, "r")
     truthmap = {}
     missionmap = {}
     truth_res = []
     mission_res = []
-    qos_report = open("qos_report", "w")
+    if report=="":
+        qos_report = open("qos_report", "w")
     for line in truth:
         col = line.split('\t')
         name = col[0].split("/")[1]
@@ -74,16 +75,18 @@ def checkFerret(fact, observed, report):
         ranking_res = compute2(truth_res, mission_res, Z) - compute1(truth_res, S) - compute1(mission_res, T)
         ranking_res = abs(float(ranking_res) / float(maxError))
         # normalize the error
-        qos_report.write(query_image)
-        qos_report.write("S"+str(len(S)) + "  Z" + str(len(Z)) + " T"+str(len(T)) + "  ")
-        qos_report.write(str(compute2(truth_res, mission_res, Z)) + "  "+ str(compute1(truth_res, S)) + "  "+ str(compute1(mission_res, T)))
-        qos_report.write("\t")
-        qos_report.write(str(ranking_res) + "\n")
+        if report == "":
+            qos_report.write(query_image)
+            qos_report.write("S"+str(len(S)) + "  Z" + str(len(Z)) + " T"+str(len(T)) + "  ")
+            qos_report.write(str(compute2(truth_res, mission_res, Z)) + "  "+ str(compute1(truth_res, S)) + "  "+ str(compute1(mission_res, T)))
+            qos_report.write("\t")
+            qos_report.write(str(ranking_res) + "\n")
         toterr += 1.0-ranking_res
         S.clear()
         T.clear()
         Z.clear()
-    qos_report.close()
+    if report == "":
+        qos_report.close()
     report.write(str(toterr/totimg))
 
 def rank(img, imglist):

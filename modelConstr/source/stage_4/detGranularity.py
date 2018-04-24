@@ -107,7 +107,7 @@ def compare(rsdg,groundTruth,PRINT):
             outfile.write(",")
             outfile.write(str(rsdgCost))
             outfile.write(",")
-            outfile.write(str(abs(measurement-rsdgCost)/measurement))
+            outfile.write(str((measurement-rsdgCost)/measurement))
             outfile.write("\n")
     if PRINT:
         outfile.close()

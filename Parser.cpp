@@ -568,8 +568,70 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
                         basic->setValue(cost);
                         //cout << "Node cost: " << cost << endl;
                 }
+		else if (f_name.compare("contpiecewith") == 0){
+			for (xml_node<> *sink = fields->first_node(); sink; sink = sink->next_sibling()){
+                                string knobname;
+                                float costa, costb, costc, mva, mvb, mvc;
+                                for (xml_node<> *attr = sink->first_node(); attr; attr = attr->next_sibling()){
+                                        string name = attr->name();
+                                        if(name.compare("name")==0){
+                                                knobname = attr->value();
+                                        }
+                                        if(name.compare("costa")==0){
+                                                costa = stof(attr->value());
+                                        }
+                                        if(name.compare("costb")==0){
+                                                costb = stof(attr->value());
+                                        }
+                                        if(name.compare("costc")==0){
+                                                costc = stof(attr->value());
+                                        }
+                                        if(name.compare("mva")==0){
+                                                mva = stof(attr->value());
+                                        }
+                                        if(name.compare("mvb")==0){
+                                                mvb = stof(attr->value());
+                                        }
+                                        if(name.compare("mvc")==0){
+                                                mvc = stof(attr->value());
+                                        }
+                                }
+                                basic->addContPieceCoeff(knobname,costa,costb,costc,true);
+				basic->addContPieceCoeff(knobname,mva,mvb,mvc,false);
+                        }
+
+		}
 		// there's an inter-relationship with other service
 		else if (f_name.compare("contwith") == 0){
+			/*for (xml_node<> *sink = fields->first_node(); sink; sink = sink->next_sibling()){
+				string knobname;
+				float costa, costb, costc, mva, mvb, mvc;
+				for (xml_node<> *attr = sink->first_node(); attr; attr = attr->next_sibling()){
+                                        string name = attr->name();
+                                        if(name.compare("name")==0){
+                                                knobname = attr->value();
+                                        }
+                                        if(name.compare("costa")==0){
+                                                costa = stof(attr->value());
+                                        }
+                                        if(name.compare("costb")==0){
+                                                costb = stof(attr->value());
+                                        }
+                                        if(name.compare("costc")==0){
+                                                costc = stof(attr->value());
+                                        }
+                                        if(name.compare("mva")==0){
+                                                mva = stof(attr->value());
+                                        }
+                                        if(name.compare("mvb")==0){
+                                                mvb = stof(attr->value());
+                                        }
+					if(name.compare("mvc")==0){
+                                                mvc = stof(attr->value());
+                                        }
+                                }
+				basic->add
+                        }*/
 			string name = fields->first_node("name") -> value();// the inter-service name
 			float para = stof(fields->first_node("mvcoeff") ->value()); // the inter-service value
 			basic->addContMVCoeff(name, para);
@@ -1255,6 +1317,15 @@ void RSDG::writeXMLLp(string outfile, bool lp)
                                                 float coeff_value = coeff.second;
                                                 net_quadvalue << " + " << coeff_value << " " << coeff_name << " * " << node_name << " ";
                                         }					
+					// write the piececoeff
+					map<string, vector<float>> piecemv = b->piecemvcoeffs;
+					for (auto coeff:piecemv){
+						string coeff_name = coeff.first;
+						float a = coeff.second[0];
+						float b = coeff.second[1];
+						float c = coeff.second[2];
+						net_quadvalue<<" + " << a <<" " << node_name <<" ^ 2 + " << b <<" " << coeff_name <<" ^ 2 + "<< c <<" " << coeff_name << " * " << node_name<<" ";
+					}
                                 }
 				// setup the cost function
 				if(!(b->isContinuous())) {
@@ -1302,6 +1373,16 @@ void RSDG::writeXMLLp(string outfile, bool lp)
 						float coeff_value = coeff.second;
 						net_quadobj << " + " << coeff_value << " " << coeff_name << " * " << node_name << " ";
 					}
+					// write the piecewise coeff
+					map<string, vector<float>> piecemv = b->piececoeffs;
+                                        for (auto coeff:piecemv){
+                                                string coeff_name = coeff.first;
+                                                float a = coeff.second[0];
+                                                float b = coeff.second[1];
+                                                float c = coeff.second[2];
+                                                net_quadobj<<" + " << a <<" " << node_name <<" ^ 2 + " << b <<" "
+ << coeff_name <<" ^ 2 + "<< c <<" " << coeff_name << " * " << node_name<<" ";
+                                        }
 				}	
 				// print all edge costs
 				// modified by Liu, now that we don't have edge costs

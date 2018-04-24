@@ -38,20 +38,21 @@ def completeXML(appname,xml,rsdg,mv_rsdg):
         for sink_coeff in coeff_table[knobname]:
             if(sink_coeff in visited_service):
                 continue
-            contwith = etree.SubElement(node, "contwith")
+            contwith = etree.SubElement(node, "contpiecewith")
             #sink = etree.SubElement(contwith,"knob")
-            sink = contwith
+            sink = etree.SubElement(contwith,"knob")
             etree.SubElement(sink, "name").text = sink_coeff
             costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveABC()
             mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
-            cost = etree.SubElement(sink, "costcoeff")
-            etree.SubElement(cost,"a").text = str(costa)
-            etree.SubElement(cost, "b").text = str(costb)
-            etree.SubElement(cost, "c").text = str(costc)
-            mv = etree.SubElement(sink,"mvcoeff")
-            etree.SubElement(mv, "a").text = str(mva)
-            etree.SubElement(mv, "b").text = str(mvb)
-            etree.SubElement(mv, "c").text = str(mvc)
+            etree.SubElement(sink,"costa").text = str(costa)
+            etree.SubElement(sink, "costb").text = str(costb)
+            etree.SubElement(sink, "costc").text = str(costc)
+            #etree.SubElement(sink, "mva").text = str(mva)
+            #etree.SubElement(sink, "mvb").text = str(mvb)
+            #etree.SubElement(sink, "mvc").text = str(mvc)
+            etree.SubElement(sink, "mva").text = str(mva)
+            etree.SubElement(sink, "mvb").text = str(0.0)
+            etree.SubElement(sink, "mvc").text = str(mvc)
     writeXML(appname, xml)
 
 def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):

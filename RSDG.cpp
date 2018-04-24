@@ -194,6 +194,17 @@ double Basic::getValue()
     return value;
 }
 
+void Basic::addContPieceCoeff(string name, float a, float b, float c, bool COST){
+	vector<float> coeffs;
+	coeffs.push_back(a);
+	coeffs.push_back(b);
+	coeffs.push_back(c);
+	if(COST)
+		piececoeffs[name] = coeffs;
+	else
+		piecemvcoeffs[name] = coeffs;
+}
+
 void Basic::addContCoeff(string name, float coeff){
 	coeffs[name] = coeff;
 }

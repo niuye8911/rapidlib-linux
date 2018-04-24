@@ -7,6 +7,7 @@ from stage_2.trainApp import *
 from stage_4.detGranularity import *
 from Classes import  *
 from representset import populateRSDG, genRS
+from plot import *
 
 configs = []
 service_levels = {}
@@ -86,11 +87,14 @@ def main(argv):
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
+    #factfile="outputs/ferret-cost.fact"
+    #mvfactfile = "outputs/ferret-mv.fact"
     readFact(factfile,knobs,groundTruth_profile)
     readFact(mvfactfile,knobs,groundTruth_profile,False)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
     # construct the cost rsdg iteratively given a threshold
     cost_rsdg,mv_rsdg = detGranularity(groundTruth_profile, knob_samples, THRESHOLD, knobs, True)
+    draw("outputs/modelValid.csv")
     # fill in the xml with rsdg
     completeXML(appname,xml,cost_rsdg,mv_rsdg)
     os.system("rm gurobi.log")

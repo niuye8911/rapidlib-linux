@@ -5,6 +5,7 @@ import numpy
 import subprocess
 from Classes import *
 import os
+import shlex
 from qos_checker import *
 
 appName = ""
@@ -18,11 +19,7 @@ bin_ferret = "ferret"
 # input path
 body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/sequenceB_4"
 swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
-
-knob_ferret_itr = numpy.linspace(1, 25, num=25)
-knob_ferret_hash = numpy.linspace(2, 8, num=4)
-knob_ferret_probe = numpy.linspace(2, 20, num=10)
-
+ferret_input = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/ferret/run/"
 
 # iterative functions
 def run(appName,config_table):
@@ -121,38 +118,72 @@ def run(appName,config_table):
         mvFact.close()
 
     elif appName == "ferret":
-        output.write('{:<10} {:<20} {:<10} {:<20}'.format("NumHash", "NumProbe", "NumItr", "elapsedTime(ms)") + '\n')
-        global bin_ferret, knob_ferret_probe, knob_ferret_itr, knob_ferret_hash
-        for i in range(0, len(knob_ferret_hash)):  # run the application for each configuratino
-            for j in range(0, len(knob_ferret_probe)):
-                for k in range(0, len(knob_ferret_itr)):
-                    command2 = [bin_ferret,
-                                "corel",
-                                "lsh",
-                                "queries_offline_small",
-                                "50",
-                                "20",
-                                "1",
-                                "output.txt",
-                                "-l",
-                                str(int(knob_ferret_hash[i])),
-                                "-t",
-                                str(int(knob_ferret_probe[j])),
-                                "-itr",
-                                str(int(knob_ferret_itr[k]))
-                                ]
-                    time1 = time.time()
-                    subprocess.call(command2)
-                    time2 = time.time()
-                    elapsedTime = (time2 - time1) * 1000 / 10  # milli second per round(swaption)
-                    output.write('{:<10} {:<20} {:<10} {:<20}'.format(knob_ferret_hash[i], knob_ferret_probe[j],
-                                                                      knob_ferret_itr[k], "elapsedTime(ms)") + '\n')
-                    # cp the result file to somewhere else
-                    newfileloc = "output_" + str(int(knob_ferret_hash[i])) + "_" + str(
-                        int(knob_ferret_probe[j])) + "_" + str(
-                        int(knob_ferret_itr[k])) + ".txt"
-                    command = ["mv", "output.txt", newfileloc]
-                    subprocess.call(command)
+        # for bodytrack
+        hash = 0.0
+        probe = 0.0
+        itr = 0.0
+        # generate the ground truth
+        print "GENERATING GROUND TRUTH for Ferret"
+        command = [bin_ferret,
+                    "corel",
+                    "lsh",
+                    "queries",
+                    "50",
+                    "20",
+                    "1",
+                    "output.txt",
+                    "-l",
+                    str(8),
+                    "-t",
+                    str(20),
+                    "-itr",
+                    str(25)
+                    ]
+        subprocess.call(command)
+        print "Done: GENERATING GROUND TRUTH for Ferret"
+        gt_path = "./training_outputs/grountTruth.txt"
+        command = ["mv", "./output.txt", gt_path]
+        subprocess.call(command)
+        # generate the facts
+        for configuration in config_table:
+            configs = configuration.retrieve_configs()
+            for config in configs:
+                name = config.knob.set_name
+                if name== "hash":
+                    hash = config.val
+                elif name == "iteration":
+                    itr = config.val
+                else:
+                    probe = config.val
+            command2 = [bin_ferret,
+                        "corel",
+                        "lsh",
+                        "queries",
+                        "50",
+                        "20",
+                        "1",
+                        "output.txt",
+                        "-l",
+                        str(int(hash)),
+                        "-t",
+                        str(int(probe)),
+                        "-itr",
+                        str(int(itr))
+                        ]
+            time1 = time.time()
+            subprocess.call(command2)
+            time2 = time.time()
+            elapsedTime = (time2 - time1) * 1000 / 10
+            costFact.write('hash,{0},probe,{1},iteration,{2},{3}\n'.format(int(hash), int(probe), int(itr), elapsedTime))
+            newfileloc = "./training_outputs/output_" + str(int(hash)) + "_" + str(int(probe))+ "_" + str(int(itr)) + ".txt"
+            command = ["mv", "./output.txt", newfileloc]
+            subprocess.call(command)
+            # generate mv fact
+            mvFact.write('hash,{0},probe,{1},iteration,{2},'.format(int(hash), int(probe), int(itr)))
+            checkFerret(gt_path, newfileloc, mvFact)
+            mvFact.write("\n")
+        costFact.close()
+        mvFact.close()
 
 
 def main(argv):

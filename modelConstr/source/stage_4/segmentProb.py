@@ -72,9 +72,8 @@ def errorFunction(errors):
         if not (i == num-1):
             #obj += " + "
             quadobj += " + "
-    quadobj += " ]\n"
-    #obj += " + " + quadobj
-    obj += quadobj
+    quadobj += " ] \n"
+    obj += " + " + quadobj
     return obj
 
 #construct costFunction based on modes

@@ -101,6 +101,8 @@ class Basic : public Node
 		map<string, float> coeffs;
 		map<string, float> mvcoeffs;
 	public:
+		map<string, vector<float>> piececoeffs;
+                map<string, vector<float>> piecemvcoeffs;
 		map<string, pair<float,float>> segments;
                 map<string, pair<float,float>> segment_costvalues;        
                 map<string,pair<float,float>> segment_mvvalues;
@@ -124,6 +126,7 @@ class Basic : public Node
 		double getMinValue();
 		void addContCoeff(string, float);
 		void addContMVCoeff(string, float);
+		void addContPieceCoeff(string, float, float, float, bool);
 		map<string, float> &getCoeffs();
 		map<string, float> &getMVCoeffs();
 		Basic(index_t *, string = "");		// Scheme

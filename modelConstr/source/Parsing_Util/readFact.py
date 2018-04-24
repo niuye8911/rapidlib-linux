@@ -23,7 +23,7 @@ def readFact(fact_file,knobs,gt,COST=True):
             else:
                 knob_name = col[i]
         if not gt.hasEntry(configuration):
-            print "cant find key"+knob_name + str(knob_val)
+            print "cant find key:"+knob_name + str(knob_val)
         if COST:
             gt.setCost(configuration,val)
         else:
