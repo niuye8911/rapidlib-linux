@@ -157,7 +157,7 @@ def parseCMD(options):
     KF2 = options.KF2
     app = options.app
     model = options.model
-    if options.plot==t:
+    if options.plot=="t":
         PLOT=True
     rs = options.rs
     remote = options.remote
