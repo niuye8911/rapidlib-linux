@@ -568,7 +568,7 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
                         basic->setValue(cost);
                         //cout << "Node cost: " << cost << endl;
                 }
-		else if (f_name.compare("contpiecewith") == 0){
+		else if (f_name.compare("contpiecewith") == 0 || f_name.compare("contwith")==0 ){
 			for (xml_node<> *sink = fields->first_node(); sink; sink = sink->next_sibling()){
                                 string knobname;
                                 float costa, costb, costc, mva, mvb, mvc;
@@ -602,7 +602,7 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 
 		}
 		// there's an inter-relationship with other service
-		else if (f_name.compare("contwith") == 0){
+		else if (f_name.compare("contwithbla") == 0){
 			/*for (xml_node<> *sink = fields->first_node(); sink; sink = sink->next_sibling()){
 				string knobname;
 				float costa, costb, costc, mva, mvb, mvc;

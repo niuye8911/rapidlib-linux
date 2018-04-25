@@ -1,25 +1,26 @@
 from os import system
+from psd import *
 from Classes import *
 
 def populateQuadRSDG(observed,quad):
     # get the segments
-    paras = genQuadContProblem(observed, quad, True)#Ture = cost
+    paras,quadpara = genQuadContProblem(observed, quad, True)#Ture = cost
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
-    costrsdg = getContRSDG(paras, observed)
+    costrsdg = getContRSDG(paras, quadpara,quad,True)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
-    paras = genQuadContProblem(observed, quad, False)  # Ture = quad
-    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
-    mvrsdg = getContRSDG(paras, observed)
+    paras,quadpara = genQuadContProblem(observed, quad, False)  # Ture = quad
+    system("gurobi_cl BarHomogeneous=1 OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+    mvrsdg = getContRSDG(paras, quadpara,quad,False)
     system("mv ./debug/max.sol ./debug/maxmv.sol")
     system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
     return costrsdg,mvrsdg
 
 # Tools needed for generating QUAD contigous RSDG
 # observed is a file
-def genQuadContProblem(observed,model,COST):
+def genQuadContProblem(observed,quad,COST):
     prob = open("./debug/fitting.lp", 'w')
-    constraints, paras, errors = readContFactAndGenConstraint(observed,model,COST)
+    constraints, paras, quadparas, errors = readContFactAndGenConstraint(observed,quad,COST)
     # write obj, err^2 - 2 err +1
     quadobj = "[ "
     for err in errors:
@@ -34,19 +35,19 @@ def genQuadContProblem(observed,model,COST):
         prob.write(c)
         prob.write("\n")
     # write Bounds
-    bounds = genBounds(paras)
+    bounds = genBounds(errors,paras)
     prob.write(bounds)
     prob.close()
-    return paras
+    return paras,quadparas
 
-def genBounds(errors):
+def genBounds(errors,paras):
     bounds = "Bounds \n"
     for err in errors:
         # the quad term has to be greater than 0
         bounds += "-9999 < " + err + " < 9999\n"
     return bounds
 
-def getContRSDG(paras, quad):
+def getContRSDG(paras, quadparas, quad,COST):
     result = open("./debug/max.sol", 'r')
     rsdg = quadRSDG()
     for line in result:
@@ -55,37 +56,42 @@ def getContRSDG(paras, quad):
             continue
         name = col[0]
         val = col[1]
-        if not (name in paras):
-            continue
-        curPara = name.split("_")
-        knob = curPara[0]
-        coeff = curPara[1]
-        lvl = 0
-        dependent = ""
-        if coeff == "2":
-            lvl = 2
-        elif coeff == "1":
-            lvl = 1
-        elif coeff == "c":
+        if name in paras:
+            curPara = name.split("_")
+            knob = curPara[0]
+            coeff = curPara[1]
             lvl = 0
-        else:
-            lvl = -1
-            dependent = coeff
-        if not knob in rsdg.knob_table:
-            rsdg.addKnob(knob)
-        if not lvl==-1:
-            rsdg.addKnobVal(knob,float(val),coeff)
-        else:
-            rsdg.addInterCoeff(knob,dependent,float(val))
-        #if not(service in rsdg_map):
-        #    rsdg_map[service] = [0.0] * 3
-        #if not(service in relation_map):
-        #    relation_map[service] = {}
-        #if not lvl==-1:
-        #    rsdg_map[service][lvl] = float(val)
-        #else:
-        #    relation_map[service][dependent] = float(val)
-        #rsdg.write(name + " " + val + "\n")
+            dependent = ""
+            if coeff == "2":
+                lvl = 2
+            elif coeff == "1":
+                lvl = 1
+            elif coeff == "c":
+                lvl = 0
+            if not knob in rsdg.knob_table:
+                rsdg.addKnob(knob)
+            if not lvl == -1:
+                rsdg.addKnobVal(knob, float(val), coeff)
+        if name in quadparas:
+            curPara = name.split("_")
+            knob_a = curPara[0]
+            knob_b = curPara[1]
+            part = curPara[2]
+            rsdg.addInterCoeff(knob_a, knob_b,part,float(val))
+    # make the coefficients PSD
+    if quad:
+        for knob in rsdg.coeffTable:
+            for dep in rsdg.coeffTable[knob]:
+                coeffs =rsdg.coeffTable[knob][dep]
+                a = coeffs.a
+                b = coeffs.b
+                c = coeffs.c
+                coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a,b,c)
+                print "before"
+                print a,b,c
+                print "after PSD"
+                print coeffs.a, coeffs.b, coeffs.c
+    rsdg.printRSDG(COST)
     return rsdg
     #now check the rate
 
@@ -168,6 +174,7 @@ def readContFactAndGenConstraint(observed,quad,COST):
     errors = set()
     constraints = set() #list of constraints
     paras = set() #set of parameters, o2, o1, and c for each service
+    quadparas = set()
     # added this for inter-relationship higher order constraint
     err_id = 0
     knobs = []
@@ -178,7 +185,7 @@ def readContFactAndGenConstraint(observed,quad,COST):
         else:
             costVal = observed.getMV(configuration)
         costestimate = ""
-        quadconstraint = " [ " # this is the inter-service relationship
+        quadconstraint = "" # this is the inter-service relationship
         # generate all single service terms
         for config in configuration.retrieve_configs():
             knob_name = config.knob.set_name
@@ -196,7 +203,7 @@ def readContFactAndGenConstraint(observed,quad,COST):
         inter_cost = ""
         configs = configuration.retrieve_configs()
         length = len(configs)
-        if quad and (not length == 1):
+        if quad and (not length == 1) and COST:
             total_num = length
             for i in range(0,length-1):
                 knoba = configs[i].knob.set_name
@@ -210,29 +217,24 @@ def readContFactAndGenConstraint(observed,quad,COST):
                     inter_cost += str(knoba_val * knoba_val) + " " + corr_a + " + "
                     inter_cost += str(knobb_val * knobb_val) + " " + corr_b + " + "
                     inter_cost += str(knoba_val * knobb_val) + " " + corr_c + " + "
-                    paras.add(corr_a)
-                    paras.add(corr_b)
-                    paras.add(corr_c)
+                    quadparas.add(corr_a)
+                    quadparas.add(corr_b)
+                    quadparas.add(corr_c)
             inter_cost = inter_cost[:-3]
         err_name = "err"+str(err_id)
         err_id += 1
         errors.add(err_name)
         if quad:
             quadconstraint += inter_cost
-            quadconstraint+=" ] "
-        if quad and (not quadconstraint == " [  ] "):
-            costestimate += quadconstraint
+        if quad and (not quadconstraint == ""):
+            costestimate += " + " + quadconstraint
         constraint = err_name + " + " + costestimate + " = " + str(costVal)
         constraints.add(constraint)
         # Inter PSD
-    for i in range(0,len(knobs)):
-        for j in range(0,len(knobs)):
-            if i == j:
-                continue
-            else:
-                psd1 = "[ "+knobs[i]+"_"+knobs[j] + " ^ 2 - 4 " + knobs[i]+"_2 * "+knobs[j]+"_2 ] <= 0"
-                constraints.add(psd1)
-    return constraints, paras, errors
+        if not inter_cost == "":
+            constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
+            constraints.add(constraint2)
+    return constraints, paras, quadparas,errors
 
 # A function that generates cost / qual function in a way that Gurobi understands
 def readContFactAndGenModConstraint(fact):

@@ -61,7 +61,13 @@ def main(argv):
     if (mode == "qos"):  # check the QoS loss of two different runtime behavior
         # fact will be the golden truth
         # observed will be the actual runtime data
-        checkAccuracy(fact,app,"")
+        print "running qos"
+        if app=="swaptions":
+            checkSwaption(fact,observed)
+        if app == "ferret":
+            checkFerret(fact, observed)
+        if app=="bodytrack":
+            checkBodytrack(fact,observed,None)
         return 0
 
     #######################STAGE-1########################
@@ -83,13 +89,13 @@ def main(argv):
 
     #######################STAGE-3########################
     #third stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
-    #factfile, mvfactfile = genFact(appname,groundTruth_profile)
+    factfile, mvfactfile = genFact(appname,groundTruth_profile)
 
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
-    factfile="outputs/swaptions-cost.fact"
-    mvfactfile = "outputs/swaptions-mv.fact"
+    #factfile="outputs/bodytrack-cost.fact"
+    #mvfactfile = "outputs/bodytrack-mv.fact"
     readFact(factfile,knobs,groundTruth_profile)
     readFact(mvfactfile,knobs,groundTruth_profile,False)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
@@ -98,7 +104,7 @@ def main(argv):
     if PLOT:
         draw("outputs/modelValid.csv")
     # fill in the xml with rsdg
-    completeXML(appname,xml,cost_rsdg,mv_rsdg)
+    completeXML(appname,xml,cost_rsdg,mv_rsdg,model)
     os.system("rm gurobi.log")
     if (stage == 4):
         return

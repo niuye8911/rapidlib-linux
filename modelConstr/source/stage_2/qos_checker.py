@@ -9,6 +9,10 @@ knob_ferret_probe = numpy.linspace(2, 20, num=10)
 knob_bodytrack = numpy.linspace(100, 4000, num=40)
 knob_bodytrack_annealing = [1, 2, 3, 4, 5]
 
+weight = [160.000000000000,160.000000000000,0.883801457794,1.000000000000,90.000000000000,80.000000000000,1.000000000000,1.000000000000,80.000000000000,80.000000000000,1.000000000000,1.000000000000,90.000000000000,80.000000000000,1.000000000000,1.000000000000,80.000000000000,80.000000000000,1.000000000000,1.000000000000,60.000000000000,40.000000000000,1.000000000000,1.000000000000,40.000000000000,30.000000000000,1.000000000000,1.000000000000,60.000000000000,40.000000000000,1.000000000000,1.000000000000,40.000000000000,30.000000000000,1.000000000000,1.000000000000,108.219779804448,108.219779804448,
+1.000000000000,0.739581901676,578.571268037074,98.775717746183,424.775528050607,449.138638864995,0.000000000000,112.973551984717,393.591975105289,464.725142771880,0.000000000000,241.301534024968,205.666008552084,
+220.311272548189,0.000000000000,176.865773690142,243.325288891550,247.925686687300,0.000000000000,268.030179506415]
+
 def checkFerretWrapper(fact, observed=""):
     name = "output_";
     report = open("finalReport", 'w')
@@ -87,7 +91,7 @@ def checkFerret(fact, observed, report=""):
         Z.clear()
     if report == "":
         qos_report.close()
-    report.write(str(toterr/totimg))
+    report.write(str(toterr/totimg*100.0))
 
 def rank(img, imglist):
     if img in imglist:
@@ -161,7 +165,7 @@ def checkSwaption(fact, observed,report=""):
     # close the report
         qos_report.close()
     # write to final total
-    report.write(str(meanQoS))
+    report.write(str(meanQoS*100.0))
 
 def checkBodytrackWrapper(fact_path, observed_path):
     name = "output_";
@@ -179,15 +183,19 @@ def checkBodytrackWrapper(fact_path, observed_path):
         checkBodytrack(fact_path, observed_path, report)
     report.close()
 
-weight = [0.01, 0.01, 0.1, 100,100,100, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1, 0.01, 0.1, 0.1, 1, 0.1, 1, 0.1, 0.1, 0.1,
-10, 0.1, 1, 0.1, 0.1, 0.01, 0.01, 0.1, 0.01, 0.1]
+#weight = [0.01, 0.01, 0.1, 10,10,10, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1, 0.01, 0.1, 0.1, 1, 0.1, 1, 0.1, 0.1, 0.1,
+#10, 0.1, 1, 0.1, 0.1, 0.01, 0.01, 0.1, 0.01, 0.1]
+
+norm_weight = sum(weight)
 
 #QOS checker for Bodytrack
-def checkBodytrack(fact, observed, report=""):
+def checkBodytrack(fact, observed, report):
     truth = open(fact, "r")
     mission = open(observed, "r")
-    if report=="":
-        qos_report = open(observed + ".report", "w")
+    qos_report = None
+    if report==None:
+        qos_report = open("report", "w")
+        print "creating report"
     totalRound = 0
     truth_results = []
     mission_results = []
@@ -206,7 +214,7 @@ def checkBodytrack(fact, observed, report=""):
                 continue
             curtrue = float(truth_results[i][j])
             curmission = float(mission_results[i][j])
-            distortion += abs(weight[j]/10*(curtrue - curmission) / curtrue)
+            distortion += abs(weight[j]/norm_weight*(curtrue - curmission) / curtrue)
         distortion /= len(truth_results[i])
         if report == "":
             qos_report.write("frame")
@@ -216,4 +224,8 @@ def checkBodytrack(fact, observed, report=""):
             qos_report.write("\n")
             qos_report.close()
         totDistortion += distortion
-    report.write(str(1.0-totDistortion / len(truth_results)))
+    if not report==None:
+        report.write(str((1.0-(totDistortion / len(truth_results) * 100.0)) * 100.0))
+
+
+

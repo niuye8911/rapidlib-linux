@@ -12,8 +12,11 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
     seglvl = 0
     # initial error rate set to 100%
     error = 1.0
+    maxT = 4
+    if model=="quad":
+        maxT = 4
     while error>=threshold:
-        if seglvl >= 4:
+        if seglvl >= maxT:
             print "Reached Highest Segmentation Granularity"
             break
         seglvl += 1
@@ -80,9 +83,13 @@ def populate(observed,partitions,model):
         return populatePieceWiseRSDG(observed,partitions)
     elif model=="quad":
         return populateQuadRSDG(observed,True)
+    elif model=="linear":
+        return populateQuadRSDG(observed,False)
 
 def compare(rsdg,groundTruth,PRINT,model):
    if model=="piecewise":
        return modelValid(rsdg,groundTruth,PRINT)
-   if model == "quad":
+   elif model == "quad":
        return compareQuadRSDG(groundTruth,rsdg,True,PRINT)
+   elif model=="linear" :
+       return compareQuadRSDG(groundTruth,rsdg,False,PRINT)

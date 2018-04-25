@@ -2,6 +2,7 @@ from Classes import *
 from contigous import *
 from stage_1.training import *
 from os import system
+from psd import *
 
 def populatePieceWiseRSDG(observed, partitions):
     # get the segments
@@ -149,7 +150,7 @@ def genConstraints(segments,observed, COST=True):
                 costEstimates.append(costEstimate)
             # generate inter-service
             inter_cost = ""
-            if not len(configuration.retrieve_configs())==1:
+            if (not len(configuration.retrieve_configs())==1) and COST:
                 #inter_cost = " [ "
                 configs = configuration.retrieve_configs()
                 total_num = len(configs)
@@ -204,9 +205,9 @@ def genBounds(seg_indicators, seg_values, segconst,knob_values, errors):
     for seg_indicator in seg_indicators:
         bound = seg_indicator + " <= 1"
         integerBounds.add(bound)
-    #for seg_value in seg_values:
-    #    floatBound = "-99999 <= " + seg_value + " <= 99999"
-    #    floatBounds.add(floatBound)
+    for seg_value in seg_values:
+        floatBound = "1e-5 < " + seg_value
+        floatBounds.add(floatBound)
     #for seg_value in segconst:
     #    floatBound = "-99999 <= " + seg_value + " <= 99999"
     #    floatBounds.add(floatBound)
@@ -288,6 +289,19 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
             knob_b = cols[1]
             part = cols[2]
             rsdg.addInterCoeff(knob_a, knob_b, val, part)
+    # make the coeff PSD
+    if COST:
+        for knob in rsdg.coeffTable:
+            for dep in rsdg.coeffTable[knob]:
+                coeffs =rsdg.coeffTable[knob][dep]
+                a = coeffs.a
+                b = coeffs.b
+                c = coeffs.c
+                coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a,b,c)
+                print "before"
+                print a,b,c
+                print "after PSD"
+                print coeffs.a, coeffs.b, coeffs.c
     rsdg.printRSDG(COST)
     return rsdg
 

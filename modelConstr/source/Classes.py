@@ -168,30 +168,39 @@ class quadRSDG:
             self.knob_table[knob][1] = val
         else:
             self.knob_table[knob][0] = val
-    def addInterCoeff(self,knoba, knobb, val):
-        if not knoba in self.coeffTable:
-            self.coeffTable[knoba] = {}
-        if not knobb in self.coeffTable[knoba]:
-            self.coeffTable[knoba][knobb] = 0.0
-        self.coeffTable[knoba][knobb] = val
-    def printRSDG(self):
-        outfilename = "./outputs/cost.rsdg"
+    def addInterCoeff(self,a, b, abc,val):
+        if not a in self.coeffTable:
+            self.coeffTable[a] = {}
+        if not b in self.coeffTable[a]:
+            self.coeffTable[a][b] = InterCoeff()
+        if abc=="a":
+            self.coeffTable[a][b].adda(val)
+        elif abc == "b":
+            self.coeffTable[a][b].addb(val)
+        elif abc=="c":
+            self.coeffTable[a][b].addc(val)
+    def printRSDG(self,COST=True):
+        outfilename = ""
+        if COST:
+            outfilename = "./outputs/cost.rsdg"
+        else:
+            outfilename = "./outputs/mv.rsdg"
         rsdg = open(outfilename,'w')
         for knob in self.knob_table:
             rsdg.write(knob+"\n")
             rsdg.write("\t")
-            for i in self.knob_table[knob]:
-                rsdg.write("o2")
-                rsdg.write(str(self.knob_table[knob][0]) + " ; ")
-                rsdg.write("o1")
-                rsdg.write(str(self.knob_table[knob][1]) + " ; ")
-                rsdg.write("c")
-                rsdg.write(str(self.knob_table[knob][2]) + " ; ")
+            rsdg.write("o2:")
+            rsdg.write(str(self.knob_table[knob][0]) + " ; ")
+            rsdg.write("o1:")
+            rsdg.write(str(self.knob_table[knob][1]) + " ; ")
+            rsdg.write("c:")
+            rsdg.write(str(self.knob_table[knob][2]) + " ; \n")
         rsdg.write("COEFF\n")
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
                 rsdg.write("\t")
-                rsdg.write(knob + "_" + b + ":" + str(self.coeffTable[knob][b]) + "\n")
+                rsdg.write(knob + "_" + b + ":" + str(self.coeffTable[knob][b].a) + "/" + str(
+                    self.coeffTable[knob][b].b) + "/" + str(self.coeffTable[knob][b].c) + "\n")
         rsdg.close()
     def calCost(self,configuration):
         totalcost = 0.0
@@ -202,20 +211,24 @@ class quadRSDG:
             coeffs = self.knob_table[knob_name]
             totalcost += coeffs[0]*knob_val*knob_val + coeffs[1]*knob_val + coeffs[2]
         # calculate inter cost
+
         configs = []
         for config in configuration.retrieve_configs():
             configs.append(config)
-        for i in range(0, len(configs)):
-            for j in range(0, len(configs)):
-                if i == j:
+        for i in range(0,len(configs)):
+            for j in range(0,len(configs)):
+                if i==j:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
-                        coeff_entry = self.coeffTable[configs[i].knob.set_name]
+                        coeff_entry =self.coeffTable[configs[i].knob.set_name]
                         coeff_inter = coeff_entry[configs[j].knob.set_name]
-                        totalcost += float(knoba_val) * float(knobb_val) * coeff_inter
+                        a,b,c = coeff_inter.retrieveABC()
+
+                        totalcost+=float(knoba_val) * float(knoba_val) * a + float(knobb_val) * float(knobb_val) * b + float(knobb_val) * float(knoba_val) * c
+
         return totalcost
 
 class pieceRSDG:
