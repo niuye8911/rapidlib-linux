@@ -79,8 +79,10 @@ def populate(observed,partitions,model):
     if model=="piecewise":
         return populatePieceWiseRSDG(observed,partitions)
     elif model=="quad":
-        pass
+        return populateQuadRSDG(observed,True)
 
 def compare(rsdg,groundTruth,PRINT,model):
    if model=="piecewise":
        return modelValid(rsdg,groundTruth,PRINT)
+   if model == "quad":
+       return compareQuadRSDG(groundTruth,rsdg,True,PRINT)

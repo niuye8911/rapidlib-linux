@@ -2,19 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="596d2288-d991-4ecf-9a80-6b82f5f9fa76" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/source/plot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../Parser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../RSDG.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../RSDG.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../RSDG.h" beforeDir="false" afterPath="$PROJECT_DIR$/../RSDG.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/source/Classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/Classes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/Parsing_Util/readFact.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/Parsing_Util/readFact.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/source/rapid.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/rapid.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_2/performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_2/performance.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_2/qos_checker.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_2/qos_checker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_4/detGranularity.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_4/detGranularity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/stage_4/segmentProb.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_4/segmentProb.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source/xmlgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/xmlgen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/stage_4/constructRSDG.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_4/constructRSDG.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/stage_4/quadProb.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/stage_4/quadProb.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -24,110 +16,118 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="readFact.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/Parsing_Util/readFact.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="9" column="29" selection-start-line="9" selection-start-column="29" selection-end-line="9" selection-end-column="29" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="xmlgen.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="701">
-              <caret line="54" column="56" selection-start-line="54" selection-start-column="56" selection-end-line="54" selection-end-column="56" />
-              <folding>
-                <element signature="e#0#22#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="performance.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/stage_2/performance.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="900">
-              <caret line="181" column="55" selection-start-line="181" selection-start-column="55" selection-end-line="181" selection-end-column="55" />
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="plot.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/plot.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="17" column="28" lean-forward="true" selection-start-line="17" selection-start-column="28" selection-end-line="17" selection-end-column="28" />
-              <folding>
-                <element signature="e#0#18#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="qos_checker.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/stage_2/qos_checker.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1305">
-              <caret line="88" column="8" selection-start-line="88" selection-start-column="8" selection-end-line="88" selection-end-column="8" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="segmentProb.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/stage_4/segmentProb.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="967">
-              <caret line="277" column="28" selection-start-line="277" selection-start-column="28" selection-end-line="277" selection-end-column="28" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="detGranularity.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/stage_4/detGranularity.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="817">
-              <caret line="109" column="30" selection-start-line="109" selection-start-column="30" selection-end-line="109" selection-end-column="30" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Classes.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/Classes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="397">
-              <caret line="199" column="12" selection-start-line="199" selection-start-column="12" selection-end-line="199" selection-end-column="12" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="rapid.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/source/rapid.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
-              <caret line="84" column="4" lean-forward="true" selection-start-line="84" selection-start-column="4" selection-end-line="84" selection-end-column="4" />
-              <folding>
-                <element signature="e#0#15#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="trainApp.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/stage_2/trainApp.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <splitter split-orientation="horizontal" split-proportion="0.5">
+      <split-first>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="readFact.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/Parsing_Util/readFact.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="45">
+                  <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="xmlgen.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="311">
+                  <caret line="57" column="8" selection-start-line="57" selection-start-column="8" selection-end-line="57" selection-end-column="8" />
+                  <folding>
+                    <element signature="e#0#22#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="performance.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/stage_2/performance.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="900">
+                  <caret line="181" column="55" selection-start-line="181" selection-start-column="55" selection-end-line="181" selection-end-column="55" />
+                  <folding>
+                    <element signature="e#0#11#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="plot.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/plot.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="255">
+                  <caret line="17" column="28" selection-start-line="17" selection-start-column="28" selection-end-line="17" selection-end-column="28" />
+                  <folding>
+                    <element signature="e#0#18#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="qos_checker.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/stage_2/qos_checker.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1305">
+                  <caret line="88" column="8" selection-start-line="88" selection-start-column="8" selection-end-line="88" selection-end-column="8" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="quadProb.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/source/stage_4/quadProb.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="90">
+                  <caret line="93" column="13" lean-forward="true" selection-start-line="93" selection-start-column="13" selection-end-line="93" selection-end-column="13" />
+                  <folding>
+                    <element signature="e#0#21#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="constructRSDG.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/stage_4/constructRSDG.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="845">
+                  <caret line="87" column="57" selection-start-line="87" selection-start-column="57" selection-end-line="87" selection-end-column="57" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="piecewiseProb.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/stage_4/piecewiseProb.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="441">
+                  <caret line="295" column="9" lean-forward="true" selection-start-line="295" selection-start-column="9" selection-end-line="295" selection-end-column="9" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Classes.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/source/Classes.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="771">
+                  <caret line="217" column="86" selection-start-line="217" selection-start-column="86" selection-end-line="217" selection-end-column="86" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="rapid.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/source/rapid.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="366">
+                  <caret line="140" column="44" selection-start-line="140" selection-start-column="39" selection-end-line="140" selection-end-column="44" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -138,7 +138,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>cross</find>
       <find>getCostEstimates</find>
       <find>getFlattedSeg</find>
       <find>err_id</find>
@@ -148,10 +147,10 @@
       <find>coeffTable</find>
       <find>observed_profile</find>
       <find>9999</find>
-      <find>print</find>
-      <find>cant find</find>
+      <find />
+      <find />
       <find>stage</find>
-      <find>found not</find>
+      <find />
       <find>checkAccuracy</find>
       <find>observedobserved</find>
       <find>xml</find>
@@ -168,6 +167,7 @@
       <find>inter_coeff</find>
       <find>fitting</find>
       <find>contmin</find>
+      <find>paras</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -201,18 +201,21 @@
         <option value="$PROJECT_DIR$/source/stage_2/qos_checker.py" />
         <option value="$PROJECT_DIR$/source/Parsing_Util/readFact.py" />
         <option value="$PROJECT_DIR$/source/stage_2/performance.py" />
-        <option value="$PROJECT_DIR$/source/Classes.py" />
         <option value="$PROJECT_DIR$/source/stage_4/detGranularity.py" />
         <option value="$PROJECT_DIR$/source/plot.py" />
         <option value="$PROJECT_DIR$/source/rapid.py" />
+        <option value="$PROJECT_DIR$/source/stage_4/piecewiseProb.py" />
+        <option value="$PROJECT_DIR$/source/stage_4/constructRSDG.py" />
+        <option value="$PROJECT_DIR$/source/stage_4/quadProb.py" />
+        <option value="$PROJECT_DIR$/source/Classes.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1920" />
-    <option name="y" value="-4" />
-    <option name="width" value="1050" />
-    <option name="height" value="1684" />
+    <option name="x" value="49" />
+    <option name="y" value="1976" />
+    <option name="width" value="1871" />
+    <option name="height" value="1083" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -419,16 +422,16 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1920" y="-4" width="1050" height="1684" extended-state="6" />
+    <frame x="49" y="296" width="1871" height="1083" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17904761" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.100481026" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3296146" />
       <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info anchor="bottom" id="Python Console" order="8" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32912192" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.52839756" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="9" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -451,9 +454,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/LP_Util/__init__.py" />
-    <entry file="file://$PROJECT_DIR$/LP_Util/merge.py" />
-    <entry file="file://$PROJECT_DIR$/contigous.py" />
     <entry file="file://$PROJECT_DIR$/LP_Util/lp_util.py" />
     <entry file="file://$PROJECT_DIR$/representset.py" />
     <entry file="file://$PROJECT_DIR$/qos_checker.py" />
@@ -650,20 +650,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/stage_2/trainApp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/Parsing_Util/readFact.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="29" selection-start-line="9" selection-start-column="29" selection-end-line="9" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/stage_2/performance.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="900">
@@ -674,27 +660,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="701">
-          <caret line="54" column="56" selection-start-line="54" selection-start-column="56" selection-end-line="54" selection-end-column="56" />
-          <folding>
-            <element signature="e#0#22#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/stage_4/segmentProb.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="967">
           <caret line="277" column="28" selection-start-line="277" selection-start-column="28" selection-end-line="277" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/Classes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="397">
-          <caret line="199" column="12" selection-start-line="199" selection-start-column="12" selection-end-line="199" selection-end-column="12" />
         </state>
       </provider>
     </entry>
@@ -708,20 +677,72 @@
     <entry file="file://$PROJECT_DIR$/source/plot.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
-          <caret line="17" column="28" lean-forward="true" selection-start-line="17" selection-start-column="28" selection-end-line="17" selection-end-column="28" />
+          <caret line="17" column="28" selection-start-line="17" selection-start-column="28" selection-end-line="17" selection-end-column="28" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/source/stage_2/trainApp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/xmlgen.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="311">
+          <caret line="57" column="8" selection-start-line="57" selection-start-column="8" selection-end-line="57" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/Parsing_Util/readFact.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/source/rapid.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="84" column="4" lean-forward="true" selection-start-line="84" selection-start-column="4" selection-end-line="84" selection-end-column="4" />
+        <state relative-caret-position="366">
+          <caret line="140" column="44" selection-start-line="140" selection-start-column="39" selection-end-line="140" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/stage_4/piecewiseProb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="441">
+          <caret line="295" column="9" lean-forward="true" selection-start-line="295" selection-start-column="9" selection-end-line="295" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/stage_4/constructRSDG.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="845">
+          <caret line="87" column="57" selection-start-line="87" selection-start-column="57" selection-end-line="87" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/stage_4/quadProb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="93" column="13" lean-forward="true" selection-start-line="93" selection-start-column="13" selection-end-line="93" selection-end-column="13" />
           <folding>
-            <element signature="e#0#15#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/Classes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="771">
+          <caret line="217" column="86" selection-start-line="217" selection-start-column="86" selection-end-line="217" selection-end-column="86" />
         </state>
       </provider>
     </entry>

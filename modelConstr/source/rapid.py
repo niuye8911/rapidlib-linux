@@ -83,13 +83,13 @@ def main(argv):
 
     #######################STAGE-3########################
     #third stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
-    factfile, mvfactfile = genFact(appname,groundTruth_profile)
+    #factfile, mvfactfile = genFact(appname,groundTruth_profile)
 
     #######################STAGE-4########################
     #forth stage, explore the trained profile and generate representative list
     # read in the trained profile, the profile key is a string representing the configuration, value is the cost
-    #factfile="outputs/ferret-cost.fact"
-    #mvfactfile = "outputs/ferret-mv.fact"
+    factfile="outputs/swaptions-cost.fact"
+    mvfactfile = "outputs/swaptions-mv.fact"
     readFact(factfile,knobs,groundTruth_profile)
     readFact(mvfactfile,knobs,groundTruth_profile,False)
     groundTruth_profile.printProfile("./outputs/"+appname+".profile")
@@ -149,7 +149,7 @@ def declareParser():
     return parser
 
 def parseCMD(options):
-    global config, observed, fact, KF, app, remote, model, rs,desc,stage,mode
+    global config, observed, fact, KF, app, remote, model, rs,desc,stage,mode,PLOT
     observed = options.observed
     fact = options.fact
     KF = options.KF

@@ -155,6 +155,69 @@ class InterCoeff:
     def retrieveABC(self):
         return self.a,self.b,self.c
 
+class quadRSDG:
+    def __init__(self):
+        self.knob_table = {}
+        self.coeffTable = {}
+    def addKnob(self,knob):
+        self.knob_table[knob] = [0.0,0.0,0.0]
+    def addKnobVal(self,knob,val,lvl):
+        if lvl == "c":
+            self.knob_table[knob][2] = val
+        elif lvl == "1":
+            self.knob_table[knob][1] = val
+        else:
+            self.knob_table[knob][0] = val
+    def addInterCoeff(self,knoba, knobb, val):
+        if not knoba in self.coeffTable:
+            self.coeffTable[knoba] = {}
+        if not knobb in self.coeffTable[knoba]:
+            self.coeffTable[knoba][knobb] = 0.0
+        self.coeffTable[knoba][knobb] = val
+    def printRSDG(self):
+        outfilename = "./outputs/cost.rsdg"
+        rsdg = open(outfilename,'w')
+        for knob in self.knob_table:
+            rsdg.write(knob+"\n")
+            rsdg.write("\t")
+            for i in self.knob_table[knob]:
+                rsdg.write("o2")
+                rsdg.write(str(self.knob_table[knob][0]) + " ; ")
+                rsdg.write("o1")
+                rsdg.write(str(self.knob_table[knob][1]) + " ; ")
+                rsdg.write("c")
+                rsdg.write(str(self.knob_table[knob][2]) + " ; ")
+        rsdg.write("COEFF\n")
+        for knob in self.coeffTable:
+            for b in self.coeffTable[knob]:
+                rsdg.write("\t")
+                rsdg.write(knob + "_" + b + ":" + str(self.coeffTable[knob][b]) + "\n")
+        rsdg.close()
+    def calCost(self,configuration):
+        totalcost = 0.0
+        # calculate linear cost
+        for config in configuration.retrieve_configs():
+            knob_name = config.knob.set_name
+            knob_val = config.val
+            coeffs = self.knob_table[knob_name]
+            totalcost += coeffs[0]*knob_val*knob_val + coeffs[1]*knob_val + coeffs[2]
+        # calculate inter cost
+        configs = []
+        for config in configuration.retrieve_configs():
+            configs.append(config)
+        for i in range(0, len(configs)):
+            for j in range(0, len(configs)):
+                if i == j:
+                    continue
+                if configs[i].knob.set_name in self.coeffTable:
+                    if configs[j].knob.set_name in self.coeffTable[configs[i].knob.set_name]:
+                        knoba_val = configs[i].val
+                        knobb_val = configs[j].val
+                        coeff_entry = self.coeffTable[configs[i].knob.set_name]
+                        coeff_inter = coeff_entry[configs[j].knob.set_name]
+                        totalcost += float(knoba_val) * float(knobb_val) * coeff_inter
+        return totalcost
+
 class pieceRSDG:
     def __init__(self):
         self.knob_table = {}
