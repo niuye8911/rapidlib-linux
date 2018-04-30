@@ -69,7 +69,7 @@ def run(appName,config_table):
             subprocess.call(command)
             # generate mv fact
             mvFact.write('particle,{0},layer,{1},'.format(int(particle), int(layer)))
-            checkBodytrack(gt_path, newfileloc, mvFact)
+            checkBodytrack(gt_path, newfileloc,False, mvFact)
             mvFact.write("\n")
         costFact.close()
         mvFact.close()
@@ -112,7 +112,7 @@ def run(appName,config_table):
             subprocess.call(command)
             # generate mv fact
             mvFact.write('num,{0},'.format(int(num)))
-            checkSwaption(gt_path, newfileloc, mvFact)
+            checkSwaption(gt_path, newfileloc, False,mvFact)
             mvFact.write("\n")
         costFact.close()
         mvFact.close()
@@ -125,9 +125,9 @@ def run(appName,config_table):
         # generate the ground truth
         print "GENERATING GROUND TRUTH for Ferret"
         command = [bin_ferret,
-                    "corel",
+                    ferret_input+"corelnative",
                     "lsh",
-                    "queries",
+                    ferret_input+"queries",
                     "50",
                     "20",
                     "1",
@@ -156,9 +156,9 @@ def run(appName,config_table):
                 else:
                     probe = config.val
             command2 = [bin_ferret,
-                        "corel",
+                        ferret_input+"corelnative",
                         "lsh",
-                        "queries",
+                        ferret_input+"queries",
                         "50",
                         "20",
                         "1",
@@ -173,14 +173,14 @@ def run(appName,config_table):
             time1 = time.time()
             subprocess.call(command2)
             time2 = time.time()
-            elapsedTime = (time2 - time1) * 1000 / 10
+            elapsedTime = (time2 - time1) * 1000 / 20
             costFact.write('hash,{0},probe,{1},iteration,{2},{3}\n'.format(int(hash), int(probe), int(itr), elapsedTime))
             newfileloc = "./training_outputs/output_" + str(int(hash)) + "_" + str(int(probe))+ "_" + str(int(itr)) + ".txt"
             command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
             # generate mv fact
             mvFact.write('hash,{0},probe,{1},iteration,{2},'.format(int(hash), int(probe), int(itr)))
-            checkFerret(gt_path, newfileloc, mvFact)
+            checkFerret(gt_path, newfileloc, False,mvFact)
             mvFact.write("\n")
         costFact.close()
         mvFact.close()

@@ -59,8 +59,3 @@ def isPD(B):
         return True
     except la.LinAlgError:
         return False
-
-a  = numpy.matrix([[0.0837724592367,0.00159493620186/2.0],[0.00159493620186/2.0,0.0]])
-A = nearestPD(a)
-print A
-print isPD(A)

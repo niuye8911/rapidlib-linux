@@ -8,6 +8,7 @@ from stage_4.constructRSDG import *
 from Classes import  *
 from representset import populateRSDG, genRS
 from plot import *
+from stage_2.qos_checker import *
 
 configs = []
 service_levels = {}
@@ -61,14 +62,13 @@ def main(argv):
     if (mode == "qos"):  # check the QoS loss of two different runtime behavior
         # fact will be the golden truth
         # observed will be the actual runtime data
-        print "running qos"
         if app=="swaptions":
-            checkSwaption(fact,observed)
+            checkSwaption(fact,observed,True,"")
         if app == "ferret":
-            checkFerret(fact, observed)
+            checkFerret(fact, observed,True,"")
         if app=="bodytrack":
-            checkBodytrack(fact,observed,None)
-        return 0
+            checkBodytrack(fact,observed,True,"")
+        return
 
     #######################STAGE-1########################
     #generate training set

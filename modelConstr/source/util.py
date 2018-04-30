@@ -1,6 +1,5 @@
 # A utility file providing all helper functions
 
-from qos_checker import *
 import numpy as np,numpy.linalg
 
 def checkRate(rsdg,fact):

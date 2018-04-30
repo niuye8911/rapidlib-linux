@@ -210,6 +210,12 @@ void rsdgMission::getRes(vector<string>& holder, string response){
         return;
 }
 void rsdgMission::consultServer(){
+	if(offline_search){
+                vector<string> res = searchProfile();
+                updateSelection(res);
+                res.clear();
+                return;
+        }
 	//#TO BE DONE
 	if(local){
 		//cfgse local solver
@@ -217,12 +223,6 @@ void rsdgMission::consultServer(){
 		updateSelection(res);
 		res.clear();
 		return;
-	}
-	if(offline_search){
-		vector<string> res = searchProfile();
-		updateSelection(res);
-		res.clear();
-		return; 
 	}
 	CURL *curl;
 	CURLcode responseCode;
@@ -930,6 +930,21 @@ void rsdgMission::readMVProfile(){
 	double mv;
 	string svcname;
 	int svclvl;
+	if (CONT){
+		while(getline(offline_profile, line)){
+                istringstream nodes(line);
+		string finalconfig="";
+                nodes >> mv;
+		string result;
+		while(nodes >> result){
+			finalconfig+=result+" ";
+		}
+                offlineMV[finalconfig] = mv;
+                cout<<finalconfig<<" with mv"<<mv<<endl;
+        }
+	return;
+	}
+	
         while(getline(offline_profile, line)){
                 istringstream nodes(line);
 		nodes >> mv;
@@ -958,6 +973,23 @@ void rsdgMission::readCostProfile(){
         double cost;
         string svcname;
         int svclvl;
+	if (CONT){
+                while(getline(offline_profile, line)){
+                istringstream nodes(line);
+                string finalconfig="";
+                nodes >> cost;
+		string result;
+                while(nodes >> result){
+                        finalconfig+=result+" ";
+                }
+
+                offlineCost[finalconfig] = cost;
+                cout<<finalconfig<<" with cost"<<cost<<endl;
+        }
+	cout<<offlineCost.size()<<endl;
+        return;
+        }
+
         while(getline(offline_profile, line)){
                 istringstream nodes(line);
                 nodes >> cost;
@@ -985,24 +1017,35 @@ vector<string> rsdgMission::searchProfile(){
 	string maxConfig = "";
 	for(auto it = offlineCost.begin(); it!=offlineCost.end(); it++){
 		double curcost = it->second;
-		cout<<"cur cost"<<curcost<<" ";
 		cout<<it->first<<" ";
 		if(curcost > curBudget){
 			continue;
 		}
 		string curconfig = it->first;
 		// this config is valid
-		cout<<offlineMV[curconfig]<<endl;
+		cout<<"Checking"<<offlineMV[curconfig]<<endl;
 		if(offlineMV[curconfig]>curMaxMV){
 			maxConfig = curconfig;
 			curMaxMV = offlineMV[curconfig];
-			cout<<"changed to "<<curMaxMV<<endl;
+			cout<<"candidate:"<<maxConfig<<" "<<curMaxMV<<endl;
 		}
 	}
 	if(maxConfig=="")return resultConfig;
 	// construct the result
 	istringstream configs(maxConfig);
 	string tmp;
+	if (CONT){
+		string node = "";
+		while(configs>>node){
+			node+=" ";
+			string val = "";
+			configs>>val;
+			resultConfig.push_back(node+val);
+			cout<<"offline returns " + node+val<<endl;
+			node="";
+		}
+		return resultConfig;
+	}
 	while(configs>>tmp)resultConfig.push_back(tmp);	
 	return resultConfig;
 }

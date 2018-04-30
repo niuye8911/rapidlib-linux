@@ -12,9 +12,9 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
     seglvl = 0
     # initial error rate set to 100%
     error = 1.0
-    maxT = 4
+    maxT = 2
     if model=="quad":
-        maxT = 4
+        maxT = 3
     while error>=threshold:
         if seglvl >= maxT:
             print "Reached Highest Segmentation Granularity"
