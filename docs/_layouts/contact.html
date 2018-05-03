@@ -7,13 +7,19 @@
 
     {% include header.html %}
 
-    <main class="page-content" aria-label="Content">
+    <main class="landing-content" id="contact-content" aria-label="Content">
       <div class="wrapper">
-        {{ content }}
+        <div class="contact">
+
+          {{ content }}
+          {% include contact-icons.html %}
+
+        </div>
       </div>
     </main>
 
     {% include footer.html %}
+
 
   </body>
 

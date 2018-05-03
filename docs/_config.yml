@@ -1,10 +1,81 @@
-name: Solar Theme
-url: https://niuye8911.github.io/rapidlib-linux/
-description: A stylish blog using the Solarized color palette
+title: Minimaless Demo
+author: GitHub User
+email: your-email@domain.com
+description: >
+  Write an awesome description for your new site here. You can edit this
+  line in _config.yml. It will appear in your document head meta (for
+  Google search results) and in your feed.xml site description.
 
-permalink: /:year/:month/:day/:title/
-paginate: 10
+baseurl: "/" # the subpath of your site, e.g. /blog
+url: "http://www.brettgardiner.net/minimaless" # the base hostname & protocol for your site, e.g. http://example.com
 
-gems: [jekyll-paginate]
-gems: [jekyll]
-exclude: ['README.md', 'Gemfile.lock', 'Gemfile', 'Rakefile']
+website: https://www.brettinternet.com
+github_username:  brettinternet
+bitbucket_username: brettinternet
+codepen_username: brettinternet
+linkedin_username: brettinternet
+twitter_username: brettinternet
+facebook_username: brettinternet
+instagram_username: brettinternet
+keybase_username: brettinternet
+paypal_username: brettinternet
+stackoverflow_username: brettinternet # (developer story)
+
+
+collections:
+  - setup
+
+# disqus:
+#   shortname:
+
+# Minimaless date format
+# refer to http://shopify.github.io/liquid/filters/date/ if you want to customize this
+minimaless:
+  date_format: "%b %-d, %Y"
+preview_posts: true
+permalink: /:title
+paginate: 10 # increase this value to reflect how many posts per page you want
+paginate_path: "/page:num/"
+
+# If you want to link only specific pages in your header, uncomment
+# this and add the path to the pages in order as they should show up
+header_pages:
+  - _pages/blog.md
+  - _pages/about.md
+  - _pages/contact.md
+  - _pages/setup.md
+  - _pages/github.md
+
+plugins:
+  - jekyll-feed
+  - jekyll-gist
+  - jekyll-sitemap
+  - jekyll-redirect-from
+  - jekyll-archives
+  - jekyll-paginate
+
+markdown: kramdown
+theme: minimaless
+# remote_theme: brettinternet/minimaless # uncomment to allow GitHub to build for GitHub Pages - https://github.com/blog/2464-use-any-theme-with-github-pages
+
+include:
+  - _pages
+exclude:
+  - vendor
+  - .asset-cache
+  - .bundle
+  - .jekyll-assets-cache
+  - .sass-cache
+  - assets/js/plugins
+  - assets/js/_main.js
+  - assets/js/vendor
+  - Capfile
+  - CHANGELOG
+  - config
+  - Gemfile
+  - LICENSE
+  - log
+  - node_modules
+  - package.json
+  - Rakefile
+  - tmp
