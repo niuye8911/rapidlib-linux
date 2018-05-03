@@ -7,19 +7,19 @@ description: >
   Google search results) and in your feed.xml site description.
 
 baseurl: "/" # the subpath of your site, e.g. /blog
-url: "http://www.brettgardiner.net/minimaless" # the base hostname & protocol for your site, e.g. http://example.com
+url: "http://niuye8911.github.io/rapid-linux" # the base hostname & protocol for your site, e.g. http://example.com
 
 website: https://www.brettinternet.com
-github_username:  brettinternet
-bitbucket_username: brettinternet
-codepen_username: brettinternet
-linkedin_username: brettinternet
-twitter_username: brettinternet
-facebook_username: brettinternet
-instagram_username: brettinternet
-keybase_username: brettinternet
-paypal_username: brettinternet
-stackoverflow_username: brettinternet # (developer story)
+github_username: niuye8911 
+bitbucket_username: niuye8911
+codepen_username: niuye8911
+linkedin_username: niuye8911
+twitter_username: niuye8911
+facebook_username: niuye8911
+instagram_username: niuye8911
+keybase_username: niuye8911
+paypal_username: niuye8911
+stackoverflow_username: niuye8911 # (developer story)
 
 
 collections:
@@ -40,9 +40,8 @@ paginate_path: "/page:num/"
 # If you want to link only specific pages in your header, uncomment
 # this and add the path to the pages in order as they should show up
 header_pages:
-  - _pages/blog.md
   - _pages/about.md
-  - _pages/contact.md
+  - _pages/example.md
   - _pages/setup.md
   - _pages/github.md
 
