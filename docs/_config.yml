@@ -1,80 +1,24 @@
-title: RAPID(C) Starter Guide 
-author: Liu Liu 
-email: jack.liuliu@cs.rutgers.edu
-description: >
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+# Permalinks
+#
+# Use of `relative_permalinks` ensures post links from the index work properly.
+permalink:           pretty
+#relative_permalinks: true
 
-baseurl: "/" # the subpath of your site, e.g. /blog
-url: "http://niuye8911.github.io/rapid-linux" # the base hostname & protocol for your site, e.g. http://example.com
+# Setup
+title:              RAPID(C) 
+tagline:             'Write Your Own Approximate Apps'
+description:         'An on-going work that enables programmers to write apps with approximation easily (hopefully).'
+url:                 http://lanyon.getpoole.com
+baseurl:             ''
+paginate:            5
 
-website: https://www.brettinternet.com
-github_username: niuye8911 
-bitbucket_username: niuye8911
-codepen_username: niuye8911
-linkedin_username: niuye8911
-twitter_username: niuye8911
-facebook_username: niuye8911
-instagram_username: niuye8911
-keybase_username: niuye8911
-paypal_username: niuye8911
-stackoverflow_username: niuye8911 # (developer story)
+# About/contact
+author:
+  name:              Liu Liu
+  url:               https://twitter.com/mdo
+  email:             niuye8911@gmail.com
 
+# Custom vars
+version:             1.0.0
 
-collections:
-  - setup
-
-# disqus:
-#   shortname:
-
-# Minimaless date format
-# refer to http://shopify.github.io/liquid/filters/date/ if you want to customize this
-minimaless:
-  date_format: "%b %-d, %Y"
-preview_posts: true
-permalink: /:title
-paginate: 10 # increase this value to reflect how many posts per page you want
-paginate_path: "/page:num/"
-
-# If you want to link only specific pages in your header, uncomment
-# this and add the path to the pages in order as they should show up
-header_pages:
-  - _pages/about.md
-  - _pages/example.md
-  - _pages/setup.md
-  - _pages/github.md
-
-plugins:
-  - jekyll-feed
-  - jekyll-gist
-  - jekyll-sitemap
-  - jekyll-redirect-from
-  - jekyll-archives
-  - jekyll-paginate
-
-markdown: kramdown
-theme: minimaless
-# remote_theme: brettinternet/minimaless # uncomment to allow GitHub to build for GitHub Pages - https://github.com/blog/2464-use-any-theme-with-github-pages
-
-include:
-  - _pages
-exclude:
-  - vendor
-  - .asset-cache
-  - .bundle
-  - .jekyll-assets-cache
-  - .sass-cache
-  - assets/js/plugins
-  - assets/js/_main.js
-  - assets/js/vendor
-  - Capfile
-  - CHANGELOG
-  - config
-  - Gemfile
-  - LICENSE
-  - log
-  - node_modules
-  - package.json
-  - Rakefile
-  - tmp
+plugins: [jekyll-paginate]
