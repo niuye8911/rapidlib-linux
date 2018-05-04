@@ -9,7 +9,7 @@ title:              RAPID(C)
 tagline:             'Write Your Own Approximate Apps'
 description:         'An on-going work that enables programmers to write apps with approximation easily (hopefully).'
 url:                 https://niuye8911.github.io
-baseurl:             '/rapid-linux'
+baseurl:             /rapidlib-linux
 paginate:            5
 
 # About/contact
