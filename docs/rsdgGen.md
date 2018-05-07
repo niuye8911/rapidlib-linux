@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Examples 
+title: RSDG Generation 
 ---
 
 <p class="message">
