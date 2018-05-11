@@ -49,7 +49,7 @@ Now, once RAPID(C) determines the setting for knob *swapNum*, *swapPara* will be
 
 ## RSDG generation 
 
-One of the key component of RAPID(C) is to generate the internal data structure, RSDG, that represents the program structure. THe details of RSDG can be found [here]().
+One of the key component of RAPID(C) is to generate the internal data structure, RSDG, that represents the program structure. The details of RSDG can be found [here]().
 
 The metadata needed for generating the RSDG is in the form of a XML.
 
@@ -73,7 +73,7 @@ Below is a fraction of the XML code:
 	</basicnode>
 {% endhighlight %}
 
-In this small code fragment, the node name, along with the coefficient for generating the cost and quality functions are included. Refer to [RAPID(C)-RSDG-generation]() for details on how to generate this automatically.
+In this small code fragment, the node name, along with the coefficient for generating the cost and quality functions are included. Refer to [RAPID(C)-RSDG-generation](https://niuye8911.github.io/rapidlib-linux/rsdgGen/) for details on how to generate this automatically.
 
 Suppose that *XML_PATH* is the path to the XML file and the following instruction let RAPID(C) will read in this XML and generate the internal structure.
 
