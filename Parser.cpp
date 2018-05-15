@@ -726,9 +726,6 @@ static void get_basic_node_info(xml_node<> *xml_bnode, Basic *basic)
 			vector<xml_edge_t> edges;
 			xml_edge_t or_edge;
 			string name;
-			float weight;
-
-
 			for (xml_node<> *or_dep = fields->first_node(); or_dep; or_dep = or_dep->next_sibling()) {
 
 				string xml_name = or_dep->name();

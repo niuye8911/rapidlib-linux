@@ -33,8 +33,12 @@ using namespace std;
 
 #define MIN 0
 #define MAX 1
+#ifndef INT_MIN
 #define INT_MIN -99999
+#endif
+#ifndef INT_MAX
 #define INT_MAX 99999
+#endif
 
 // top | level | basic - unsigned shorts to fit in an 8 byte hashed value for map key
 typedef tuple<unsigned short,unsigned short, unsigned short> index_t;

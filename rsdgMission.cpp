@@ -56,10 +56,21 @@ void rsdgService::set(pthread_t setter, void* obj){
 }
 
 void rsdgService::run(string name, void *f(void*)){
-        curNode = name;
-        pthread_create(&sThread, NULL, f,NULL);
+    setCurNode(name);
+    pthread_create(&sThread, NULL, f,NULL);
+    return;
+}
 
-        return;
+void rsdgService::setCurNode(string node){
+    curNode = node;
+}
+
+void rsdgService::setSingle(bool s){
+    single = s;
+}
+
+bool rsdgService::isSingle(){
+    return single;
 }
 
 void rsdgService::updateNode(void* (*f)(void*),string name){
@@ -69,9 +80,8 @@ void rsdgService::updateNode(void* (*f)(void*),string name){
 		return;
 	}*/
 	cout<<RSDG_TAG+"change config:"<<curNode<<"->"<<name<<endl;
-//        if(name!=curNode && f!=NULL){
 	if(f!=NULL){      
-		if(single){
+		if(isSingle()){
 			f(NULL);
 			curNode = name;
 			return;
@@ -117,7 +127,7 @@ void rsdgMission::regService(string sName, string bName, void*(*func)(void*), bo
 	
 	if(getService(sName) == NULL){
 		rsdgService* s = new rsdgService(sName);
-		s->single = single;
+		s->setSingle(single);
 		serviceList.push_back(s);	
 		threadPref[sName] = 0;
 		threadID[sName] = serviceList.size()-1;
@@ -145,6 +155,9 @@ void rsdgService::addNode(string nodeName){
 	cout<<"Pushing back node "<<nodeName<<endl;
 }
 
+vector<string>& rsdgService::getList(){
+    return node_lists;
+}
 void rsdgMission::regService(string sName, string bName, void*(*func)(void*),bool single){
         if(func==NULL){                                            
                 basicToService[bName] = sName;                     
@@ -155,7 +168,7 @@ void rsdgMission::regService(string sName, string bName, void*(*func)(void*),boo
                 
         if(getService(sName) == NULL){                             
                 rsdgService* s = new rsdgService(sName);
-		s->single = single;           
+		s->setSingle(single);
                 serviceList.push_back(s);                          
                 threadPref[sName] = 0;
                 threadID[sName] = serviceList.size()-1;            
@@ -366,7 +379,7 @@ void rsdgMission::printToLog(){
 	for (map<string, string>::iterator it = selected.begin(); it!=selected.end(); it++){
 		string basic = it->second;
 		string service = basicToService[basic];
-		vector<string>& nodelist = getService(service)->node_lists;
+		vector<string>& nodelist = getService(service)->getList();
 		int lvl =0;
 		for(;lvl<nodelist.size(); lvl++){
 			if(nodelist[lvl]==basic){
@@ -418,8 +431,9 @@ void rsdgMission::genAllConfigs(int curSvcId, vector<string> tmp_result){
 		return;
 	}
 	// dfs through all the nodes
-	for(int i = 0; i<(serviceList[curSvcId]->node_lists).size(); i++ ){
-		string curNode = serviceList[curSvcId]->node_lists[i];
+	vector<string>& node_list = serviceList[curSvcId]->getList();
+	for(int i = 0; i<node_list.size(); i++ ){
+		string curNode = node_list[i];
 		tmp_result.push_back(curNode);
 		genAllConfigs(curSvcId+1, tmp_result);
 		tmp_result.pop_back();
@@ -487,7 +501,6 @@ void rsdgMission::updateRSDG(){
 	// it's time to update the internal rsdg
 	ifstream rsdgfile;
 	rsdgfile.open("rsdg");
-
 	string svc;
         vector<vector<string>> configs;
         while(getline(rsdgfile, svc)){
@@ -499,10 +512,11 @@ void rsdgMission::updateRSDG(){
 		double cost;
                 while(nodes>>cost){
                         rsdgService* svc = getService(svcname);
+                        vector<string>& node_list = svc->getList();
                         if(svc!=NULL){
-                                string nodename = svc->node_lists[curlevel++];
-				updateWeight(nodename, cost);
-				cout<<RSDG_TAG + "Updating node weight " + nodename + " to "<<cost<<endl;
+                                string nodename = node_list[curlevel++];
+				                updateWeight(nodename, cost);
+				                cout<<RSDG_TAG + "Updating node weight " + nodename + " to "<<cost<<endl;
                         }
                 }
         }
@@ -902,7 +916,8 @@ void rsdgMission::readRS(string input){
 			}
 			rsdgService* svc = getService(servicename);
 			if(svc!=NULL){
-				string nodename = svc->node_lists[lvl-1];
+			    vector<string>& node_list = svc->getList();
+				string nodename = node_list[lvl-1];
 				cur_config.push_back(nodename);
 			}
 		}
@@ -952,8 +967,9 @@ void rsdgMission::readMVProfile(){
                 while(nodes>>svcname){
 			nodes>>svclvl;
                         rsdgService* svc = getService(svcname);
+                        vector<string>& node_list = svc->getList();
                         if(svc!=NULL){
-                                string nodename = svc->node_lists[svclvl-1];
+                                string nodename = node_list[svclvl-1];
 				finalConfig+=nodename;
 				finalConfig+=" ";
                         }
@@ -997,8 +1013,9 @@ void rsdgMission::readCostProfile(){
                 while(nodes>>svcname){
                         nodes>>svclvl;
                         rsdgService* svc = getService(svcname);
+                        vector<string>& node_list = svc->getList();
                         if(svc!=NULL){
-                                string nodename = svc->node_lists[svclvl-1];
+                                string nodename = node_list[svclvl-1];
 				finalConfig+=nodename;
 				finalConfig+=" ";
                         }
