@@ -66,13 +66,13 @@ vector<vector<xml_edge_t>> *Node::getXMLEdges(){
 }
 
 vector<vector<cont_edge_t>> *Node::getContEdges(){
-	return &cont_edges;
+    return &cont_edges;
 }
 
-// Gets a list of dependencies from xml representation                         
-vector<vector<xml_edge_t>> *Node::getXMLOutEdges(){                               
-    return &xml_outedges; 
-} 
+// Gets a list of dependencies from xml representation
+vector<vector<xml_edge_t>> *Node::getXMLOutEdges(){
+    return &xml_outedges;
+}
 
 // Add a new dependency (form of edge_t vector) to a node
 void Node::addEdges(vector<edge_t> deps)
@@ -81,7 +81,7 @@ void Node::addEdges(vector<edge_t> deps)
 }
 
 void Node::addContEdges(vector<cont_edge_t> deps){
-	cont_edges.push_back(deps);
+    cont_edges.push_back(deps);
 }
 
 // Add a new dependency (form of xml_edge_t vector) to a node
@@ -90,11 +90,11 @@ void Node::addEdges(vector<xml_edge_t> deps)
     xml_edges.push_back(deps);
 }
 
-// Add a new dependency (form of xml_edge_t vector) to a node                  
-void Node::addOutEdges(vector<xml_edge_t> deps)                                   
-{       
+// Add a new dependency (form of xml_edge_t vector) to a node
+void Node::addOutEdges(vector<xml_edge_t> deps)
+{
     xml_outedges.push_back(deps);
-}   
+}
 
 // Find the given edge inside of the Node's dependency list - set the new weight / cost
 void Node::setEdgeWeight(index_t edge_idx, float value, float cost)
@@ -102,16 +102,16 @@ void Node::setEdgeWeight(index_t edge_idx, float value, float cost)
     index_t *idx;
     edge_t edge;
     short top, level, basic;        // to avoid repeated get<>()
-    
+
     top = INDEX_TOP(edge_idx);
     level = INDEX_LEVEL(edge_idx);
     basic = INDEX_BASIC(edge_idx);
-    
+
     for (size_t i = 0; i < edges.size(); i++) {
         for (size_t j = 0; j < edges.at(i).size(); j++) {
             edge = edges.at(i).at(j);
             idx = &EDGE_INDEX(edge);        // index_t field of an edge_t
-            
+
             // Check for matching edges and update their weight
             if (
                 INDEX_TOP(*idx) == top &&
@@ -124,7 +124,7 @@ void Node::setEdgeWeight(index_t edge_idx, float value, float cost)
                     EDGE_VALUE(edges.at(i).at(j)) = value;
                 }
             }
-            
+
         }
     }
 }
@@ -159,34 +159,34 @@ Basic::Basic(string n)
 }
 
 void Basic::setContinuous(){
-	CONTINUOUS = true;
+    CONTINUOUS = true;
 }
 
 void Basic::setPieceWise(){
-	PIECEWISE = true;
+    PIECEWISE = true;
 }
 
 void Basic::addSegment(string name,float min, float max,float l,float c,bool COST){
-	//determine whether the seg has been added before
-	int id = 0;
-	string segName = "";
-	for(auto it = segments.begin(); it!=segments.end(); it++){
-		if (min==it->second.first){
-			segName = it->first;
-		}
-	}
-	// if it's not found
-	if(segName==""){
-		id = segments.size();
-		segName= getName()+"_"+name + to_string(id);
-		segments[segName]=make_pair(min,max);
-	}
-	// add the seg value
-	if (COST)
-		segment_costvalues[segName] = make_pair(l,c);
-	else
-		segment_mvvalues[segName] = make_pair(l,c);
-		
+    //determine whether the seg has been added before
+    int id = 0;
+    string segName = "";
+    for(auto it = segments.begin(); it!=segments.end(); it++){
+        if (min==it->second.first){
+            segName = it->first;
+        }
+    }
+    // if it's not found
+    if(segName==""){
+        id = segments.size();
+        segName= getName()+"_"+name + to_string(id);
+        segments[segName]=make_pair(min,max);
+    }
+    // add the seg value
+    if (COST)
+        segment_costvalues[segName] = make_pair(l,c);
+    else
+        segment_mvvalues[segName] = make_pair(l,c);
+
 }
 
 double Basic::getValue()
@@ -195,37 +195,37 @@ double Basic::getValue()
 }
 
 void Basic::addContPieceCoeff(string name, float a, float b, float c, bool COST){
-	vector<float> coeffs;
-	coeffs.push_back(a);
-	coeffs.push_back(b);
-	coeffs.push_back(c);
-	if(COST)
-		piececoeffs[name] = coeffs;
-	else
-		piecemvcoeffs[name] = coeffs;
+    vector<float> coeffs;
+    coeffs.push_back(a);
+    coeffs.push_back(b);
+    coeffs.push_back(c);
+    if(COST)
+        piececoeffs[name] = coeffs;
+    else
+        piecemvcoeffs[name] = coeffs;
 }
 
 void Basic::addContCoeff(string name, float coeff){
-	coeffs[name] = coeff;
+    coeffs[name] = coeff;
 }
 
 void Basic::addContMVCoeff(string name, float coeff){
-	mvcoeffs[name] = coeff;
+    mvcoeffs[name] = coeff;
 }
 
 map<string,float>& Basic::getCoeffs(){
-	return coeffs;
+    return coeffs;
 }
 
 map<string, float>& Basic::getMVCoeffs(){
-	return mvcoeffs;
+    return mvcoeffs;
 }
 
 void Basic::getValueOrder(vector<double>& orders){
-	orders.clear();
-	orders.push_back(mvo2);
-	orders.push_back(mvo1);
-	orders.push_back(mvc);
+    orders.clear();
+    orders.push_back(mvo2);
+    orders.push_back(mvo1);
+    orders.push_back(mvc);
 }
 
 float Basic::getCost()
@@ -234,10 +234,10 @@ float Basic::getCost()
 }
 
 void Basic::getCostOrder(vector<double>& orders){
-	orders.clear();
-	orders.push_back(costo2);
-	orders.push_back(costo1);
-	orders.push_back(costc);
+    orders.clear();
+    orders.push_back(costo2);
+    orders.push_back(costo1);
+    orders.push_back(costc);
 }
 
 // Set the weight of this basic node
@@ -247,7 +247,7 @@ void Basic::setValue(double val)
 }
 
 void Basic::setValueOrder(double o2, double o1, double c){
-	mvo2 = o2; mvo1 = o1; mvc = c;
+    mvo2 = o2; mvo1 = o1; mvc = c;
 }
 
 // Set energy cost
@@ -257,37 +257,37 @@ void Basic::setCost(float c)
 }
 
 void Basic::setCostOrder(double o2, double o1, double c){
-	costo2 = o2; costo1 = o1; costc = c;
+    costo2 = o2; costo1 = o1; costc = c;
 }
 
 void Basic::setContMax(double max){
-	MINMAX = true;
-	maxValue = max;
+    MINMAX = true;
+    maxValue = max;
 }
 
 void Basic::setContMin(double min){
-	MINMAX = true;
-	minValue = min;
+    MINMAX = true;
+    minValue = min;
 }
 
 bool Basic::hasMinMax(){
-	return MINMAX;
+    return MINMAX;
 }
 
 double Basic::getMaxValue(){
-	return maxValue;
+    return maxValue;
 }
 
 double Basic::getMinValue(){
-	return minValue;
+    return minValue;
 }
 
 bool Basic::isContinuous(){
-	return CONTINUOUS;
+    return CONTINUOUS;
 }
 
 bool Basic::isPieceWise(){
-	return PIECEWISE;
+    return PIECEWISE;
 }
 
 Level::Level(index_t *addr)
@@ -420,12 +420,12 @@ void RSDG::setBudget(double b)
 Node *RSDG::getNodeFromName(string name)
 {
     for(Top *top : xml_rsdg) {
-        
+
         if (top->getName().compare(name) == 0) {
             return top;
         }
         for(Level *lvl : *(top->getLevelNodes())) {
-            
+
             for(Basic *b : *(lvl->getBasicNodes())) {
                 if(b->getName().compare(name) == 0){
                     return b;
@@ -447,15 +447,15 @@ void RSDG::updateMissionValue(string serviceName, int value, bool exp)
     }
     Top *top = (Top *)node;
     tot_levels = (int)(top->getLevelNodes())->size();
-    
+
     // Linear
     if (!exp) {
-	int k=0;
+        int k=0;
         for(Level *lvl : *(top->getLevelNodes())) {
             //double new_val = value / (lvl->getLevelNum() * tot_levels);
-	    double level_num = tot_levels-k;
-	    double new_val = value / tot_levels * level_num;
-		k++;
+            double level_num = tot_levels-k;
+            double new_val = value / tot_levels * level_num;
+            k++;
             for(Basic *b : *(lvl->getBasicNodes())){
                 b->setValue(new_val);
             }
@@ -467,38 +467,38 @@ void RSDG::updateMissionValue(string serviceName, int value, bool exp)
 void RSDG::updateCost(string b_name, double cost)
 {
     Node *n = getNodeFromName(b_name);
-    
+
     if(n == NULL || !n->isBasic()){
         cout << b_name << " is not a basic node" << endl;
         return;
     }
-    
+
     ((Basic *)n)->setCost(cost);
 }
 
 void RSDG::updateEdgeCost(string sink, string source, double cost){
-	Node *n = getNodeFromName(sink);
-	if(n==NULL || !n->isBasic()){
-		cout<< source <<" is not a basic node"<<endl;
-		return;
-	}
-	vector<vector<xml_edge_t> > &edges = *(n->getXMLEdges());
-	for(int i = 0; i< (int)edges.size(); i++){
-		for(int j = 0; j<(int)edges[i].size();j++){
-			if(EDGE_NAME(edges[i][j])==source){
-				EDGE_VALUE(edges[i][j])=cost;
-				return;//assuming only 1 edge will be from a certain node
-			}	
-		}
-	}	
-	return;
+    Node *n = getNodeFromName(sink);
+    if(n==NULL || !n->isBasic()){
+        cout<< source <<" is not a basic node"<<endl;
+        return;
+    }
+    vector<vector<xml_edge_t> > &edges = *(n->getXMLEdges());
+    for(int i = 0; i< (int)edges.size(); i++){
+        for(int j = 0; j<(int)edges[i].size();j++){
+            if(EDGE_NAME(edges[i][j])==source){
+                EDGE_VALUE(edges[i][j])=cost;
+                return;//assuming only 1 edge will be from a certain node
+            }
+        }
+    }
+    return;
 }
 
 RSDG* rsdgGen(string input)
 {
-	RSDG *graph = new RSDG();
-	// default file
-	string infile = input;
-	graph->parseXML(infile);
-	return graph;
+    RSDG *graph = new RSDG();
+    // default file
+    string infile = input;
+    graph->parseXML(infile);
+    return graph;
 }

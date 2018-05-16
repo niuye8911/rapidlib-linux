@@ -20,7 +20,7 @@ rsdg.o: rsdgMission.cpp
 
 rsdgwrapper.o: rsdgMissionWrapper.cpp
 	$(info building rsdg Mission wrapper...)
-	$(CC) $(CFLAGS) $(INCLUDE) $(LDLIBS) $<
+	$(CC) $(CFLAGS) $(INCLUDE) $<
 
 rsdggraph.o: RSDG.cpp
 	$(info building rsdg Graph...)
