@@ -44,7 +44,7 @@ void* rsdgService::get(pthread_t getter){
         while(bufferReady!=1){
                 sleep(1000);
         }
-        cout<<"buffer ready to be taken"<<endl;
+        logDebug("buffer ready to be taken");
         setBufferUsed();
         return buffer;
 }
@@ -52,7 +52,7 @@ void* rsdgService::get(pthread_t getter){
 void rsdgService::set(pthread_t setter, void* obj){
         buffer = obj;
         setBufferReady();
-        cout<<"buffer changed"<<endl;
+        logDebug("buffer changed");
 }
 
 void rsdgService::run(string name, void *f(void*)){
@@ -79,7 +79,7 @@ void rsdgService::updateNode(void* (*f)(void*),string name){
 		cout<<RSDG_TAG+"same config:"<<curNode<<"->"<<name<<endl;
 		return;
 	}*/
-	cout<<RSDG_TAG+"change config:"<<curNode<<"->"<<name<<endl;
+	logInfo("change config:"+curNode+"->"+name);
 	if(f!=NULL){      
 		if(isSingle()){
 			f(NULL);
@@ -94,7 +94,7 @@ void rsdgService::updateNode(void* (*f)(void*),string name){
                 pthread_create(&sThread, NULL,f, NULL);
 		
 		curNode = name;
-		cout<<"created thread"<<endl;
+		logDebug("created thread");
         }
 }
 pthread_t rsdgService::getThread(){return sThread;}
@@ -152,7 +152,7 @@ void rsdgMission::regContService(string sName, string bName, void*(*func)(void*)
 
 void rsdgService::addNode(string nodeName){
 	node_lists.push_back(nodeName);
-	cout<<"Pushing back node "<<nodeName<<endl;
+	logDebug("Pushing back node : "+nodeName);
 }
 
 vector<string>& rsdgService::getList(){
@@ -212,7 +212,7 @@ void rsdgMission::getRes(vector<string>& holder, string response){
 	if(response[1]=='o'){
 		double obj = atof(&response[5]);
 		objValue = obj;
-		cout<<"objValue"<<obj<<endl;
+		logDebug("objValue = "+to_string(obj));
 	}
         while(r<=(int)response.size()){
                 if(response[r]!='\\'){r++;continue;}
@@ -256,10 +256,9 @@ void rsdgMission::consultServer(){
                 curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &writeCallback);
                 responseCode = curl_easy_perform(curl);
-       		if(responseCode!=CURLE_OK)cout<<RSDG_TAG+"Server Failed"<<endl;
+       		if(responseCode!=CURLE_OK)logWarning("Server Failed");
 		getRes(res,data);
 		data = "";//reset the data
-		cout<<endl;
 		curl_easy_cleanup(curl);
 			updateSelection(res);
 			res.clear();
@@ -269,10 +268,10 @@ void rsdgMission::consultServer(){
 void rsdgMission::updateSelection(vector<string>& result){
 	if(result.size()==0){
 		//no solution
-		cout<<RSDG_TAG+"no solution found"<<endl;
+		logWarning("no solution found");
 		solvable = false;
 		if(!TRAINING_MODE){
-			cout<<RSDG_TAG+"Misison Failed"<<endl;
+			logWarning("Mission Failed");
 			exit(0);	
 		}
 		return;
@@ -289,7 +288,7 @@ void rsdgMission::updateSelection(vector<string>& result){
 	for(i = 0; i<(int)result.size(); i++){
 		string currentNode = result[i];
 		string curNode = currentNode;
-		cout<<"getting node "+currentNode<<endl;
+		logDebug("getting node : "+currentNode);
 		std::size_t found = curNode.find(" ");
 		// this might be a cont service
 		if (found!=std::string::npos){
@@ -343,7 +342,7 @@ void rsdgMission::applyResult(){
 	}	
 	//sleep for a few moment to let all config takes effect
 	usleep(10000);
-	cout<<RSDG_TAG+"*Reconfiguration Finished*"<<endl<<endl;
+	logDebug("*Reconfiguration Finished*");
 }
 
 void rsdgMission::updateThread(rsdgService* s, string basic, double value){
@@ -423,10 +422,6 @@ void rsdgMission::genAllConfigs(int curSvcId, vector<string> tmp_result){
 		//get a copy of the result
 		vector<string> *result = new vector<string>();
 		*result = tmp_result;
-		for(int i = 0; i<tmp_result.size(); i++){
-			cout<<tmp_result[i]<<" ";
-		}
-		cout<<endl;
 		all_configs.push_back(*result);
 		return;
 	}
@@ -442,17 +437,12 @@ void rsdgMission::genAllConfigs(int curSvcId, vector<string> tmp_result){
 
 void rsdgMission::filterConfigs(){
 	for(int i = 0; i<all_configs.size(); i++){
-		                        for(auto cfg:all_configs[i]){
-                                cout<<cfg<<" ";
-                        }  
 		if(!validate(all_configs[i])){
 			all_configs.erase(all_configs.begin()+i);
 			i--;
-			cout<<"erased"<<endl;
 			solvable = true;//reset the solvable
 			continue;
 		}
-		cout<<"valid"<<endl;
 	}
 }
 
@@ -464,7 +454,7 @@ void rsdgMission::reconfig_training(){
 		vector<string> tmp;
 		tmp.clear();
 		genAllConfigs(0,tmp);
-		cout<<RSDG_TAG+"Training Configs generated with total size = "<<all_configs.size()<<endl;
+		logDebug("Training Configs generated with total size = " + to_string(all_configs.size()));
 		filterConfigs();
 		// print all configs to a file
 		ofstream valid_config;
@@ -476,20 +466,20 @@ void rsdgMission::reconfig_training(){
 			valid_config<<endl;
 		}
 		valid_config.close();
-		cout<<RSDG_TAG+"Training Configs generated with reduced size = "<<all_configs.size()<<endl;
+		logDebug("Training Configs generated with reduced size = " + to_string(all_configs.size()));
 	}
 	curTrainingId++;
 	if(curTrainingId == all_configs.size()){
-		cout<<RSDG_TAG<<"Training done"<<endl;
+		logInfo("Training done");
 		fact.close();
 	}else{
 		fake_results = all_configs[curTrainingId];
 		updateSelection(fake_results);
-		cout<<RSDG_TAG+"TRAINING:";
+		string res = "";
 		for (string sel:fake_results){  
-			cout<<sel<<" "; 
+			res+=sel+" ";
 		}
-		cout<<endl;
+		logDebug("TRAINING: " + res);
 	}
 }
 
@@ -507,7 +497,7 @@ void rsdgMission::updateRSDG(){
                 istringstream nodes(svc);
 		string svcname="";
 		nodes >> svcname;
-		cout<<RSDG_TAG + "Updating RSDG weight for service: " + svcname<<endl;
+		logDebug("Updating RSDG weight for service: " + svcname);
 		int curlevel = 0;
 		double cost;
                 while(nodes>>cost){
@@ -516,41 +506,34 @@ void rsdgMission::updateRSDG(){
                         if(svc!=NULL){
                                 string nodename = node_list[curlevel++];
 				                updateWeight(nodename, cost);
-				                cout<<RSDG_TAG + "Updating node weight " + nodename + " to "<<cost<<endl;
+				                logDebug("Updating node weight " + nodename + " to " + to_string(cost));
                         }
                 }
         }
-	cout<<RSDG_TAG+"Updating RSDG COMPLETE"<<endl;	
+	logDebug("Updating RSDG COMPLETE");
 }
 
 void rsdgMission::reconfig_updating(){
 	curUpdatingId ++;
 	if(curUpdatingId == RS.size()){
-		cout<<RSDG_TAG + "Updating Model Done"<<endl;
+		logDebug("Updating Model Done");
 		RS_fact.close();
 		//now we have the observation file, update the model
 		updateRSDG();
 		update = false;
 		
 	}else{
-		
 		updateSelection(RS[curUpdatingId]);
-		cout<<RSDG_TAG + "UPDATING: ";
-		for (string i:RS[curUpdatingId]){
-			cout<<i<<" ";
-		}
-		cout<<endl;
 	}
 }
 
 void rsdgMission::reconfig(){
-	cout<<RSDG_TAG+"*Reconfiguration Start*"<<endl;
+	logDebug("*Reconfiguration Start*");
 	//first check if the model is corrected
 	checkPoint();
 	updateModel(unitBetweenCheckPoints);
 	updateBudget();
         if(startTime!=-1){
-		cout<<RSDG_TAG+"logging info"<<endl;
 		if(LOGGER)printToLog();
 	}
 	// get the result
@@ -581,8 +564,8 @@ void rsdgMission::reconfig(){
 	checkPoint();
 	total_reconfig_time += timeSinceLastCheckPoint;
 	num_of_reconfig ++;
-	cout<<RSDG_TAG+"reconfig overhead = "<<timeSinceLastCheckPoint<<endl;
-	cout<<RSDG_TAG+"AVG reconfig overhead = "<<(double)total_reconfig_time / (double)num_of_reconfig<<"ms"<<endl;
+	logDebug("reconfig overhead = " + to_string(timeSinceLastCheckPoint));
+	logDebug("AVG reconfig overhead = " + to_string((double)total_reconfig_time / (double)num_of_reconfig) + "ms");
 	if(startTime==-1)startTime = getCurrentTimeInMilli();
 }
 
@@ -637,14 +620,14 @@ void* startSolver(void* arg){
 void rsdgMission::setBudget(int b){
 	if(budget==0)budget = b;
 	curBudget = b;
-	if(graph==NULL){cout<<RSDG_TAG+"RSDG has not been generated yet"<<endl;return;}
+	if(graph==NULL){logWarning("RSDG has not been generated yet");return;}
 	graph->setBudget((double)curBudget);
 	return;
 }
 
 void rsdgMission::updateMV(string serviceName, int value, bool exp){
 	if(graph==NULL){
-		cout<<"RSDG has not been generated yet"<<endl;
+		logWarning("RSDG has not been generated yet");
 		return;
 	}
 	graph->updateMissionValue(serviceName,value,exp);
@@ -652,7 +635,7 @@ void rsdgMission::updateMV(string serviceName, int value, bool exp){
 
 void rsdgMission::updateWeight(string b_name, double cost){
 	if(graph==NULL){
-		cout<<"RSDG has not been generated yet"<<endl;
+		logWarning("RSDG has not been generated yet");
 		return;
 	}
 	graph->updateCost(b_name,cost);
@@ -660,7 +643,7 @@ void rsdgMission::updateWeight(string b_name, double cost){
 
 void rsdgMission::updateWeight(string sink, string source, double cost){
 	if(graph==NULL){
-		cout<<"RSDG has not been generated yet"<<endl;
+		logWarning("RSDG has not been generated yet");
 		return;
 	}
 	graph->updateEdgeCost(sink,source,cost);
@@ -712,9 +695,11 @@ void rsdgMission::updateBudget(){
 	long long current_time = getCurrentTimeInMilli();
 	long long usedMilli = startTime==-1?0:current_time-startTime; 
 	curBudget = budget - usedMilli;
-	cout<<RSDG_TAG+"currentBudget = "<<curBudget<<endl;
+	logDebug("currentBudget = "+to_string(curBudget));
 	double new_budget_per_unit = (double)curBudget / (double)unit_left;
-	cout<<RSDG_TAG+"Used budget in Milli = "<<usedMilli<<"; Unit left = "<<unit_left<<" ; New Budget per unit = "<<new_budget_per_unit<<endl;
+	logDebug("Used budget in Milli = "+to_string(usedMilli));
+	logDebug("Unit left = "+ to_string(unit_left));
+	logDebug("New Budget per Unit = "+to_string(new_budget_per_unit));
 	setBudget(new_budget_per_unit);
 	return;
 }
@@ -731,7 +716,7 @@ void rsdgMission::checkPoint(){
 	long long curTime = getCurrentTimeInMilli();
 	if(lastCheckPoint==0){
 		lastCheckPoint = curTime;
-		cout<<RSDG_TAG+"Skipping checkpoint for first invocation"<<endl;
+		logDebug("Skipping checkpoint for first invocation");
 		return;
 	}
 	timeSinceLastCheckPoint = curTime-lastCheckPoint;
@@ -767,12 +752,11 @@ bool rsdgMission::validate(vector<string> &sel){
 // update the model when actual usage is way off expected
 void rsdgMission::updateModel(int unitSinceLastCheckPoint){
 	if(startTime==-1){
-		cout<<RSDG_TAG+"first reconfig()"<<endl;
 		return;
 	}
 	realCost = (double)timeSinceLastCheckPoint / (double)unitSinceLastCheckPoint;	
-	cout<<"timesincelastCheckpoint"<<timeSinceLastCheckPoint<<"   unitsince"<<unitSinceLastCheckPoint<<endl;
-	cout<<RSDG_TAG+"REAL="<<realCost<<"   PREDICTED="<<predictedCost<<endl;
+	logDebug("timesincelastCheckpoint"+to_string(timeSinceLastCheckPoint)+"   unitsince"+to_string(unitSinceLastCheckPoint));
+	logDebug("REAL="+to_string(realCost)+"   PREDICTED="+to_string(predictedCost));
 	string targetNode = "";
 	//get the current selected nodes
 	//TODO: currently only support 1-node situation
@@ -823,10 +807,10 @@ vector<string>  rsdgMission::localSolve(){
 		cmd="gurobi_cl ResultFile=max.sol LogFile=gurobi.log OutputFlag=0 "+filename + ">licenseInfo";
 	}		
 	system(cmd.c_str());
-	cout<<"executing solver"<<endl;
+	logDebug("executing solver");
 	FILE *sol = fopen("max.sol","r");                                                  
         if(!sol){
-                cout<<"no solution file found\n"; 
+                logWarning("no solution file found");
 		return result;
 	}                                                                
         char line[256];                                                                    
@@ -886,7 +870,7 @@ vector<string>  rsdgMission::localSolve(){
 
 void rsdgMission::setTraining(){
 	TRAINING_MODE = true;
-	cout<<RSDG_TAG + "In TRAINING MODE"<<endl;
+	logDebug("In TRAINING MODE");
 	fact.open("fact.csv");
 }
 
@@ -924,7 +908,6 @@ void rsdgMission::readRS(string input){
 		configs.push_back(cur_config);
 	}
 	RS = configs;
-	cout<<RSDG_TAG + "representative set read in with "<<configs.size()<<" configs"<<endl;
 }
 
 void rsdgMission::setUpdate(bool up){
@@ -955,7 +938,7 @@ void rsdgMission::readMVProfile(){
 			finalconfig+=result+" ";
 		}
                 offlineMV[finalconfig] = mv;
-                cout<<finalconfig<<" with mv"<<mv<<endl;
+                logDebug(finalconfig+" with mv"+to_string(mv));
         }
 	return;
 	}
@@ -975,7 +958,7 @@ void rsdgMission::readMVProfile(){
                         }
                 }
 		offlineMV[finalConfig] = mv;
-		cout<<finalConfig<<" with mv"<<mv<<endl;
+		logDebug(finalConfig+" with mv"+to_string(mv));
         }
 }
 
@@ -1000,9 +983,8 @@ void rsdgMission::readCostProfile(){
                 }
 
                 offlineCost[finalconfig] = cost;
-                cout<<finalconfig<<" with cost"<<cost<<endl;
+                logDebug(finalconfig+" with cost"+to_string(cost));
         }
-	cout<<offlineCost.size()<<endl;
         return;
         }
 
@@ -1034,17 +1016,14 @@ vector<string> rsdgMission::searchProfile(){
 	string maxConfig = "";
 	for(auto it = offlineCost.begin(); it!=offlineCost.end(); it++){
 		double curcost = it->second;
-		cout<<it->first<<" ";
 		if(curcost > curBudget){
 			continue;
 		}
 		string curconfig = it->first;
 		// this config is valid
-		cout<<"Checking"<<offlineMV[curconfig]<<endl;
 		if(offlineMV[curconfig]>curMaxMV){
 			maxConfig = curconfig;
 			curMaxMV = offlineMV[curconfig];
-			cout<<"candidate:"<<maxConfig<<" "<<curMaxMV<<endl;
 		}
 	}
 	if(maxConfig=="")return resultConfig;
@@ -1058,7 +1037,6 @@ vector<string> rsdgMission::searchProfile(){
 			string val = "";
 			configs>>val;
 			resultConfig.push_back(node+val);
-			cout<<"offline returns " + node+val<<endl;
 			node="";
 		}
 		return resultConfig;
@@ -1090,6 +1068,38 @@ void rsdgMission::readContTrainingSet(){
                 }
 		all_configs.push_back(singleConfig);
         }
+}
+
+void rsdgMission::setDebug(){
+    DEBUG = true;
+}
+
+void rsdgMission::logWarning(string msg){
+    cout<<"RAPID-WARNING!:"+msg;
+}
+
+void rsdgMission::logDebug(string msg){
+    if(DEBUG) cout<<"RAPID-DEBUG:"+msg;
+}
+
+void rsdgMission::logInfo(string msg){
+    cout<<"RAPID-INFO:"+msg;
+}
+
+void rsdgService::setDebug(){
+    DEBUG = true;
+}
+
+void rsdgService::logWarning(string msg){
+    cout<<"RSDGService-WARNING!:"+msg;
+}
+
+void rsdgService::logDebug(string msg){
+    if(DEBUG) cout<<"RSDGService-DEBUG:"+msg;
+}
+
+void rsdgService::logInfo(string msg){
+    cout<<"RSDGService-INFO:"+msg;
 }
 /*
 void rsdgMission::scaleup(string service, int scale){

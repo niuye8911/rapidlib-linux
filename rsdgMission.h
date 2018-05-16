@@ -45,6 +45,7 @@ class rsdgService
         int bufferReady;
         void* buffer;
 
+        bool DEBUG = false;
         rsdgUnit* unit; // the total work unit
         rsdgPara* para; // the rsdgPara associated to this service
         vector<rsdgService*> parents; // for dependency checks, all parents of this service in RSDG. parent: ancestors
@@ -93,6 +94,11 @@ class rsdgService
         vector<string>& getList();
         // Set the curnode
         void setCurNode(string node);
+        void setDebug();
+        // Logger for service
+		void logWarning(string msg);
+		void logDebug(string msg);
+		void logInfo(string msg);
 };
 
 class rsdgMission{
@@ -100,7 +106,7 @@ class rsdgMission{
 	public: const static bool GUROBI = false;
 	public: const static bool LOCAL = true;
 	public: const static bool REMOTE = false;
-	//public: const static string RSDG_TAG = "//RSDG DEBUG INFO:";
+	bool DEBUG = false;
 	int numThreads;
 	string pythonScript = "/home/ubuntu/parsec-3.0/rsdglib/modelConstr/parseData.py";
 	double  predictedCost = 0.0;
@@ -226,5 +232,9 @@ class rsdgMission{
 		vector<string> searchProfile();
 		void setOfflineSearch();
 		void readContTrainingSet();
+		void setDebug();
+		void logWarning(string msg);
+		void logDebug(string msg);
+		void logInfo(string msg);
 };
 #endif
