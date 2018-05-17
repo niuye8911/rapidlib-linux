@@ -106,14 +106,17 @@ class rsdgMission{
 	public: const static bool GUROBI = false;
 	public: const static bool LOCAL = true;
 	public: const static bool REMOTE = false;
-	bool DEBUG = false;
+	bool DEBUG = false; // set to true if debug info is needed
 	int numThreads;
-	string pythonScript = "/home/ubuntu/parsec-3.0/rsdglib/modelConstr/parseData.py";
-	double  predictedCost = 0.0;
+	const string pythonScript = "/home/ubuntu/parsec-3.0/rsdglib/modelConstr/parseData.py";
+	double predictedCost = 0.0;
 	double realCost = 0.0;
-	double THRESHOLD = 10;
+
+	// FACT file for cost
 	ofstream fact;
+	// Observed FACT file
 	ofstream RS_fact;
+
 	map<string, int> runnableID;
 	map<string, int> threadID;
 	map<string, string> basicToService;
@@ -140,6 +143,8 @@ class rsdgMission{
 	ofstream logfile;
 
 	//mission related;
+	RSDG* graph;
+	string outfileName;
 	int budgetType;
 	rsdgUnit unit;
 	long budgetTracker;
@@ -150,25 +155,22 @@ class rsdgMission{
 	int num_of_reconfig = 0;
 	int total_reconfig_time = 0;
 	vector<vector<string>> RS;
-
+	bool offline_search = false;
+	bool LOGGER = false;
+	bool update = false;
+	long freq;
+	
 	//result
 	double maxMV;
 	double minEnergy;
+	bool solvable=true;
 
 	//thread+runnable list
 	vector<void*(*)(void*)> runnableList;
 	vector<rsdgService*> serviceList;
 
 	void genAllConfigs(int, vector<string>);
-	public:
-		bool solvable=true;
-		bool update = false;
-		bool offline_search = false;
-		bool LOGGER = false;
-		double totalTime;
-		long freq;
-		string outfileName;
-		RSDG* graph;//made public so as to easily modify by user
+	public:		
 		rsdgMission();
 		rsdgService* getService(string name);
 		void regService(string, string, void*(*)(void*), bool, pair<rsdgPara*, int> );
@@ -236,5 +238,6 @@ class rsdgMission{
 		void logWarning(string msg);
 		void logDebug(string msg);
 		void logInfo(string msg);
+		double getFreq();
 };
 #endif

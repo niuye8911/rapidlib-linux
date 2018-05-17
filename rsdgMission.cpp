@@ -608,10 +608,14 @@ void* startSolver(void* arg){
     while(1){
         pthread_testcancel();
         rsdgMission* rsdg = (rsdgMission*)arg;
-        sleep(rsdg->freq);
+        sleep(rsdg->getFreq());
         rsdg->reconfig();
     }
     return NULL;
+}
+
+double rsdgMission::getFreq(){
+	return freq;
 }
 void rsdgMission::setBudget(int b){
     if(budget==0)budget = b;
