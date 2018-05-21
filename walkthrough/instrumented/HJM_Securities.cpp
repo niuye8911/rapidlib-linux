@@ -32,14 +32,14 @@ tbb::cache_aligned_allocator<parm> memory_parm;
 #endif //ENABLE_THREADS
 
 //RAPID(C) related section
-int UNIT_PER_CHECK = 10; 
-bool RSDG = false;
-bool CONT = false;
-rsdgPara* paraSimCont;
-rsdgMission* swaptionMission;
-int numOfSwitch;
-string XML_PATH="rsdgSwaptions.xml";
-int totSec; //in second
+int UNIT_PER_CHECK = 10;//after every 10 work units, RAPID(C) will re-configure 
+bool RSDG = false; // if True, RAPID(C) kicks in. if False, stay as normal
+bool CONT = false; // if True, uses a continuous Cost/QoS model
+rsdgPara* paraSimCont; // a parameter container for the knob
+rsdgMission* swaptionMission; // RAPID(C) manager
+int numOfSwitch; // the application-specific knob setting
+string XML_PATH="rsdgSwaptions.xml"; // the path to the XML file
+int totSec; //the total budget in second
 
 #ifdef ENABLE_PARSEC_HOOKS
 #include <hooks.h>
