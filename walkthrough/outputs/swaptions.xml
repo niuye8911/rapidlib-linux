@@ -7,6 +7,16 @@
 				<nodename>num</nodename>
 				<contmin>100000</contmin>
 				<contmax>1000000</contmax>
+				<contcost>
+					<o2>0.0</o2>
+					<o1>0.00280816509987</o1>
+					<c>0.916096900504</c>
+				</contcost>
+				<contmv>
+					<o2>0.0</o2>
+					<o1>1.59117260745e-08</o1>
+					<c>99.9840883472</c>
+				</contmv>
 			</basicnode>
 		</servicelayer>
 	</service>
