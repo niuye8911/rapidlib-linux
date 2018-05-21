@@ -13,9 +13,9 @@
 #include "HJM.h"
 #include "HJM_Securities.h"
 #include "HJM_type.h"
-
 #include <unistd.h>
 #include "rsdgMission.h"
+
 #ifdef ENABLE_THREADS
 #include <pthread.h>
 #define MAX_THREAD 1024
@@ -31,17 +31,20 @@ tbb::cache_aligned_allocator<parm> memory_parm;
 #endif // TBB_VERSION
 #endif //ENABLE_THREADS
 
+//RAPID(C) related section
 int UNIT_PER_CHECK = 10; 
+bool RSDG = false;
+bool CONT = false;
+rsdgPara* paraSimCont;
+rsdgMission* swaptionMission;
+int numOfSwitch;
+string XML_PATH="rsdgSwaptions.xml";
+int totSec; //in second
 
 #ifdef ENABLE_PARSEC_HOOKS
 #include <hooks.h>
 #endif
 
-bool RSDG = false;
-bool TRAINING = false;
-bool UPDATE = false;
-bool OFFLINE = false;
-bool CONT = false;
 int NUM_TRIALS = DEFAULT_NUM_TRIALS;
 int nThreads = 1;
 int nSwaptions = 1;
@@ -57,7 +60,6 @@ long swaption_seed;
 FTYPE *dSumSimSwaptionPrice_global_ptr;
 FTYPE *dSumSquareSimSwaptionPrice_global_ptr;
 int chunksize;
-
 
 #ifdef TBB_VERSION
 struct Worker {
@@ -84,34 +86,7 @@ struct Worker {
 
 #endif //TBB_VERSION
 
-long long getCurrentMilli();
 /***action for switching the parameter***/
-rsdgPara* paraSim;
-rsdgPara* paraSimCont;
-rsdgMission* swaptionMission;
-int numOfSwitch; 
-string XML_PATH="rsdgSwaptions.xml";
-string outfile = "output.lp";
-int totSec; //in second
-long long startMilli;
-long long usedMilli;
-int roundFinished=0;
-
-void *change_Simulation_Num(void* arg){
-        int simNum = paraSim -> intPara;
-        int newRoundTotal;
-	newRoundTotal = 1000000 - (simNum-1)*100000;
-	// mod
-	if (paraSim -> intPara == 10)
-		newRoundTotal = 10000;
-	else if (paraSim -> intPara == 1)
-		newRoundTotal = 1000000;
-	else if (paraSim -> intPara = 5)
-		newRoundTotal = 550000;
-        cout<<"num of switch changes from "<< numOfSwitch<< "to "<<newRoundTotal<<endl;
-        numOfSwitch = newRoundTotal;
-}
-
 void *change_Simulation_Num_Cont(void* arg){
 	int simNum = paraSimCont -> intPara;
 	int newRoundTotal = simNum;
@@ -119,28 +94,11 @@ void *change_Simulation_Num_Cont(void* arg){
         numOfSwitch = newRoundTotal;
 }
 
+// setup the mission
 void setupMission(){
         swaptionMission = new rsdgMission();
-        paraSim = new rsdgPara();
 	paraSimCont = new rsdgPara();
-	if(CONT){
-		//train the stage-1 first
-		swaptionMission -> readContTrainingSet();
-	}
-        if(!CONT){
-		swaptionMission -> regService("num", "1m", &change_Simulation_Num, false, make_pair(paraSim, 1));
-	        swaptionMission -> regService("num", "900k", &change_Simulation_Num, false, make_pair(paraSim, 2));
-        	swaptionMission -> regService("num", "800k", &change_Simulation_Num, false, make_pair(paraSim, 3));
-	        swaptionMission -> regService("num", "700k", &change_Simulation_Num, false, make_pair(paraSim, 4));
-        	swaptionMission -> regService("num", "600k", &change_Simulation_Num, false, make_pair(paraSim, 5));
-	        swaptionMission -> regService("num", "500k", &change_Simulation_Num, false, make_pair(paraSim, 6));
-	        swaptionMission -> regService("num", "400k", &change_Simulation_Num, false, make_pair(paraSim, 7));
-	        swaptionMission -> regService("num", "300k", &change_Simulation_Num, false, make_pair(paraSim, 8));
-	        swaptionMission -> regService("num", "200k", &change_Simulation_Num, false, make_pair(paraSim, 9));         
-		swaptionMission -> regService("num", "100k", &change_Simulation_Num, false, make_pair(paraSim, 10));
-	}else{
-		swaptionMission -> regContService("contnum", "num", &change_Simulation_Num_Cont, paraSimCont);
-	}
+	swaptionMission -> regContService("contnum", "num", &change_Simulation_Num_Cont, paraSimCont);
         swaptionMission -> generateProb(XML_PATH);
 	swaptionMission -> setSolver(rsdgMission::GUROBI, rsdgMission::LOCAL);
 	//comment out this line to enable pre-retrain
@@ -175,59 +133,30 @@ void * worker(void *arg){
   if(RSDG){ 
     setupMission();
   }
+
   ofstream output;
-	output.open("output.txt");
-  cout<<"STARTING JOB"<<endl<<endl;
-	// eliminate the wierd boost
-  if(RSDG){
-/*  for(int j = 0; j<2; j++){
-	  cout<<"bla"<<endl;
-	  int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[j].dStrike,
-                                       swaptions[j].dCompounding, swaptions[j].dMaturity,
-                                       swaptions[j].dTenor, swaptions[j].dPaymentInterval,
-                                       swaptions[j].iN, swaptions[j].iFactors, swaptions[j].dYears,
-                                       swaptions[j].pdYield, swaptions[j].ppdFactors,
-                                       swaption_seed+j, numOfSwitch, BLOCK_SIZE, 0);
-	  swaptionMission -> reconfig();
-  }*/
-  swaptionMission -> setBudget(totSec*1000);
-  if(UPDATE)swaptionMission -> setUpdate(0);
-  if(OFFLINE){
-	swaptionMission -> setOfflineSearch();
-	swaptionMission->readCostProfile();
-	swaptionMission->readMVProfile();
-	}
-  swaptionMission -> resetTimer();
-//set training flag here
-  if(TRAINING){
-	swaptionMission -> setTraining();
-	cout<<"RUNNING in TRAINING"<<endl;
-  }
+  output.open("output.txt");
   }
 
   for(int i=beg; i < end; i++) {
      //after every 6 iteration, check the budget and reconfigure
      if( (RSDG && i%UNIT_PER_CHECK ==0)){
-       swaptionMission -> reconfig();
+        swaptionMission -> reconfig();
 	swaptionMission -> setLogger();
 	if(swaptionMission -> isFailed())break;
      }
      //timer
-     long long volatile startTime = getCurrentMilli();
      int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
                                        swaptions[i].dCompounding, swaptions[i].dMaturity, 
                                        swaptions[i].dTenor, swaptions[i].dPaymentInterval,
                                        swaptions[i].iN, swaptions[i].iFactors, swaptions[i].dYears, 
                                        swaptions[i].pdYield, swaptions[i].ppdFactors,
                                        swaption_seed+i, numOfSwitch, BLOCK_SIZE, 0);
-     long long volatile endTime = getCurrentMilli();
      assert(iSuccess == 1);
      swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
      swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
      output<<"round"<<i<<":"<<pdSwaptionPrice[0]<<","<<pdSwaptionPrice[1]<<endl;
-	roundFinished ++;
      if(RSDG)swaptionMission->finish_one_unit();
-     cout<<"current round:"<<i<<" used time:"<<endTime-startTime<<"ms"<<endl<<endl;
    }
    output.close();
    return NULL;
@@ -247,13 +176,6 @@ void print_usage(char *name) {
 //Please note: Whenever we type-cast to (int), we add 0.5 to ensure that the value is rounded to the correct number. 
 //For instance, if X/Y = 0.999 then (int) (X/Y) will equal 0 and not 1 (as (int) rounds down).
 //Adding 0.5 ensures that this does not happen. Therefore we use (int) (X/Y + 0.5); instead of (int) (X/Y);
-
-long long getCurrentMilli(){
-    struct timeval tp;
-    gettimeofday(&tp, NULL);
-    long long mslong = (long long) tp.tv_sec * 1000L + tp.tv_usec / 1000;
-    return mslong;
-}
 
 int main(int argc, char *argv[])
 {
@@ -289,9 +211,6 @@ int main(int argc, char *argv[])
 	  else if (!strcmp("-sd", argv[j])) {seed = atoi(argv[++j]);}
 	  else if (!strcmp("-b", argv[j])) {totSec = atoi(argv[++j]);} 
 	  else if (!strcmp("-rsdg", argv[j])) {RSDG = true;}
-	  else if (!strcmp("-train", argv[j])) {TRAINING = true;cout<<"from cmd line train"<<endl;}
-	  else if (!strcmp("-udpate", argv[j])){UPDATE = true;}
-	  else if (!strcmp("-offline", argv[j])) {OFFLINE = true;}
 	  else if (!strcmp("-cont", argv[j])) {CONT = true;}
 	  else if (!strcmp("-u", argv[j])) {UNIT_PER_CHECK = atoi(argv[++j]);}
 	  else if (!strcmp("-xml", argv[j])) {XML_PATH = argv[++j];}
@@ -303,8 +222,6 @@ int main(int argc, char *argv[])
         }
 
 	/****update start milli*****/
-	startMilli = getCurrentMilli();
-	cout<<"Start at milli:"<<startMilli<<endl;
         if(nSwaptions < nThreads) {
           fprintf(stderr,"Error: Fewer swaptions than threads.\n");
           print_usage(argv[0]);
