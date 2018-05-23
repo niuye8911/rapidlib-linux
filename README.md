@@ -18,15 +18,19 @@ Steps to build the C++ library:
 
 1) install necessary libs:
 
+```
 $ sudo apt-get install libcurl-dev
+```
 
 2) make sure the path to libcurl is updated in [Makefile](https://github.com/niuye8911/rapidlib-linux/blob/master/makefile)
 
 3) make
 
+```
 $ make
+```
 
-The output should contain a static library, *rsdg.a
+The output should contain a static library, **rsdg.a
 
 
 
