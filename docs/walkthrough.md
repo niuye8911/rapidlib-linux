@@ -10,12 +10,12 @@ title: A Walk-Through
 > A **single** knob controls the number of iterations of the <em>Monte-Carlo</em> simulation for each swaption. 
 
 
-## Preparation 
+## 0) Preparation 
 The code needed for the walk-through has been provided.
 
-1) Check out the original source code for [swaptions](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/orig)
+1) Check out the original source code for [swaptions](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/orig) and compile it with command "make".
 
-2) Build RAPID(C) library and locate the static library .a
+2) Refer to the README to [Build](https://github.com/niuye8911/rapidlib-linux) RAPID(C) library and locate the static library .a
 
 3) Check out the [instrumented code](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/instrumented)
 
@@ -23,21 +23,36 @@ The code needed for the walk-through has been provided.
 
 5) Check out the [script](https://github.com/niuye8911/rapidlib-linux/tree/master/modelConstr/source) for RAPID(C)
 
-## Generate the structure RSDG
-The first step is to generate the structure of RSDG for the application. It should contain all the dependencies and other constraints from a description file.
+*Note: To make sure everything works fine, this [dir](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/outputs) contains all the outputs that are supposed to be generated during each phase.*
+
+## 1) Generate a structure-only RSDG
+The first step is to generate the structure of RSDG for the application. It should contain all the dependencies and other constraints.
 
 To do that, run the following command:
 ```
-python rapid.py --stage 1 --desc [PATH_TO_THE_DESC] --model [linear]
+python rapid.py --stage 1 --desc [PATH_TO_THE_DESC]
 ``` 
 
-In the command above, stage=1 indicates we are only interested in the structure of the RSDG. The output should be a XML file looks like [this](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.xml).
+In the command above, *stage=1* indicates that we are only interested in the structure of the RSDG. After executing the command, 2 folders will be generated under the run dir.
+
+* debug: This dir contains the debug information, now it should be empty
+* output: The dir contains the output after stage 1. Now it should contain 2 files. 
+
+	-- [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions_pre.xml): This is the structure-only RSDG for your application.
+	
+	-- [trainingset](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/trainingset): This is the initial training set served as groundtruth to validate the model.
 
 ## Generate the Full RSDG
 The next step is to fill in all the missing parts of a fully blown RSDG, i.e. all the weights.
+
 > Tell RAPID(C) how to run the application
 
 Refer to the function [run](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25) starting on line [77](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L77) to see how it's done. Basically, it gives all the command line parameters. Note that from Line [81](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L81) to Line [90](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L90), RAPID(C) first generates the ground truth file for QoS.
+
+<span style="color:red; font-size: 0.8em;">
+Please update the varibale "bin_swaptions" in [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L16) to point to the current location of the compiled binary for swaptions.
+</span>
+
 
 Then from Line [93](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L93) to Line [116](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L116), it iterates through all possible configurations by a pre-defined granularity to generate a bunch of observed files. During this process, the execution time will be measured and the QoS will be calculated later on.
 
@@ -48,17 +63,23 @@ Refer to the [checkSwaption](https://github.com/niuye8911/rapidlib-linux/blob/ma
 > Run the script
 
 ```
-python rapid.py --stage 4 --desc [PATH_TO_THE_DESC] --model [linear]
+python rapid.py --stage 4 --desc [PATH_TO_THE_DESC] --model [linear/quad/piecewise]
 ```
-The output should contain:
+The outputs should contain:
+* debug: debugging information (0-1 fitting problem file)
+* outputs: 
 
-1) a bunch of output files for evaluation under [RUN_DIR/itraining_outputs](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/training_outputs)
+	-- [swaptions-cost.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-cost.fact) and [swaptions-mv.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-mv.fact) that contains the measurement of Cost/Qos for each configuration.
+	
+	-- [swaptions.profile](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.profile) contains the combined measurement of Cost and QoS.
 
-2) Two fact files, a [COST.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-cost.fact) and a [MV.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-mv.fact)
+	-- [cost.rsdg](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/cost.rsdg) and [mv.rsdg](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/mv.rsdg) describe the calculated RSDG weight.
 
-3) A fully blown RSDG file [rsdgSwaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.xml)
+	-- [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.xml) that all values for calculting Cost/Qos are filled in.
+	
+* training_outputs: A bunch of output files for evaluation like [here](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/training_outputs)
 
-4) An model validation file [modelValid.csv](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/modelValid.csv) describing how well the prediction is ( for COST only ).
+* Under the run dir: [modelValid.csv](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/modelValid.csv) describing how well the prediction is ( for COST only )
 
 
 ## Instrument the Source Code
