@@ -33,4 +33,6 @@ $ make
 The output should contain a static library, **rsdg.a**
 
 
+### - LEARN MORE
 
+Please refer to the [IO page](niuye8911.github.com/rapidlib-linux) for this project to learn how to use RAPID(C) to write your own approximate applications.
