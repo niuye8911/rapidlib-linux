@@ -12,6 +12,7 @@ appName = ""
 output = ""
 
 # binaries
+# update the path below when new apps are added
 bin_swaptions = "swaptions"
 bin_bodytrack = "bodytrack"
 bin_ferret = "ferret"
@@ -79,7 +80,7 @@ def run(appName,config_table):
         num = 0.0
         # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
-        command = [bin_swaptions,
+        command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
                    "-ns",
                    "10",
                    "-sm",
