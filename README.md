@@ -30,7 +30,7 @@ $ sudo apt-get install libcurl-dev
 $ make
 ```
 
-The output should contain a static library, **rsdg.a
+The output should contain a static library, **rsdg.a**
 
 
 
