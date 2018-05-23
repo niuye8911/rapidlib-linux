@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<resource>
+	<service>
+		<servicename>contnum</servicename>
+		<servicelayer>
+			<basicnode>
+				<nodename>num</nodename>
+				<contmin>100000</contmin>
+				<contmax>1000000</contmax>
+			</basicnode>
+		</servicelayer>
+	</service>
+</resource>
