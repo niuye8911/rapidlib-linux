@@ -8,11 +8,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
-
 #include "nr_routines.h"
 #include "HJM.h"
 #include "HJM_Securities.h"
 #include "HJM_type.h"
+#include <fstream>
+#include <unistd.h>
 
 #ifdef ENABLE_THREADS
 #include <pthread.h>
@@ -100,6 +101,9 @@ void * worker(void *arg){
   if(tid == nThreads -1 )
     end = nSwaptions;
 
+  std::ofstream output;
+  output.open("output.txt");
+
   for(int i=beg; i < end; i++) {
      int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
                                        swaptions[i].dCompounding, swaptions[i].dMaturity, 
@@ -110,8 +114,9 @@ void * worker(void *arg){
      assert(iSuccess == 1);
      swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
      swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
+     output<<"round"<<i<<":"<<pdSwaptionPrice[0]<<","<<pdSwaptionPrice[1]<<std::endl;
    }
-
+   output.close();
    return NULL;
 }
 

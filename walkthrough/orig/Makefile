@@ -1,7 +1,7 @@
 PREFIX := ${PARSECDIR}/pkgs/apps/swaptions/inst/${PARSECPLAT}
 DEF =
 INCLUDE =
-
+CXXFLAGS = -std=c++11 -O0
 EXEC = swaptions 
 
 ifdef version
