@@ -17,7 +17,7 @@ The code needed for the walk-through has been provided.
 
 2) Build the RAPID(C) c++ library
 
-	Refer to the README to [Build](https://github.com/niuye8911/rapidlib-linux) RAPID(C). The generated static library is [root]/rsdg.a
+- Refer to the README to [Build](https://github.com/niuye8911/rapidlib-linux) RAPID(C). The generated static library is [root]/rsdg.a
 
 From now on, we use [root] to denote the root dir of the library. Assuming we are currently under [root]
 
@@ -32,7 +32,7 @@ The output is a binary file, **[root]/walkthrough/orig/swaptions**
 
 4) Install Gurobi
 
-	A free version of Gurobi can be installed through [Gurobi Website](www.gurobi.com). After installation, make sure you can run the command line tool for gurobi through
+- A free version of Gurobi can be installed through [Gurobi Website](www.gurobi.com). After installation, make sure you can run the command line tool for gurobi through
 
 ```
 $ gurobi_cl -v
