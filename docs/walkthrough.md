@@ -13,17 +13,32 @@ title: A Walk-Through
 ## 0) Preparation 
 The code needed for the walk-through has been provided.
 
-1) Check out the original source code for [swaptions](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/orig) and compile it with command "make".
+1) [Checkout](https://github.com/niuye8911/rapidlib-linux) the repo for RAPID(C) library
 
-2) Refer to the README to [Build](https://github.com/niuye8911/rapidlib-linux) RAPID(C) library and locate the static library .a
+2) Build the RAPID(C) c++ library
 
-3) Check out the [instrumented code](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/instrumented)
+	-- Refer to the README to [Build](https://github.com/niuye8911/rapidlib-linux) RAPID(C). The generated static library is [root]/rsdg.a
 
-4) Check out the [description file](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/data/swapPort/depfileswaptions) for swaption
+From now on, we use [root] to denote the root dir of the library. Assuming we are currently under [root]
 
-5) Check out the [script](https://github.com/niuye8911/rapidlib-linux/tree/master/modelConstr/source) for RAPID(C)
+3) Build the original Swaptions Binary
 
-*Note: To make sure everything works fine, this [dir](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/outputs) contains all the outputs that are supposed to be generated during each phase.*
+```
+$ cd walkthrough/orig
+$ make
+```
+
+The output is a binary file, **[root]/walkthrough/orig/swaptions**
+
+4) Install Gurobi
+
+	-- A free version of Gurobi can be installed through [Gurobi Website](www.gurobi.com). After installation, make sure you can run the command line tool for gurobi through
+
+```
+$ gurobi_cl -v
+```
+
+*Note: To validate everything works fine,*[root]/walkthrough/outputs* contains all the outputs that are supposed to be generated during each phase.*
 
 ## 1) Generate a structure-only RSDG
 The first step is to generate the structure of RSDG for the application. It should contain all the dependencies and other constraints.
