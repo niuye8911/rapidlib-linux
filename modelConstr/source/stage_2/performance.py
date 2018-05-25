@@ -78,6 +78,7 @@ def run(appName,config_table):
     elif appName == "swaptions":
         # for swaptions
         num = 0.0
+
         # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
         command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
@@ -90,31 +91,39 @@ def run(appName,config_table):
         gt_path = "./training_outputs/grountTruth.txt"
         command = ["mv", "./output.txt", gt_path]
         subprocess.call(command)
+
         # generate the facts
         for configuration in config_table:
-            configs = configuration.retrieve_configs()
+            configs = configuration.retrieve_configs()  # extract the configurations
             for config in configs:
                 name = config.knob.set_name
-                if name== "num":
-                    num = config.val
+                if name == "num":
+                    num = config.val  # retrieve the setting for each knob
+
+            # assembly the command
             command = [bin_swaptions,
                        "-ns",
                        "10",
                        "-sm",
                        str(num)
                        ]
+
+            # measure the execution time for the run
             time1 = time.time()
             subprocess.call(command)
             time2 = time.time()
-            elapsedTime = (time2 - time1) * 1000 / 10
+            elapsedTime = (time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
+            # write the cost to file
             costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
+            # mv the generated output to another location
             newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
             command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
-            # generate mv fact
+            # write the mv to file
             mvFact.write('num,{0},'.format(int(num)))
             checkSwaption(gt_path, newfileloc, False,mvFact)
             mvFact.write("\n")
+
         costFact.close()
         mvFact.close()
 

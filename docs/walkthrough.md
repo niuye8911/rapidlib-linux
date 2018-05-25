@@ -47,7 +47,7 @@ To do that, run the following commands:
 ```
 $ cd [root]
 $ mkdir run & cd run
-$ python ../modelConstr/source/rapid.py --stage 1 --desc walkthrough/instrumented/depfileswaptions
+$ python ../modelConstr/source/rapid.py --stage 1 --desc ../walkthrough/instrumented/depfileswaptions
 ``` 
 
 In the command above, 
@@ -68,7 +68,7 @@ In this step, RAPID(C) will determine all the weights for each node in the RSDG.
 
 > Tell RAPID(C) how to run the application
 
-Take a look at the run function in file [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25).
+Take a look at the run function in file [[root/modelConstr/source/performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25).
 
 {% highlight python %}
 def run(appName,config_table):
@@ -78,15 +78,15 @@ The function takes in 2 arguments, the application name, and the configuration t
 The first argument identifies the name of the application and will direct the execution to the correct path.
 
 Locate the following if-statement in the code:
-{% highlight python}
+{% highlight python %}
 elif appName == "swaptions":
-{% endhighlight}
+{% endhighlight %}
 This is where the execution will be directed to in our case. If you are writing your own application, another elif-branch should be added in this function. 
 
 Now let's take a look at how exactly is it done.
 
 1) assembly the command and generate the ground truth by running it in default mode. In our case, "-ns" is the total number of swaptions and "-sm" is the simulation number per swaption. The knob controls the value of "-sm" and the default value for the knob is 1 million.
-{% highlight python}
+{% highlight python %}
         num = 0.0
         
         # generate the ground truth
@@ -103,29 +103,71 @@ Now let's take a look at how exactly is it done.
         gt_path = "./training_outputs/grountTruth.txt"
         command = ["mv", "./output.txt", gt_path]
         subprocess.call(command)
-{% endhighlight}
-
-Basically, it gives all the command line parameters. Note that from Line [81](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L81) to Line [90](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L90), RAPID(C) first generates the ground truth file for QoS.
+{% endhighlight %}
 
 <span style="color:red; font-size: 0.8em;">
 Please update the varibale "bin_swaptions" in [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L16) to point to the current location of the compiled binary for swaptions.
 </span>
 
-
-Then from Line [93](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L93) to Line [116](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L116), it iterates through all possible configurations by a pre-defined granularity to generate a bunch of observed files. During this process, the execution time will be measured and the QoS will be calculated later on.
+Then it runs each configuration iteratively. During this process, the execution time will be measured.
+{% highlight python %}
+# generate the facts
+        for configuration in config_table:
+            configs = configuration.retrieve_configs() # extract the configurations
+            for config in configs:
+                name = config.knob.set_name
+                if name== "num":
+                    num = config.val # retrieve the setting for each knob
+            
+            # assembly the command
+            command = [bin_swaptions,
+                       "-ns",
+                       "10",
+                       "-sm",
+                       str(num)
+                       ]
+            
+            # measure the execution time for the run
+            time1 = time.time()
+            subprocess.call(command)
+            time2 = time.time()
+            elapsedTime = (time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
+            # write the cost to file
+            costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
+            # mv the generated output to another location
+            newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
+            command = ["mv", "./output.txt", newfileloc]
+            subprocess.call(command)
+            # write the mv to file
+            mvFact.write('num,{0},'.format(int(num)))
+            checkSwaption(gt_path, newfileloc, False,mvFact) # checkSwaption is the function that returns a value describing the QoS
+            mvFact.write("\n")
+{% endhighlight %}
 
 > Tell RAPID(C) how to evaluate the QoS
 
-Refer to the [checkSwaption](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/qos_checker.py#L131) function in [qos_checker](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/qos_checker.py). This function describes how to calculate the QoS for each output files generated before.
+Take a look at the checkSwaption function in file [root/modelConstr/source/checkSwaption.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/qos_checker.py#L131) function in [qos_checker](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/qos_checker.py). This function describes how to calculate the QoS for each output files generated before.
 
+{% highlight python %}
+def checkSwaption(fact, observed,REPORT,report=""):
+{% endhighlight %}
+
+This function takes in 4 arguments.
+- fact: the groundtruth file that we generated before in the first run
+- observed: the output file of the current run
+- REPORT: indicate whether we are creating a detailed report
+- report: a stream that the function will append to with the calculated QoS
+
+In our case, we set "REPORT" to False, and "report" being the opened file stream
+  
 > Run the script
 
 ```
-python rapid.py --stage 4 --desc [PATH_TO_THE_DESC] --model [linear/quad/piecewise]
+python [root]/modelConstr/source/rapid.py --stage 4 --desc ../walkthrough/instrumented/depfileswaptions --model linear
 ```
-The outputs should contain:
-* debug: debugging information (0-1 fitting problem file)
-* outputs: 
+The outputs should be:
+* ./debug/: debugging information (0-1 fitting problem file)
+* ./outputs/: 
 
 	-- [swaptions-cost.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-cost.fact) and [swaptions-mv.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-mv.fact) that contains the measurement of Cost/Qos for each configuration.
 	
@@ -135,9 +177,9 @@ The outputs should contain:
 
 	-- [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.xml) that all values for calculting Cost/Qos are filled in.
 	
-* training_outputs: A bunch of output files for evaluation like [here](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/training_outputs)
+* ./training_outputs/: A bunch of output files for evaluation like [here](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/training_outputs)
 
-* Under the run dir: [modelValid.csv](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/modelValid.csv) describing how well the prediction is ( for COST only )
+* [./modelValid.csv](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/modelValid.csv) describing how well the prediction is ( for COST only )
 
 
 ## Instrument the Source Code
