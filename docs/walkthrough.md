@@ -66,9 +66,13 @@ There will be two directories being generated
 ## 2) Generate a Full RSDG
 The next step is to fill in all the missing parts of a fully blown RSDG, i.e. all the weights.
 
+In this step, RAPID(C) will determine all the weights for each node in the RSDG. To do that, it needs to know how to run the application, i.e. all the command line arguments, the binary location, etc. It would run the application with multiple configurations and measure their Cost (execution time). Then it would examine the output and measure the QoS metric for each run with different configuration.
+
 > Tell RAPID(C) how to run the application
 
-Refer to the function [run](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25) starting on line [77](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L77) to see how it's done. Basically, it gives all the command line parameters. Note that from Line [81](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L81) to Line [90](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L90), RAPID(C) first generates the ground truth file for QoS.
+Take a look at the run function in file [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25).
+
+starting on line [77](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L77) to see how it's done. Basically, it gives all the command line parameters. Note that from Line [81](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L81) to Line [90](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L90), RAPID(C) first generates the ground truth file for QoS.
 
 <span style="color:red; font-size: 0.8em;">
 Please update the varibale "bin_swaptions" in [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L16) to point to the current location of the compiled binary for swaptions.
