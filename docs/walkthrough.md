@@ -297,7 +297,7 @@ The procedure behind this is:
 
 In our Swaptions example, we need the "action" to change the *numOfSwitch* according to the paramter value.
 
-> Create an action 
+> e) Create an action 
 
 {% highlight c++ %}
 void *swapAction(void* arg){
@@ -307,7 +307,7 @@ void *swapAction(void* arg){
 
 {% endhighlight %}
 
-> Tell RAPID(C) when it finishes a work-unit.
+> f) Tell RAPID(C) when it finishes a work-unit.
 
 At the time when a job is done, RAPID(C) has to be notified.
 
