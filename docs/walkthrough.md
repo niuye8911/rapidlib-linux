@@ -64,15 +64,48 @@ There will be two directories being generated
 	-- trainingset: The initial trianing set served as groundtruth to validate the model. See example [trainingset](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/traininSet).
 
 ## 2) Generate a Full RSDG
-The next step is to fill in all the missing parts of a fully blown RSDG, i.e. all the weights.
-
 In this step, RAPID(C) will determine all the weights for each node in the RSDG. To do that, it needs to know how to run the application, i.e. all the command line arguments, the binary location, etc. It would run the application with multiple configurations and measure their Cost (execution time). Then it would examine the output and measure the QoS metric for each run with different configuration.
 
 > Tell RAPID(C) how to run the application
 
 Take a look at the run function in file [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25).
 
-starting on line [77](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L77) to see how it's done. Basically, it gives all the command line parameters. Note that from Line [81](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L81) to Line [90](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L90), RAPID(C) first generates the ground truth file for QoS.
+{% highlight python %}
+def run(appName,config_table):
+{% endhighlight}
+
+The function takes in 2 arguments, the application name, and the configuration table. The configuration table was generated during stage-1. So when the execution arrives here, this argument will be taken care of.
+The first argument identifies the name of the application and will direct the execution to the correct path.
+
+Locate the following if-statement in the code:
+{% highlight python}
+elif appName == "swaptions":
+{% endhighlight}
+This is where the execution will be directed to in our case. If you are writing your own application, another elif-branch should be added in this function. 
+
+Now let's take a look at how exactly is it done.
+
+1) assembly the command and generate the ground truth by running it in default mode. In our case, "-ns" is the total number of swaptions and "-sm" is the simulation number per swaption. The knob controls the value of "-sm" and the default value for the knob is 1 million.
+{% highlight python}
+        num = 0.0
+        
+        # generate the ground truth
+        print "GENERATING GROUND TRUTH for SWAPTIONS"
+        command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
+                   "-ns",
+                   "10",
+                   "-sm",
+                   str(1000000)
+                   ]
+        subprocess.call(command)
+        
+        # move the generated groundtruth to another location for further usage
+        gt_path = "./training_outputs/grountTruth.txt"
+        command = ["mv", "./output.txt", gt_path]
+        subprocess.call(command)
+{% endhighlight}
+
+Basically, it gives all the command line parameters. Note that from Line [81](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L81) to Line [90](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L90), RAPID(C) first generates the ground truth file for QoS.
 
 <span style="color:red; font-size: 0.8em;">
 Please update the varibale "bin_swaptions" in [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L16) to point to the current location of the compiled binary for swaptions.

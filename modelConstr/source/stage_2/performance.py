@@ -76,7 +76,7 @@ def run(appName,config_table):
         mvFact.close()
 
     elif appName == "swaptions":
-        # for bodytrack
+        # for swaptions
         num = 0.0
         # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
