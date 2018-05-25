@@ -19,6 +19,7 @@ The code needed for the walk-through has been provided.
 
 ``` 
 $ sudo apt-get install libcurl-dev
+$ sudo pip install lxml
 ```
 make sure the path to libcurl is updated in root/Makefile
 

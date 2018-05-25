@@ -87,7 +87,9 @@ def run(appName,config_table):
                    "-sm",
                    str(1000000)
                    ]
-        subprocess.call(command)
+        # in case subprocess might not work
+        #subprocess.call(command)
+        os.system(" ".join(command))
         gt_path = "./training_outputs/grountTruth.txt"
         command = ["mv", "./output.txt", gt_path]
         subprocess.call(command)
@@ -110,7 +112,8 @@ def run(appName,config_table):
 
             # measure the execution time for the run
             time1 = time.time()
-            subprocess.call(command)
+            #subprocess.call(command)
+            os.system(" ".join(command))
             time2 = time.time()
             elapsedTime = (time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
             # write the cost to file
