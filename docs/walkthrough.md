@@ -72,7 +72,7 @@ Take a look at the run function in file [[root/modelConstr/source/performance.py
 
 {% highlight python %}
 def run(appName,config_table):
-{% endhighlight}
+{% endhighlight %}
 
 The function takes in 2 arguments, the application name, and the configuration table. The configuration table was generated during stage-1. So when the execution arrives here, this argument will be taken care of.
 The first argument identifies the name of the application and will direct the execution to the correct path.
