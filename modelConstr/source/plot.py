@@ -3,7 +3,6 @@ import scipy.stats as stats
 import matplotlib.pyplot as pl
 import scipy as sp
 import pylab
-import seaborn as sns
 
 def draw(datafile):
     data = []
