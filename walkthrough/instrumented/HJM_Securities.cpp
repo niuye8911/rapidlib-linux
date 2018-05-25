@@ -136,7 +136,6 @@ void * worker(void *arg){
 
   ofstream output;
   output.open("output.txt");
-  }
 
   for(int i=beg; i < end; i++) {
      //after every 6 iteration, check the budget and reconfigure

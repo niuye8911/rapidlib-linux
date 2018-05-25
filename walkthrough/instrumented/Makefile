@@ -1,5 +1,5 @@
 PREFIX := ${PARSECDIR}/pkgs/apps/swaptions/inst/${PARSECPLAT}
-RSDGPREFIX = /home/liuliu/Research/rapidlib-linux
+RSDGPREFIX = [root]
 INCLUDE = -I$(RSDGPREFIX) -I/usr/include/curl/
 CXXFLAGS = -std=c++11 -pthread -O0 -g
 LIBS = -lcurl
