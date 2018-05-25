@@ -163,7 +163,7 @@ def checkSwaption(fact, observed,REPORT,report=""):
         toterr += error
     # write the average error
     meanQoS = 1 - toterr / totalRound
-    meanQoS = meanQoS*100.0-99
+    meanQoS = meanQoS*1000.0-999
     if REPORT:
         qos_report.write(str(meanQoS) + "\n")
     # close the report
