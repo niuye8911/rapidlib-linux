@@ -329,7 +329,6 @@ The original run command for Swaptions is as shown below:
 ```
 ../orig/swaptions -ns 100 -sm 100000 -nt 1
 ```
-```
 The version with RAPID(C) involvement:
 ```
 ../orig/swaptions -ns 100 -sm 100000 -nt 1 -rsdg -b [BUDGET_IN_SEC] -xml outputs/swaptions.xml -u [UNIT_PER_CHECK] -cont
