@@ -320,7 +320,7 @@ swapMission->finish_one_unit();
 
 ### Make 
 
-Refer to the [Makefile](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/instrumented/Makefile) and see the changes that adds the compiled static library to the source.
+Refer to the modified makefile, [root/walkthrough/instrumented/Makefile](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/instrumented/Makefile) and see the changes that adds the compiled static library to the source.
 
 ### Run
 
@@ -329,10 +329,9 @@ The original run command for Swaptions is as shown below:
 ```
 ../orig/swaptions -ns 100 -sm 100000 -nt 1
 ```
-
-The version with RAPID(C) involvement:
-
 ```
-../orig/swaptions -ns 100 -sm 100000 -nt 1 -rsdg -b [BUDGET_IN_SEC] -xml ../instrumentd/depfileSwaptions -u [UNIT_PER_CHECK] -cont
+The version with RAPID(C) involvement:
+```
+../orig/swaptions -ns 100 -sm 100000 -nt 1 -rsdg -b [BUDGET_IN_SEC] -xml outputs/swaptions.xml -u [UNIT_PER_CHECK] -cont
 ```
 
