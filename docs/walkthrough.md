@@ -38,26 +38,32 @@ The output is a binary file, **[root]/walkthrough/orig/swaptions**
 $ gurobi_cl -v
 ```
 
-*Note: To validate everything works fine,*[root]/walkthrough/outputs* contains all the outputs that are supposed to be generated during each phase.*
+*Note: To validate everything works fine,[root]/walkthrough/outputs contains all the outputs that are supposed to be generated during each phase.*
 
 ## 1) Generate a structure-only RSDG
 The first step is to generate the structure of RSDG for the application. It should contain all the dependencies and other constraints.
 
-To do that, run the following command:
+To do that, run the following commands:
 ```
-python rapid.py --stage 1 --desc [PATH_TO_THE_DESC]
+$ cd [root]
+$ mkdir run & cd run
+$ python ../modelConstr/source/rapid.py --stage 1 --desc walkthrough/instrumented/depfileswaptions
 ``` 
 
-In the command above, *stage=1* indicates that we are only interested in the structure of the RSDG. After executing the command, 2 folders will be generated under the run dir.
+In the command above, 
+- *--stage* indicates what step(s) are we interested in. Details about the stages can be found in the paper. In this case, we are only interested in the structure of the RSDG (first stage). After executing the command, 2 folders will be generated under the run dir.
+- *--desc* points to the description file.
 
-* debug: This dir contains the debug information, now it should be empty
-* output: The dir contains the output after stage 1. Now it should contain 2 files. 
+There will be two directories being generated 
 
-	-- [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions_pre.xml): This is the structure-only RSDG for your application.
+* [root]/run/debug: This dir contains the debug information, now it should be empty
+* [root]/run/output: The dir contains the output after stage 1. Now it should contain 2 files. 
+
+	-- swaptions.xml: The RSDG structure. See example [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions_pre.xml).
 	
-	-- [trainingset](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/trainingset): This is the initial training set served as groundtruth to validate the model.
+	-- trainingset: The initial trianing set served as groundtruth to validate the model. See example [trainingset](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/traininSet).
 
-## Generate the Full RSDG
+## 2) Generate a Full RSDG
 The next step is to fill in all the missing parts of a fully blown RSDG, i.e. all the weights.
 
 > Tell RAPID(C) how to run the application
