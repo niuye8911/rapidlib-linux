@@ -1,5 +1,0 @@
-populate a RSDG
-> python parseData.py -m consrsdg -f ./ferretPort/fact.csv -o ./ferretPort/observed.csv
-
-generate a Representative Set
-> python parseData.py -m genrs -f ./ferretPort/fact.csv
