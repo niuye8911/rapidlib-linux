@@ -22,7 +22,8 @@ body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/
 swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
 ferret_input = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/ferret/run/"
 
-# iterative functions
+# Run the application with developer-provided methods
+# The expected behavior of this application should be writing Cost and QoS metric to corresponding files
 def run(appName,config_table):
     config_table = config_table.configurations
     if not os.path.exists("./training_outputs"):
@@ -78,7 +79,6 @@ def run(appName,config_table):
     elif appName == "swaptions":
         # for swaptions
         num = 0.0
-
         # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
         command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
@@ -119,7 +119,7 @@ def run(appName,config_table):
             # write the cost to file
             costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
             # mv the generated output to another location
-            newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
+            newfileloc = "./training_outputs/output_"
             command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
             # write the mv to file

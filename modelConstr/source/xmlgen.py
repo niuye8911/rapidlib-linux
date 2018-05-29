@@ -57,7 +57,7 @@ def completeXML(appname,xml,rsdg,mv_rsdg,model):
                 #sink = etree.SubElement(contwith,"knob")
                 sink = etree.SubElement(contwith,"knob")
                 etree.SubElement(sink, "name").text = sink_coeff
-                costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveABC()
+                costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
                 #mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
                 etree.SubElement(sink,"costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
@@ -72,7 +72,7 @@ def completeXML(appname,xml,rsdg,mv_rsdg,model):
                 contwith = etree.SubElement(node,"contwith")
                 sink = etree.SubElement(contwith, "knob")
                 etree.SubElement(sink,"name").text = sink_coeff
-                costa, costb, costc = coeff_table[knobname][sink_coeff].retrieveABC()
+                costa, costb, costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
                 # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
                 etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
