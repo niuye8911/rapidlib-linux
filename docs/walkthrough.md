@@ -164,7 +164,7 @@ configurations = config_table.configurations  # get the configurations in the ta
 
 In short, train() iterates through all configurations in config_table and run them by assemblying different command line arguments. After each run, train() also records the cost and QoS of each run by measuring the execution time and calculating the QoS by calling a method, *checkSwaption()*.
 
-2.3) **Tell RAPID(C) how to evaluate the QoS, checkSwaption()**
+2.4) **Tell RAPID(C) how to evaluate the QoS, checkSwaption()**
 
 In the previous step, the output of each run is *./output.txt* and the ground truth file generated before is *./training_outputs/groundtruth.txt*. It calls *checkSwaption()* to measure the QoS before backing up the output.
 
@@ -189,12 +189,28 @@ def checkSwaption(self):
 {% endhighlight %}
 
 In short, this function compares the output file against the ground truth file and return the mean error. This error served as the QoS metric of our application. 
-  
-> Run the script
+
+2.5) **Hook the methods to RAPID(C)**
+
+After the previous steps, an inherited class of AppMethods shall be created in a separate module. Now let's take a look at how to hook this module to RAPID(C) so that it can be loaded dynamically.
+ 
+In the main script, [root/modelConstr/source/rapid.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/rapid.py#L60), RAPID(C) loads the module given a path to our class file and create an instance of our class.
+
+{% highlight python %}
+# load user-supplied methods
+module = imp.load_source("", methods_path) #load the module from path
+appMethods = module.appMethods(appname) # create an instance
+{% endhighlight %}
+
+This instance will be used later on as described in 2.1). 
+
+> Now let's run the script, assuming we're under our run directory [root/run]
 
 ```
 python ../modelConstr/source/rapid.py --stage 4 --desc ../walkthrough/instrumented/depfileswaptions --model linear --met ../modelConstr/appExt/swaptionMet.py
 ```
+
+
 The outputs should be:
 * ./debug/: debugging information (0-1 fitting problem file)
 
