@@ -9,48 +9,64 @@ title: A Walk-Through
 
 > A **single** knob controls the number of iterations of the <em>Monte-Carlo</em> simulation for each swaption. 
 
-
 ## 0) Preparation 
 The code needed for the walk-through has been provided.
 
-1) [Checkout](https://github.com/niuye8911/rapidlib-linux) the repo for RAPID(C) library
+0.1) **[Checkout](https://github.com/niuye8911/rapidlib-linux) the repo for RAPID(C) library.**
 
-2) Build the RAPID(C) c++ library
+Below is the structure of the repo. From now on, we use **[root]** to refer to the top dir.
 
+
+<pre>
+[root]
+├── cppSource           # source of RAPID(C) c++ library
+│   └── build                   # output of built library, rsdg.a
+├── docs                # [ignore this]source for the website portal
+├── modelConstr         # source of python scripts
+│   ├── appExt                  # example app-specific methods
+│   ├── data                    # experiment data
+│   ├── merge                   # [ignroe this] future work
+│   └── source                  # python script source
+└── walkthrough                 # materials for this walkthrough
+    ├── example_debug           # example outputs in the walkthrough
+    ├── example_outputs		#..
+    ├── example_training_outputs#..
+    ├── instrumented            # instrumented code
+    └── orig                    # original app code
+</pre>
+
+0.2) **Build the RAPID(C) c++ library**
+
+First build the required dependencies
 ``` 
 $ sudo apt-get install libcurl-dev
 $ sudo pip install lxml
 ```
-make sure the path to libcurl is updated in root/Makefile
+make sure the path to libcurl is updated in *[root]/cppSource/Makefile*
 
 ```
+cd cppSource
 make
 ```
 
-The generated static library is [root]/rsdg.a
+The generated static library is *[root]/cppSource/build/rsdg.a*
 
-
-From now on, we use [root] to denote the root dir of the library. Assuming we are currently under [root].
-
-3) Build the original Swaptions Binary
+0.3) **Build the original Swaptions Binary**
 
 ```
 $ cd walkthrough/orig
 $ make
 ```
 
-The output is a binary file, **[root]/walkthrough/orig/swaptions**
+The output is a binary file, *[root]/walkthrough/orig/swaptions*
 
-4) Install Gurobi
+0.4) **Install Gurobi**
 
 - A free version of Gurobi can be installed through [Gurobi Website](www.gurobi.com). After installation, make sure you can run the command line tool for gurobi through
 
 ```
 $ gurobi_cl -v
 ```
-
-*Note: To validate everything works fine,[root]/walkthrough/outputs contains all the outputs that are supposed to be generated during each phase.*
-
 ## 1) Generate a structure-only RSDG
 The first step is to generate the structure of RSDG for the application. It should contain all the dependencies and other constraints.
 
@@ -67,114 +83,117 @@ In the command above,
 
 There will be two directories being generated 
 
-* [root]/run/debug: This dir contains the debug information, now it should be empty
-* [root]/run/output: The dir contains the output after stage 1. Now it should contain 2 files. 
+* *[root]/run/debug*: contains the debug information, now it should be empty
+* *[root]/run/output*: contains the output after stage 1. Now it should contain 2 files. 
 
-	-- swaptions.xml: The RSDG structure. See example [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions_pre.xml).
-	
-	-- trainingset: The initial trianing set served as groundtruth to validate the model. See example [trainingset](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/traininSet).
+	-- *swaptions.xml*: The RSDG structure. See example [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/example_outputs/swaptions_pre.xml).
+
+	-- *trainingset*: The initial trianing set served as groundtruth to validate the model. See example [trainingset](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/example_outputs/trainingset)
 
 ## 2) Generate a Full RSDG
 In this step, RAPID(C) will determine all the weights for each node in the RSDG. To do that, it needs to know how to run the application, i.e. all the command line arguments, the binary location, etc. It would run the application with multiple configurations and measure their Cost (execution time). Then it would examine the output and measure the QoS metric for each run with different configuration.
 
-> Tell RAPID(C) how to run the application
+2.1) **Tell RAPID(C) how to run the application**
 
-Take a look at the run function in file [[root/modelConstr/source/performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L25).
+Take a look at the implementation of class **AppMethods** in [root/modelConstr/source/Classes.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/Classes.py#L570).
+
+This is the parent class prepared for developers to plugin their own implementations for their apps. Besides all the prepared built-in methods, developers are supposed to override two methods, train(), and runGT().
+ 
+Now take a look at the call line for these two methods in [root/modelConstr/source/stage_2/trainApp.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/trainApp.py)
 
 {% highlight python %}
-def run(appName,config_table):
+...
+appMethods.runGT()
+appMethods.train(config_table,cost_path,mv_path)
+...
 {% endhighlight %}
 
-The function takes in 2 arguments, the application name, and the configuration table. The configuration table was generated during stage-1. So when the execution arrives here, this argument will be taken care of.
-The first argument identifies the name of the application and will direct the execution to the correct path.
+RAPID(C) will first call runGT() to generate the groundTruth, and then call train() with a internally generated config_table and two pre-defined output paths.
 
-Locate the following if-statement in the code:
+The developers job is to implement their own object of AppMethods and plug it into RAPID(C)'s script.
+
+2.2) **runGT()**
+
+Now let's take a look at the example implementation of AppMethod in [root/modelConstr/appExt/swaptionMet.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/appExt/swaptionMet.py#L67)
+
+- assembly the command and generate the ground truth by running it in default mode. In our case, "-ns" is the total number of swaptions and "-sm" is the simulation number per swaption. The knob controls the value of "-sm" and the default value for the knob is 1 million.
 {% highlight python %}
-elif appName == "swaptions":
-{% endhighlight %}
-This is where the execution will be directed to in our case. If you are writing your own application, another elif-branch should be added in this function. 
-
-Now let's take a look at how exactly is it done.
-
-1) assembly the command and generate the ground truth by running it in default mode. In our case, "-ns" is the total number of swaptions and "-sm" is the simulation number per swaption. The knob controls the value of "-sm" and the default value for the knob is 1 million.
-{% highlight python %}
-        num = 0.0
-        
-        # generate the ground truth
-        print "GENERATING GROUND TRUTH for SWAPTIONS"
-        command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
-                   "-ns",
-                   "10",
-                   "-sm",
-                   str(1000000)
-                   ]
-        subprocess.call(command)
-        
-        # move the generated groundtruth to another location for further usage
-        gt_path = "./training_outputs/grountTruth.txt"
-        command = ["mv", "./output.txt", gt_path]
-        subprocess.call(command)
+	command = self.get_command(1000000) # command = [swaptions, "-ns", "10", "-sm", 1000000]
+        defaultTime = self.getTime(command, 10) # run the command through shell
+        self.gt_path = "./training_outputs/grountTruth.txt"
+        self.moveFile("./output.txt", self.gt_path) # backup the output to somewhere else
 {% endhighlight %}
 
 <span style="color:red; font-size: 0.8em;">
-Please update the varibale "bin_swaptions" in [performance.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/performance.py#L16) to point to the current location of the compiled binary for swaptions.
+Please update the varibale "bin_swaptions" in the top of the class definition to point to your location of the compiled binary for swaptions.
 </span>
 
-Then it runs each configuration iteratively. During this process, the execution time will be measured.
+In short, in our example, runGT() will be called by RAPID(C) to run swaptions once with default setting, and then move the output to another place.
+
+2.3) **train(config_table, costFact, mvFact)**
+
+Then let's take another look at the example implementation of [train()](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/appExt/swaptionMet.py#L16). It runs each configuration iteratively. During this process, the execution time will be measured.
 {% highlight python %}
 # generate the facts
-        for configuration in config_table:
-            configs = configuration.retrieve_configs() # extract the configurations
+configurations = config_table.configurations  # get the configurations in the table
+        costFact = open(costFact, 'w')
+        mvFact = open(mvFact, 'w')
+        # iterate through configurations
+        for configuration in configurations:
+            # the purpose of each iteration is to fill in the two values below
+            cost = 0.0
+            mv = 0.0
+            configs = configuration.retrieve_configs()  # extract the configurations
+            # fetch the concrete setting(s)
             for config in configs:
                 name = config.knob.set_name
-                if name== "num":
-                    num = config.val # retrieve the setting for each knob
-            
+                if name == "num":
+                    num = config.val  # retrieve the setting for each knob
             # assembly the command
-            command = [bin_swaptions,
-                       "-ns",
-                       "10",
-                       "-sm",
-                       str(num)
-                       ]
-            
-            # measure the execution time for the run
-            time1 = time.time()
-            subprocess.call(command)
-            time2 = time.time()
-            elapsedTime = (time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
+            command = self.get_command(str(num))
+            # measure the "cost"
+            cost = self.getTime(command, 10)  # 10 jobs(swaption) per run
             # write the cost to file
-            costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
-            # mv the generated output to another location
-            newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
-            command = ["mv", "./output.txt", newfileloc]
-            subprocess.call(command)
+            self.writeConfigMeasurementToFile(costFact, configuration, cost)
+            # measure the "mv"
+            mv = self.checkSwaption()
             # write the mv to file
-            mvFact.write('num,{0},'.format(int(num)))
-            checkSwaption(gt_path, newfileloc, False,mvFact) # checkSwaption is the function that returns a value describing the QoS
-            mvFact.write("\n")
+            self.writeConfigMeasurementToFile(mvFact, configuration, mv)
+            # backup the generated output to another location
 {% endhighlight %}
 
-> Tell RAPID(C) how to evaluate the QoS
+In short, train() iterates through all configurations in config_table and run them by assemblying different command line arguments. After each run, train() also records the cost and QoS of each run by measuring the execution time and calculating the QoS by calling a method, *checkSwaption()*.
 
-Take a look at the checkSwaption function in file [root/modelConstr/source/checkSwaption.py](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/qos_checker.py#L131) function in [qos_checker](https://github.com/niuye8911/rapidlib-linux/blob/master/modelConstr/source/stage_2/qos_checker.py). This function describes how to calculate the QoS for each output files generated before.
+2.3) **Tell RAPID(C) how to evaluate the QoS, checkSwaption()**
+
+In the previous step, the output of each run is *./output.txt* and the ground truth file generated before is *./training_outputs/groundtruth.txt*. It calls *checkSwaption()* to measure the QoS before backing up the output.
+
+Take a look at the checkSwaption function in this class. This function describes how to calculate the QoS for each output files generated before.
 
 {% highlight python %}
-def checkSwaption(fact, observed,REPORT,report=""):
+def checkSwaption(self):
+        gt_output = open(self.gt_path, "r")
+        mission_output = open("./output.txt", "r")
+	...
+        for line in gt_output:
+		# ...grab the calculated mean price from ground truth
+        for line in mission_output:
+		# ...grab the calculated mean price from output
+        # calculate the distortion
+        toterr = 0.0
+        for round in range(0, totalRound):
+		# ...calculate the total error
+        # return the average error
+	...
+        return meanQoS * 100.0
 {% endhighlight %}
 
-This function takes in 4 arguments.
-- fact: the groundtruth file that we generated before in the first run
-- observed: the output file of the current run
-- REPORT: indicate whether we are creating a detailed report
-- report: a stream that the function will append to with the calculated QoS
-
-In our case, we set "REPORT" to False, and "report" being the opened file stream
+In short, this function compares the output file against the ground truth file and return the mean error. This error served as the QoS metric of our application. 
   
 > Run the script
 
 ```
-python ../modelConstr/source/rapid.py --stage 4 --desc ../walkthrough/instrumented/depfileswaptions --model linear
+python ../modelConstr/source/rapid.py --stage 4 --desc ../walkthrough/instrumented/depfileswaptions --model linear --met ../modelConstr/appExt/swaptionMet.py
 ```
 The outputs should be:
 * ./debug/: debugging information (0-1 fitting problem file)
