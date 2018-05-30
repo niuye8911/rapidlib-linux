@@ -582,13 +582,19 @@ class AppMethods():
         self.appName = name
 
     # Implement this function
-    def train(self):
+    def train(self, config_table, costFact, mvFact):
+	""" Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
+	:param config_table: A table of class Profile containing all configurations to train
+	:param costFact: the destination of output file for recording costs
+	:param mvFact: the destination of output file for recording MV		
+	"""
         # perform a single run for training
         pass
 
     # Implement this function
     def runGT(self):
-        # perform a run to generate groundtruth
+        """ Perform a default run of non-approxiamte version of the application to generate groundtruth result for QoS checking later in the future. The output can be application specific, but we recommend to output the result to a file.
+	"""
         pass
 
     # Some default APIs
