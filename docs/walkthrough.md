@@ -210,26 +210,34 @@ This instance will be used later on as described in 2.1).
 python ../modelConstr/source/rapid.py --stage 4 --desc ../walkthrough/instrumented/depfileswaptions --model linear --met ../modelConstr/appExt/swaptionMet.py
 ```
 
+The outputs layout should be:
+<pre>
+root/run
+├── debug	# debug LP files and solutions
+│   ├── fittingcost.lp
+│   ├── fittingmv.lp
+│   ├── maxcost.sol
+│   └── maxmv.sol
+├── outputs	# run outputs
+│   ├── cost.rsdg		# RSDG coeffs for Cost
+│   ├── modelValid.csv		# Cost prediction validation
+│   ├── mv.rsdg			# RSDG coeffs for MV
+│   ├── swaptions-cost.fact	# measurement of Cost 
+│   ├── swaptions-mv.fact	# measurement of MV
+│   ├── swaptions.profile	# combined Cost and MV
+│   ├── swaptions.xml		# final RSDG in XML format
+│   └── trainingset		# initial training set
+└── training_outputs	#training outputs
+    ├── grountTruth.txt
+    ├── output1000000.txt
+    ├── output100000.txt
+   	... 
+    └── output900000.txt
+</pre>
 
-The outputs should be:
-* ./debug/: debugging information (0-1 fitting problem file)
+We can compare our results against the example outputs under [root/walkthrough/example_XXX](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough).
 
-* ./outputs/: 
-
-	-- [swaptions-cost.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-cost.fact) and [swaptions-mv.fact](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions-mv.fact) that contains the measurement of Cost/Qos for each configuration.
-	
-	-- [swaptions.profile](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.profile) contains the combined measurement of Cost and QoS.
-
-	-- [cost.rsdg](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/cost.rsdg) and [mv.rsdg](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/mv.rsdg) describe the calculated RSDG weight.
-
-	-- [swaptions.xml](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/outputs/swaptions.xml) that all values for calculting Cost/Qos are filled in.
-	
-* ./training_outputs/: A bunch of output files for evaluation like [here](https://github.com/niuye8911/rapidlib-linux/tree/master/walkthrough/training_outputs)
-
-* [./modelValid.csv](https://github.com/niuye8911/rapidlib-linux/blob/master/walkthrough/modelValid.csv) describing how well the prediction is ( for COST only )
-
-
-## 3) Understand the Source
+## 3) Understand the Source Before Instrumentation
 
 {% highlight c++%}
 ...
@@ -255,10 +263,10 @@ Our knob is this *numOfSwith* which controls the number of simulations for each 
 Key insight: Tune this knob dynamically to optimize the QoS within the budget.
 </span>
 
-## 3) Instrument the Source Code
+## 4) Instrument the Source Code
 Now that we are done with all the preparation for RAPID(C), RAPID(C) library is ready to be integrated into the source. 
 
-> A) Include the Header
+> a) Include the Header
 
 {% highlight c++ %}
 #include "rsdgMission.h"
