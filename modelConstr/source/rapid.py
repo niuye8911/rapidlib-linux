@@ -56,10 +56,6 @@ def main(argv):
     appname,knobs,groundTruth_profile, knob_samples = genTrainingSet(desc)
     appname = appname[:-1]
 
-    # load user-supplied methods
-    module = imp.load_source("", methods_path)
-    appMethods = module.appMethods(appname)
-
     # generate XML files
     xml = genxml(appname,"","",True,desc)
     if (stage == 1):
@@ -67,6 +63,9 @@ def main(argv):
 
     #######################STAGE-2########################
     #second stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
+    # load user-supplied methods
+    module = imp.load_source("", methods_path)
+    appMethods = module.appMethods(appname)
     factfile, mvfactfile = genFact(appname,groundTruth_profile,appMethods)
 
     #######################STAGE-3########################
@@ -184,7 +183,8 @@ def parseCMD(options):
         methods_path = options.method
     else:
         print("expected user supplied app methods")
-        exit(1)
+	if not (stage == 1):
+		exit(1)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
