@@ -258,4 +258,3 @@ def readContFactAndGenModConstraint(fact):
         num += 1
 
     return constraints,num, paras
-

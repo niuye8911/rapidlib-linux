@@ -586,7 +586,7 @@ class AppMethods():
 	""" Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
 	:param config_table: A table of class Profile containing all configurations to train
 	:param costFact: the destination of output file for recording costs
-	:param mvFact: the destination of output file for recording MV		
+	:param mvFact: the destination of output file for recording MV
 	"""
         # perform a single run for training
         pass

@@ -333,6 +333,3 @@ def checkBodytrack(fact, observed,REPORT,report):
     if REPORT:
         qos_report.write(str((1.0-(totDistortion / len(truth_results))) * 100.0))
         qos_report.close()
-
-
-
