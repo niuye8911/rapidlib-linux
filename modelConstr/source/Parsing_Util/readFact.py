@@ -7,7 +7,7 @@ def readFact(fact_file,knobs,gt,COST=True):
         print "RAPID-C / STAGE-4 : reading trained profile failed"
         return
     for line in fact:
-        col = line.split(',')
+        col = line.split()
         knob_name = ""
         knob_val = 0.0
         val = 0.0

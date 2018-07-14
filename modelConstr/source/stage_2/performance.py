@@ -12,6 +12,7 @@ appName = ""
 output = ""
 
 # binaries
+# update the path below when new apps are added
 bin_swaptions = "swaptions"
 bin_bodytrack = "bodytrack"
 bin_ferret = "ferret"
@@ -21,7 +22,8 @@ body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/
 swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
 ferret_input = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/ferret/run/"
 
-# iterative functions
+# Run the application with developer-provided methods
+# The expected behavior of this application should be writing Cost and QoS metric to corresponding files
 def run(appName,config_table):
     config_table = config_table.configurations
     if not os.path.exists("./training_outputs"):
@@ -75,45 +77,56 @@ def run(appName,config_table):
         mvFact.close()
 
     elif appName == "swaptions":
-        # for bodytrack
+        # for swaptions
         num = 0.0
         # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
-        command = [bin_swaptions,
+        command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
                    "-ns",
                    "10",
                    "-sm",
                    str(1000000)
                    ]
-        subprocess.call(command)
+        # in case subprocess might not work
+        #subprocess.call(command)
+        os.system(" ".join(command))
         gt_path = "./training_outputs/grountTruth.txt"
         command = ["mv", "./output.txt", gt_path]
         subprocess.call(command)
+
         # generate the facts
         for configuration in config_table:
-            configs = configuration.retrieve_configs()
+            configs = configuration.retrieve_configs()  # extract the configurations
             for config in configs:
                 name = config.knob.set_name
-                if name== "num":
-                    num = config.val
+                if name == "num":
+                    num = config.val  # retrieve the setting for each knob
+
+            # assembly the command
             command = [bin_swaptions,
                        "-ns",
                        "10",
                        "-sm",
                        str(num)
                        ]
+
+            # measure the execution time for the run
             time1 = time.time()
-            subprocess.call(command)
+            #subprocess.call(command)
+            os.system(" ".join(command))
             time2 = time.time()
-            elapsedTime = (time2 - time1) * 1000 / 10
+            elapsedTime = (time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
+            # write the cost to file
             costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
-            newfileloc = "./training_outputs/output_" + str(int(num)) + ".txt"
+            # mv the generated output to another location
+            newfileloc = "./training_outputs/output_"
             command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
-            # generate mv fact
+            # write the mv to file
             mvFact.write('num,{0},'.format(int(num)))
             checkSwaption(gt_path, newfileloc, False,mvFact)
             mvFact.write("\n")
+
         costFact.close()
         mvFact.close()
 
