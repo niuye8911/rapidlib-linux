@@ -1,6 +1,27 @@
 import itertools
 from Classes import *
 
+CONTINUOUS = 'C'
+DISCRETE = 'D'
+DELIMITER = ' '
+AND_SEC = 'AND'
+OR_SEC = 'OR'
+VALID_CONSTRAINT_LENGTH = 4
+
+# determine if a line is valid
+def isConstraint(line):
+    return len(line.split(DELIMITER)) == VALID_CONSTRAINT_LENGTH
+
+def isANDLine(line):
+    return line.startswith(AND_SEC)
+
+def isORLine(line):
+    return line.startswith(OR_SEC)
+
+def isEdge(line):
+    col = line.split(DELIMITER)
+    return len(col)==5 and col[2]=="=>"
+
 #stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
     print "RAPID-C / STAGE-1.1 : generating... training set in file ./trainingset"
@@ -31,37 +52,66 @@ def genTrainingSet(cfg_file):
     knobs_class = Knobs()
     for k in knobs:
         knobs_class.addKnob(k)
-    return appname,knobs_class,flatted_all_training, knob_samples
+    return appname,knobs_class,flatted_all_training, knob_samples,and_constriants,or_constraints,knobs
 
 # read in a description file
 def processFile(cfg_file):
     appname = ""
     knobs = set()
-    and_constriants = set()
-    or_constraints = set()
+    and_edges = set()
+    or_edges = set()
+    and_sec = False
+    or_sec = False
     for line in cfg_file:
         col = line.split(' ')
-        if len(col)==1:
-            appname = col[0]
-        if len(col)==4:#knob definition
-            knob_name = col[0]
-            setting = col[1]
-            setting_min = col[2]
-            setting_max = col[3]
-            knobs.add(Knob(knob_name,setting,setting_min,setting_max))
-        elif len(col)==7:#it's a edge
-            type = col[0]
-            sink = col[1]
-            source = col[2]
-            source_min = col[5]
-            source_max = col[6]
-            sink_min = col[3]
-            sink_max = col[4]
-            if type=="or":
-                or_constraints.add(Constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
+        if appname=="": #first line
+            appname= col[0]
+        elif isANDLine(line):
+            and_sec = True
+            or_sec = False
+        elif isORLine(line):
+            and_sec = False
+            or_sec = True
+        elif isConstraint(line):
+            svcName = col[0]
+            setName = col[1]
+            if(col[2]==CONTINUOUS):
+                min = getMinMax(col[3])['min']
+                max = getMinMax(col[3])['max']
+                knobs.add(Knob_C(svcName,setName).setRange(min,max))
+            elif(col[2]==DISCRETE):
+                values = getValues(col[3])
+                knobs.add(Knob_D(svcName,setName).setValues(values))
+        elif isEdge(line):#it's a edge
+            sinkSvc = col[0]
+            sinkValue = getValues(col[1]) if col[1][0]=='{' else getMinMax(col[1])
+            sourceSvc = col[3]
+            sourceValue = getValues(col[4]) if col[4][0]=='{' else getMinMax(col[4])
+            if and_sec:
+                and_edges.add(Constraint(sourceSvc, sinkSvc,sourceValue,sinkValue))
             else:
-                and_constriants.add(Constraint(type,source,sink,source_min,source_max,sink_min,sink_max))
-    return appname,knobs,and_constriants,or_constraints
+                or_edges.add(Constraint(sourceSvc, sinkSvc,sourceValue,sinkValue))
+    return appname,knobs,and_edges,or_edges
+
+# getMinMax
+def getMinMax(line):
+    length = len(line)
+    if line[0]!='[':
+        return {'min':None,"max":None}
+    line = line[1:-2] if line[length-1]=="\n" else line[1:-1] # remove brackets
+    return {'min':int(line.split(',')[0]), 'max':int(line.split(',')[1])}
+
+
+def getValues(line):
+    length = len(line)
+    if line[0]!='{':
+        return None
+    line = line[1:-2] if line[length-1]=="\n" else line[1:-1] # remove brackets
+    result = []
+    values = line.split(',')
+    for value in values:
+        result.append(int(value))
+    return result
 
 # flat a single tuple
 def flat(tup,finallist):
@@ -92,22 +142,28 @@ def genAllTraining(knobs):
     for knob in knobs:
         single_set = []
         name = knob.set_name
-        min = int(knob.min)
-        max = int(knob.max)
-        step = (max-min)/9.0
-        if step<1:
-            step = 1
-        #print "step size for "+name + "is " + str(step)
         knob_samples[name] = []
-        i = min
-        single_set.append(Config(knob, int(i)))
-        knob_samples[name].append(int(i))
-        while i < max:
-            i = i + step
-            if i+step > max:
-                i = max
-            single_set.append(Config(knob,int(i)))
-            knob_samples[name].append(int(i))
+        if knob.isContinuous():#continuous knob
+            min = knob.min
+            max = knob.max
+            step = (max-min)/9.0
+            if step<1:
+                step = 1
+            #print "step size for "+name + "is " + str(step)
+            i = min
+            single_set.append(Config(knob, i))
+            knob_samples[name].append(i)
+            while i < max:
+                i = i + step
+                if i+step > max:
+                    i = max
+                single_set.append(Config(knob,int(i))) # right now support INT
+                knob_samples[name].append(int(i))
+        else:# discrete knobs
+            # all settings will be included
+            for value in knob.values:
+                single_set.append(Config(knob,value))
+                knob_samples[name].append(int(value))
         frozen_single = frozenset(single_set)
         final_sets.add(frozen_single)
     product = crossproduct(final_sets)
@@ -126,7 +182,7 @@ def crossproduct(final_sets):
             inited = True
     return pro
 
-# validate if a config is valid
+# validate if a combination of configs is valid
 def validate(configs,knobs,and_constraints,or_constraints):
     config_map = dict()
     # setup the map
@@ -135,34 +191,29 @@ def validate(configs,knobs,and_constraints,or_constraints):
     # iterate through range constraints
     for knob in knobs:
         set_name = knob.set_name
-        set_min = knob.min
-        set_max = knob.max
         if not(config_map.has_key(set_name)):
-            print "configuration does not have such setting name:"+set_name
+            print "configuration misses this setting name:"+set_name
             return False
-        set_val = int(config_map[set_name])
-        if set_val<set_min or set_val>set_max:
-            print "configuration exeeds range"+str(set_val)+":"+str(set_min)+"->"+str(set_max)
+        set_val = config_map[set_name]
+        if not knob.hasValue(set_val):
+            print "config not valid: "+set_name+"="+str(set_val)
             return False
     #iterate through and_constraints
     for and_cons in and_constraints:
         #for each and_constraint, check whether the config satisfy
         source = and_cons.source
         sink = and_cons.sink
-        source_min = and_cons.source_min
-        sink_min = and_cons.sink_min
-        source_max = and_cons.source_max
-        sink_max = and_cons.sink_max
+        source_values = and_cons.source_value
+        sink_values = and_cons.sink_value
         # now check
         if not (config_map.has_key(sink) and config_map.has_key(source)):
             # this is assume to be a valid setting
-            print "cannot find sink or source in config+map"
-            return True
-        sink_val = config_map[sink]
+            print "cannot find sink or source in config_map:"+sink+":"+source
+            continue
         source_val = config_map[source]
-        if sink_val>=sink_min and sink_val <= sink_max:
-            if source_val<source_min or source_val>source_max:
-                return False
+        sink_val = config_map[sink]
+        if not and_cons.valid(source_val,sink_val):
+            return False
     #iterate through or_constraints
         #TBD
     return True

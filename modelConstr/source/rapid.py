@@ -53,11 +53,10 @@ def main(argv):
         print "required a description of program with option --desc"
         return
     global groundTruth_profile, knob_samples, knobs
-    appname,knobs,groundTruth_profile, knob_samples = genTrainingSet(desc)
+    appname,knobs,groundTruth_profile, knob_samples,and_edges,or_edges,knob_list = genTrainingSet(desc)
     appname = appname[:-1]
-
     # generate XML files
-    xml = genxml(appname,"","",True,desc)
+    xml = genHybridXML(appname, and_edges, or_edges, knob_list)
     if (stage == 1):
         return
 

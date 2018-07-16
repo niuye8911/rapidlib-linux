@@ -1,0 +1,8 @@
+bodytrack
+
+particleNum particle C [100,4000]
+layerNum layer D {1,2,3,4,5}
+
+AND
+layer {1} => particle [3000,4000]
+layer {2,3} => particle [2000,4000]

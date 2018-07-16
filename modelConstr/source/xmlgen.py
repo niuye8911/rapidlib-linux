@@ -83,7 +83,112 @@ def completeXML(appname,xml,rsdg,mv_rsdg,model):
         visited_service.add(knobname)
     writeXML(appname, xml)
 
-def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
+def getKnobByName(name,knobs):
+    for knob in knobs:
+        if knob.set_name == name:
+            return knob
+    return None
+
+# generate structural hybrid RSDG
+def genHybridXML(appname,and_cons,or_cons,knobs):
+    print "RAPID-C / STAGE-1.2 : generating... hybrid structural RSDG xml"
+    #write the root:resource
+    xml = etree.Element("resource")
+    #create all the service with range
+    for knob in knobs:
+        servicefield = etree.SubElement(xml,"service")
+        etree.SubElement(servicefield,"servicename").text = knob.svc_name
+        if knob.isContinuous():
+            etree.SubElement(servicefield,"type").text = "C"
+            layer = etree.SubElement(servicefield,"servicelayer")
+            node = etree.SubElement(layer,"basicnode")
+            etree.SubElement(node,"nodename").text = knob.set_name
+            etree.SubElement(node,"contmin").text = str(knob.min)
+            etree.SubElement(node, "contmax").text = str(knob.max)
+        else: #discrete
+            id = 0
+            etree.SubElement(servicefield,"type").text = "D"
+            for value in knob.values:
+                layer = etree.SubElement(servicefield,"servicelayer")
+                node = etree.SubElement(layer,"basicnode")
+                etree.SubElement(node,"nodename").text = knob.set_name+"_"+str(id)
+                etree.SubElement(node,"val").text = str(value)
+                id+=1
+
+    #create all and/contand and or/contor
+    if not and_cons is None:
+        for con in and_cons:
+            source = con.source
+            sink = con.sink
+            source_knob = getKnobByName(source, knobs)
+            sink_knob = getKnobByName(sink, knobs)
+            # check if the sink is discrete
+            if con.getSinkType() == "D" : # XX->D
+                for value in con.sink_value:
+                    #locate the XML Element
+                    for service in xml.findall("service"):
+                        if not service.find("servicename").text==sink_knob.svc_name:
+                            continue
+                        # locate the node location
+                        for layer in service.findall("servicelayer"):
+                            for node in layer.findall("basicnode"):
+                                if not node.find("val").text==str(value):
+                                    continue
+                                # add the discrete dependency
+                                if con.getSourceType() == "D": # source is discrete
+                                    and_edge = etree.SubElement(node,"and")
+                                    for value in con.source_value:
+                                        id = source_knob.getID(value)
+                                        etree.SubElement(and_edge,"name").text = source+"_"+str(id)
+                                else: #source is continuous
+                                    and_edge = etree.SubElement(node,"contand")
+                                    etree.SubElement(and_edge,"name").text = source
+                                    etree.SubElement(and_edge, "thenrangemin").text = str(con.source_value['min'])
+                                    etree.SubElement(and_edge, "thenrangemax").text = str(con.source_value['max'])
+            else: # XX->C
+                # sink is the basicnode name
+                for service in xml.findall("service"):
+                    node = service.find("servicelayer").find("basicnode")
+                    nodename = node.find("nodename").text
+                    if not nodename == sink:
+                        continue
+                    if con.getSourceType() == "D": # source is discrete, D->C
+                        and_edge = etree.SubElement(node,"and")
+                        etree.SubElement(contand, "ifrangemin").text = str(con.sink_value['min'])
+                        etree.SubElement(contand, "ifrangemax").text = str(con.sink_value['max'])
+                        for value in con.source_value:
+                            id = source_knob.getID(value)
+                            etree.SubElement(and_edge,"name").text = source+"_"+str(id)
+                    else: #source is continuous too, C->C
+                        and_edge = etree.SubElement(node,"contand")
+                        etree.SubElement(and_edge, "ifrangemin").text = str(con.sink_value['min'])
+                        etree.SubElement(and_edge, "ifrangemax").text = str(con.sink_value['max'])
+                        etree.SubElement(and_edge, "name").text = con.sink
+                        etree.SubElement(and_edge, "thenrangemin").text = str(con.source_value['min'])
+                        etree.SubElement(and_edge, "thenrangemax").text = str(con.source_value['max'])
+
+    #create all contwithmv and contwith
+    if len(knobs) > 1:
+        length = len(knobs)
+        knobList = list(knobs)
+        for i in range(0,length-1):
+            knobA = knobList[i].svc_name
+            for service in xml.findall("service"):
+                name = service.find("servicename").text
+                if not name == knobA:
+                    continue
+                for j in range(i+1,length):
+                    knobB = knobList[j].svc_name
+                    contwith = etree.SubElement(service,"contwith")
+                    etree.SubElement(contwith,"name").text = knobB
+                    etree.SubElement(contwith, "costcoeff").text = "0.0"
+                    etree.SubElement(contwith, "mvcoeff").text = "0.0"
+
+    writeXML(appname,xml)
+    return xml
+
+
+def DEPRECATED_genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
     print "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map,relationmap = readcontrsdg(rsdgfile)
     rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
@@ -191,7 +296,7 @@ def writeXML(appname,xml):
     outputfile.write(xmlfile)
     outputfile.close()
 
-def readcontdep(depfile):
+def DEPRECATED_readcontdep(depfile):
     dep = open(depfile,'r')
     and_list = []
     or_list = []

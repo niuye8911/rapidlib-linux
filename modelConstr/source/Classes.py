@@ -7,7 +7,7 @@ class Knob:
     """a knob setting with max and min settings. It's the smallest unit for RAPID-C
     """
 
-    def __init__(self, svc_name, set_name, min, max):
+    def __init__(self, svc_name, set_name):
         """ Initialization
         :param svc_name: name of service
         :param set_name: name of setting
@@ -16,8 +16,43 @@ class Knob:
         """
         self.svc_name = svc_name
         self.set_name = set_name
-        self.min = int(min)
-        self.max = int(max)
+
+    def hasValue(self, value):
+        return false
+
+
+class Knob_C(Knob):
+    """ a continuous knob with max and min settigns.
+    """
+
+    def setRange(self, min, max):
+        self.max = max
+        self.min = min
+        return self
+
+    def isContinuous(self):
+        return True
+
+    def hasValue(self, value):
+        return value >= self.min and value <= self.max
+
+
+class Knob_D(Knob):
+    """ a discrete knob with multiple settigns.
+    """
+
+    def setValues(self, values):
+        self.values = sorted(values,reverse=True)
+        return self
+
+    def isContinuous(self):
+        return False
+
+    def hasValue(self, value):
+        return value in self.values
+
+    def getID(self,value):
+        return self.values.index(value)
 
 
 class Knobs:
@@ -52,6 +87,13 @@ class Config:
         :param knob: a knob instance
         :param val: the value for that knob
         """
+        # check if the knob setting is valid
+        if (knob.isContinuous()):
+            if (val > knob.max or val < knob.min):
+                return None
+        else:
+            if not (val in knob.values):
+                return None
         self.knob = knob
         self.val = val
 
@@ -100,28 +142,50 @@ class Configuration:
 ###################problem generation#########################
 
 class Constraint:
-    """ a continuous constraint with source and sink
-    The syntax of a constraint is:
+    """ a constraint with source and sink
+    The syntax of a constraint could be:
     if sink_min <= sink <= sink_max, then source_min <= source <= source_max
+    or
+    if sink in sink_values, then source in source_values
+    or
+    mix_N_match
     """
 
-    def __init__(self, type, source, sink, source_min, source_max, sink_min, sink_max):
+    def __init__(self, source, sink, source_value, sink_value):
         """ Initialization
         :param type: AND or OR, in string
         :param source: string
         :param sink: string
-        :param source_min: lower bound of source
-        :param source_max: upper bound of source
-        :param sink_min: lower bound of sink
-        :param sink_max: upper bound of sink
+        :param source_value: value of source
+        :param sink_value: value of sink
         """
-        self.type = type
         self.source = source
         self.sink = sink
-        self.source_min = int(source_min)
-        self.source_max = int(source_max)
-        self.sink_min = int(sink_min)
-        self.sink_max = int(sink_max)
+        self.source_value = source_value
+        self.sink_value = sink_value
+
+    def getSourceType(self):
+        return "D" if isinstance(self.source_value, list) else "C"
+
+    def getSinkType(self):
+        return "D" if isinstance(self.sink_value, list) else "C"
+
+    def valid(self, source_v, sink_v):
+        if (self.getSinkType() == "D" and (not sink_v in self.sink_value)):
+            return True
+        if (self.getSinkType() == "C" and (sink_v > self.sink_value['max'] or sink_v < self.sink_value['min'])):
+            return True
+        # this sink is within this range
+        if (self.getSourceType() == "D"):
+            # D -> XX
+            if not source_v in self.source_value:
+                # source not in set
+                return False
+        else:
+            # C -> XX
+            if not (source_v <= self.source_value['max'] and source_v >= self.source_value['min']):
+                return False
+        return True
 
 
 class Segment:
@@ -583,11 +647,11 @@ class AppMethods():
 
     # Implement this function
     def train(self, config_table, costFact, mvFact):
-	""" Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
-	:param config_table: A table of class Profile containing all configurations to train
-	:param costFact: the destination of output file for recording costs
-	:param mvFact: the destination of output file for recording MV
-	"""
+        """ Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
+        :param config_table: A table of class Profile containing all configurations to train
+        :param costFact: the destination of output file for recording costs
+        :param mvFact: the destination of output file for recording MV
+        """
         # perform a single run for training
         pass
 
