@@ -6,3 +6,6 @@ layerNum layer D {1,2,3,4,5}
 AND
 layer {1} => particle [3000,4000]
 layer {2,3} => particle [2000,4000]
+
+OR
+particle [100,1000] => layer{5,4}/layer{4,3}

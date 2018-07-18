@@ -85,12 +85,23 @@ def processFile(cfg_file):
         elif isEdge(line):#it's a edge
             sinkSvc = col[0]
             sinkValue = getValues(col[1]) if col[1][0]=='{' else getMinMax(col[1])
-            sourceSvc = col[3]
-            sourceValue = getValues(col[4]) if col[4][0]=='{' else getMinMax(col[4])
             if and_sec:
-                and_edges.add(Constraint(sourceSvc, sinkSvc,sourceValue,sinkValue))
+                sourceSvc = col[3]
+                sourceValue = getValues(col[4]) if col[4][0]=='{' else getMinMax(col[4])
+                and_edges.add(AndConstraint(sourceSvc, sinkSvc,sourceValue,sinkValue))
             else:
-                or_edges.add(Constraint(sourceSvc, sinkSvc,sourceValue,sinkValue))
+                sources = {}
+                source_list = col[4].split('/')
+                for ele in source_list:
+                    if len(ele.split('{'))==2:
+                        name,values = ele.split('{')
+                        values="{"+values
+                        sources[name] = getValues(values)
+                    else:
+                        name,values = ele.split('[')
+                        values="["+values
+                        sources[name] = getMinMax(values)
+                or_edges.add(OrConstraint(sourceSvc, sinkSvc,sources))
     return appname,knobs,and_edges,or_edges
 
 # getMinMax
@@ -203,19 +214,33 @@ def validate(configs,knobs,and_constraints,or_constraints):
         #for each and_constraint, check whether the config satisfy
         source = and_cons.source
         sink = and_cons.sink
-        source_values = and_cons.source_value
         sink_values = and_cons.sink_value
+        source_val = config_map[source]
+        sink_val = config_map[sink]
         # now check
         if not (config_map.has_key(sink) and config_map.has_key(source)):
             # this is assume to be a valid setting
             print "cannot find sink or source in config_map:"+sink+":"+source
             continue
-        source_val = config_map[source]
-        sink_val = config_map[sink]
         if not and_cons.valid(source_val,sink_val):
             return False
     #iterate through or_constraints
-        #TBD
+    for or_cons in or_constraints:
+        sources = or_cons.sources
+        sink = and_cons.sink
+        sink_values = and_cons.sink_value
+        sink_val = config_map[sink]
+        # now check
+        if not (config_map.has_key(sink)):
+            # this is assume to be a valid setting
+            print "cannot find sink or source in config_map:"+sink
+            continue
+        source_dict = {}
+        for source in sources:
+            source_val = config_map[source]
+            source_dict[source] = source_val
+        if not or_cons.valid(source_dict,sink_val):
+            return False
     return True
 
 # write out to the training file

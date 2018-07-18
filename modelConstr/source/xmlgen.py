@@ -145,7 +145,7 @@ def genHybridXML(appname,and_cons,or_cons,knobs):
                                     etree.SubElement(and_edge,"name").text = source
                                     etree.SubElement(and_edge, "thenrangemin").text = str(con.source_value['min'])
                                     etree.SubElement(and_edge, "thenrangemax").text = str(con.source_value['max'])
-            else: # XX->C
+            else: # XX->C #TODO: or is not printing
                 # sink is the basicnode name
                 for service in xml.findall("service"):
                     node = service.find("servicelayer").find("basicnode")
@@ -163,9 +163,63 @@ def genHybridXML(appname,and_cons,or_cons,knobs):
                         and_edge = etree.SubElement(node,"contand")
                         etree.SubElement(and_edge, "ifrangemin").text = str(con.sink_value['min'])
                         etree.SubElement(and_edge, "ifrangemax").text = str(con.sink_value['max'])
-                        etree.SubElement(and_edge, "name").text = con.sink
+                        etree.SubElement(and_edge, "name").text = source
                         etree.SubElement(and_edge, "thenrangemin").text = str(con.source_value['min'])
                         etree.SubElement(and_edge, "thenrangemax").text = str(con.source_value['max'])
+
+    #create all and/contand and or/contor
+    if not or_cons is None:
+        for con in or_cons:
+            sources = con.sources
+            sink = con.sink
+            sink_knob = getKnobByName(sink, knobs)
+            # check if the sink is discrete
+            if con.getSinkType() == "D" : # XX->D
+                for value in con.sink_value:
+                    #locate the XML Element
+                    for service in xml.findall("service"):
+                        if not service.find("servicename").text==sink_knob.svc_name:
+                            continue
+                        # locate the node location
+                        for layer in service.findall("servicelayer"):
+                            for node in layer.findall("basicnode"):
+                                if not node.find("val").text==str(value):
+                                    continue
+                                # add the discrete dependency
+                                for source_n, source_v in sources:
+                                    source_knob = getKnobByName(source_n, knobs)
+                                    if isinstance(source_v, list): # source is discrete
+                                        or_edge = etree.SubElement(node,"or")
+                                        for value in source_v:
+                                            id = source_knob.getID(value)
+                                            etree.SubElement(or_edge,"name").text = source_n+"_"+str(id)
+                                    else: #source is continuous
+                                        or_edge = etree.SubElement(node,"contor")
+                                        etree.SubElement(or_edge,"name").text = source_n
+                                        etree.SubElement(or_edge, "thenrangemin").text = str(source_v['min'])
+                                        etree.SubElement(or_edge, "thenrangemax").text = str(source_v['max'])
+            else: # XX->C
+                for service in xml.findall("service"):
+                    node = service.find("servicelayer").find("basicnode")
+                    nodename = node.find("nodename").text
+                    if not nodename == sink:
+                        continue
+                    for source_n, source_v in sources:
+                        source_knob = getKnobByName(source_n, knobs)
+                        if isinstance(source_v, list): #discrete
+                            or_edge = etree.SubElement(node,"or")
+                            etree.SubElement(or_edge, "ifrangemin").text = str(source_v['min'])
+                            etree.SubElement(or_edge, "ifrangemax").text = str(source_v['max'])
+                            for value in source_v:
+                                id = source_knob.getID(value)
+                                etree.SubElement(or_edge,"name").text = source+"_"+str(id)
+                        else: #source is continuous too, C->C
+                            or_edge = etree.SubElement(node,"contor")
+                            etree.SubElement(or_edge, "ifrangemin").text = str(source_v['min'])
+                            etree.SubElement(or_edge, "ifrangemax").text = str(source_v['max'])
+                            etree.SubElement(or_edge, "name").text = source_n
+                            etree.SubElement(or_edge, "thenrangemin").text = str(source_v['min'])
+                            etree.SubElement(or_edge, "thenrangemax").text = str(source_v['max'])
 
     #create all contwithmv and contwith
     if len(knobs) > 1:

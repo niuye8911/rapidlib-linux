@@ -141,7 +141,7 @@ class Configuration:
 
 ###################problem generation#########################
 
-class Constraint:
+class AndConstraint:
     """ a constraint with source and sink
     The syntax of a constraint could be:
     if sink_min <= sink <= sink_max, then source_min <= source <= source_max
@@ -153,7 +153,6 @@ class Constraint:
 
     def __init__(self, source, sink, source_value, sink_value):
         """ Initialization
-        :param type: AND or OR, in string
         :param source: string
         :param sink: string
         :param source_value: value of source
@@ -163,6 +162,9 @@ class Constraint:
         self.sink = sink
         self.source_value = source_value
         self.sink_value = sink_value
+
+    def isORConstraint(self):
+        return False
 
     def getSourceType(self):
         return "D" if isinstance(self.source_value, list) else "C"
@@ -185,6 +187,52 @@ class Constraint:
             # C -> XX
             if not (source_v <= self.source_value['max'] and source_v >= self.source_value['min']):
                 return False
+        return True
+
+class ORConstraint:
+    """ a constraint with source and sink
+    The syntax of a constraint could be:
+    if sink_min <= sink <= sink_max, then source_min <= source <= source_max
+    or
+    if sink in sink_values, then source in source_values
+    or
+    mix_N_match
+    """
+
+    def __init__(self, source, sink, sources):
+        """ Initialization
+        :param source: string
+        :param sink: string
+        :param source_value: value of source
+        :param sink_value: value of sink
+        """
+        self.sources = sources
+        self.sink = sink
+        self.sink_value = sink_value
+
+    def isORConstraint(self):
+        return True
+
+    def valid(self, source_vs, sink_v):
+        if (self.getSinkType() == "D" and (not sink_v in self.sink_value)):
+            return True
+        if (self.getSinkType() == "C" and (sink_v > self.sink_value['max'] or sink_v < self.sink_value['min'])):
+            return True
+        # this sink is within this range
+        if (self.getSourceType() == "D"):
+            # D -> XX
+            result = False
+            for source_n,source_v in source_vs:
+                # source not in set
+                result = result or source_v in self.source_value[source_n]
+            return result
+        else:
+            # C -> XX
+            result = False
+            for source_n,source_v in source_vs:
+                result = result or (source_v <= self.sources[source_n]['max'] and source_v >= self.sources[source_n]['min'])
+                    # source not in set
+            return result
         return True
 
 
