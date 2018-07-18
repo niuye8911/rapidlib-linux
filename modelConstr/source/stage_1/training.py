@@ -10,7 +10,7 @@ VALID_CONSTRAINT_LENGTH = 4
 
 # determine if a line is valid
 def isConstraint(line):
-    return len(line.split(DELIMITER)) == VALID_CONSTRAINT_LENGTH
+    return len(line.split(DELIMITER)) == VALID_CONSTRAINT_LENGTH and line.split(DELIMITER)[2]!="=>"
 
 def isANDLine(line):
     return line.startswith(AND_SEC)
@@ -20,7 +20,7 @@ def isORLine(line):
 
 def isEdge(line):
     col = line.split(DELIMITER)
-    return len(col)==5 and col[2]=="=>"
+    return len(col)>=4 and col[2]=="=>"
 
 #stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
@@ -89,9 +89,9 @@ def processFile(cfg_file):
                 sourceSvc = col[3]
                 sourceValue = getValues(col[4]) if col[4][0]=='{' else getMinMax(col[4])
                 and_edges.add(AndConstraint(sourceSvc, sinkSvc,sourceValue,sinkValue))
-            else:
+            elif or_sec:
                 sources = {}
-                source_list = col[4].split('/')
+                source_list = col[3].split('/')
                 for ele in source_list:
                     if len(ele.split('{'))==2:
                         name,values = ele.split('{')
@@ -101,7 +101,7 @@ def processFile(cfg_file):
                         name,values = ele.split('[')
                         values="["+values
                         sources[name] = getMinMax(values)
-                or_edges.add(OrConstraint(sourceSvc, sinkSvc,sources))
+                or_edges.add(OrConstraint(sinkSvc, sinkValue,sources))
     return appname,knobs,and_edges,or_edges
 
 # getMinMax

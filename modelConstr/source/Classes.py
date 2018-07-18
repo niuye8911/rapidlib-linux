@@ -189,7 +189,7 @@ class AndConstraint:
                 return False
         return True
 
-class ORConstraint:
+class OrConstraint:
     """ a constraint with source and sink
     The syntax of a constraint could be:
     if sink_min <= sink <= sink_max, then source_min <= source <= source_max
@@ -199,7 +199,7 @@ class ORConstraint:
     mix_N_match
     """
 
-    def __init__(self, source, sink, sources):
+    def __init__(self, sink, sink_value,sources):
         """ Initialization
         :param source: string
         :param sink: string
@@ -209,6 +209,9 @@ class ORConstraint:
         self.sources = sources
         self.sink = sink
         self.sink_value = sink_value
+
+    def getSinkType(self):
+        return "D" if isinstance(self.sink_value, list) else "C"
 
     def isORConstraint(self):
         return True

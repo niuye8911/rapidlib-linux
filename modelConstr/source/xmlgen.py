@@ -172,6 +172,7 @@ def genHybridXML(appname,and_cons,or_cons,knobs):
         for con in or_cons:
             sources = con.sources
             sink = con.sink
+            sink_value = con.sink_value
             sink_knob = getKnobByName(sink, knobs)
             # check if the sink is discrete
             if con.getSinkType() == "D" : # XX->D
@@ -186,7 +187,7 @@ def genHybridXML(appname,and_cons,or_cons,knobs):
                                 if not node.find("val").text==str(value):
                                     continue
                                 # add the discrete dependency
-                                for source_n, source_v in sources:
+                                for source_n, source_v in sources.iteritems():
                                     source_knob = getKnobByName(source_n, knobs)
                                     if isinstance(source_v, list): # source is discrete
                                         or_edge = etree.SubElement(node,"or")
@@ -204,15 +205,15 @@ def genHybridXML(appname,and_cons,or_cons,knobs):
                     nodename = node.find("nodename").text
                     if not nodename == sink:
                         continue
-                    for source_n, source_v in sources:
+                    for source_n, source_v in sources.iteritems():
                         source_knob = getKnobByName(source_n, knobs)
                         if isinstance(source_v, list): #discrete
                             or_edge = etree.SubElement(node,"or")
-                            etree.SubElement(or_edge, "ifrangemin").text = str(source_v['min'])
-                            etree.SubElement(or_edge, "ifrangemax").text = str(source_v['max'])
+                            etree.SubElement(or_edge, "ifrangemin").text = str(sink_value['min'])
+                            etree.SubElement(or_edge, "ifrangemax").text = str(sink_value['max'])
                             for value in source_v:
                                 id = source_knob.getID(value)
-                                etree.SubElement(or_edge,"name").text = source+"_"+str(id)
+                                etree.SubElement(or_edge,"name").text = source_n+"_"+str(id)
                         else: #source is continuous too, C->C
                             or_edge = etree.SubElement(node,"contor")
                             etree.SubElement(or_edge, "ifrangemin").text = str(source_v['min'])
