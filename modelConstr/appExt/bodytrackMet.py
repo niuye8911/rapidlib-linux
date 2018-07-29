@@ -50,7 +50,7 @@ class appMethods(AppMethods):
                     layer = config.val  # retrieve the setting for each knob
 
 #assembly the command
-            command = self.get_command(str(particlem),str(layer))
+            command = self.get_command(str(particle),str(layer))
 
 #measure the "cost"
             cost = self.getTime(command, 20)  # 20 jobs(bodytrack) per run
@@ -79,7 +79,7 @@ class appMethods(AppMethods):
         """
 #generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
-        command = self.get_command(5,4000)
+        command = self.get_command(4000,5)
         defaultTime = self.getTime(command, 20)
         self.gt_path = "./training_outputs/grountTruth.txt"
         output_path = self.input_path+"poses.txt"
