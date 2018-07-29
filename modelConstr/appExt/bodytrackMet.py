@@ -113,7 +113,7 @@ class appMethods(AppMethods):
         for line in gt_output:
             round_res = line.split()
             truth_results.append(round_res)
-        for line in mission:
+        for line in mission_output:
             round_res = line.split()
             mission_results.append(round_res)
         totDistortion = 0.0
