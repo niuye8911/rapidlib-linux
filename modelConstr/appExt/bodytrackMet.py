@@ -13,7 +13,7 @@ class appMethods(AppMethods):
 
     input_path = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/bodytrack/run/sequenceB_261/"
 
-    bin_swaptions = "bodytrack"  # the app binary to exec
+    bin_bodytrack = "bodytrack"  # the app binary to exec
 
     def train(self, config_table, costFact, mvFact):
         """ Override the train()
