@@ -80,7 +80,7 @@ class appMethods(AppMethods):
 #generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
         command = self.get_command(5,4000)
-        defaultTime = self.getTime(command, 10)
+        defaultTime = self.getTime(command, 20)
         self.gt_path = "./training_outputs/grountTruth.txt"
         output_path = self.input_path+"poses.txt"
         self.moveFile(output_path, self.gt_path)
@@ -91,8 +91,8 @@ class appMethods(AppMethods):
         return [self.bin_bodytrack,
                    self.input_path,
                    "4", "20",
-                   numOfParticle,
-                   numOfLayer,
+                   str(numOfParticle),
+                   str(numOfLayer),
                    '4']
 
 #helper function to evaluate the QoS
