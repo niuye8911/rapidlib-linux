@@ -63,7 +63,7 @@ class appMethods(AppMethods):
             self.writeConfigMeasurementToFile(mvFact, configuration, mv)
 
 #backup the generated output to another location
-            self.moveFile(self.input_path+"output.txt", "./training_outputs/output_" + str(int(layer)) + "_"+str(int(particle))+".txt")
+            self.moveFile(self.input_path+"poses.txt", "./training_outputs/output_" + str(int(layer)) + "_"+str(int(particle))+".txt")
 
         costFact.close()
         mvFact.close()
@@ -127,11 +127,10 @@ class appMethods(AppMethods):
                 curtrue = float(truth_results[i][j])
                 curmission = float(mission_results[i][j])
                 val = abs((curtrue - curmission) / curtrue)
-                print curtrue, curmission, val
                 if val>1:
                     val = 1
                 distortion += val
             distortion /= len(truth_results[i])
-            print distortion
+            print "DISTORTION = "+str(distortion)
             totDistortion += distortion
         return (1.0-(totDistortion / len(truth_results))) * 100.0
