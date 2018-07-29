@@ -66,6 +66,8 @@ def main(argv):
     module = imp.load_source("", methods_path)
     appMethods = module.appMethods(appname)
     factfile, mvfactfile = genFact(appname,groundTruth_profile,appMethods)
+    if (stage == 2):
+        return
 
     #######################STAGE-3########################
     #third stage: Modeling, use the specific modeling method to construct the RSDG
