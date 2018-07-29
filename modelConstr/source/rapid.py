@@ -78,7 +78,8 @@ def main(argv):
     cost_rsdg, mv_rsdg = constructRSDG(groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
     if PLOT:
         draw("outputs/modelValid.csv")
-
+    if (stage == 3):
+        return
     #######################STAGE-4########################
     #forth stage, generate the final RSDG in XML format
     completeXML(appname,xml,cost_rsdg,mv_rsdg,model)
