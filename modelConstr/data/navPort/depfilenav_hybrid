@@ -1,0 +1,6 @@
+nav
+
+Frequency f D {5,8,10}
+Display info D {1,2,3}
+Screen s C [1,100]
+GPS gps D {0,1}
