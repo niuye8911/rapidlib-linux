@@ -29,10 +29,13 @@ desc = ""
 stage = -1
 methods_path = ""
 PLOT=False
+factfile = ""
+mvfactfile = ""
 
 THRESHOLD = 0.05
 
 def main(argv):
+    global factfile, mvfactfile
     #parse the argument
     parser = declareParser()
     options, args = parser.parse_args()
@@ -63,18 +66,20 @@ def main(argv):
     #######################STAGE-2########################
     #second stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
     # load user-supplied methods
-    module = imp.load_source("", methods_path)
-    appMethods = module.appMethods(appname)
-    factfile, mvfactfile = genFact(appname,groundTruth_profile,appMethods)
-    if (stage == 2):
-        return
+    if factfile=="" or mvfactfile=="":
+        print "RAPID-C: TRAINING..."
+        module = imp.load_source("", methods_path)
+        appMethods = module.appMethods(appname)
+        factfile, mvfactfile = genFact(appname,groundTruth_profile,appMethods)
+        if (stage == 2):
+            return
 
     #######################STAGE-3########################
     #third stage: Modeling, use the specific modeling method to construct the RSDG
+    # construct the cost rsdg iteratively given a threshold
     readFact(factfile, knobs, groundTruth_profile)
     readFact(mvfactfile, knobs, groundTruth_profile, False)
     groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
-    # construct the cost rsdg iteratively given a threshold
     cost_rsdg, mv_rsdg = constructRSDG(groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
     if PLOT:
         draw("outputs/modelValid.csv")
@@ -143,6 +148,8 @@ def main(argv):
 
 def declareParser():
     parser = optparse.OptionParser()
+    parser.add_option('--cf', dest="cost_fact")
+    parser.add_option('--mf', dest="mv_fact")
     parser.add_option('-f', dest="fact")
     parser.add_option('-k', dest="KF")
     parser.add_option('--k1', dest="KF1")
@@ -165,8 +172,10 @@ def declareParser():
     return parser
 
 def parseCMD(options):
-    global config, observed, fact, KF, app, remote, model, rs,desc,stage,methods_path,mode,PLOT
+    global config, observed, fact, KF, app, remote, model, rs,desc,stage,methods_path,mode,PLOT,factfile,mvfactfile
     observed = options.observed
+    factfile = options.cost_fact
+    mvfactfile = options.mv_fact
     fact = options.fact
     KF = options.KF
     KF1 = options.KF1
