@@ -1,4 +1,5 @@
 from Classes import *
+import io
 
 #read in a fact and generate a dictionary where the key is a config set, and the value is the cost
 def readFact(fact_file,knobs,gt,COST=True):
@@ -7,7 +8,9 @@ def readFact(fact_file,knobs,gt,COST=True):
         print "RAPID-C / STAGE-4 : reading trained profile failed"
         return
     for line in fact:
+	print line
         col = line.split()
+	print col
         knob_name = ""
         knob_val = 0.0
         val = 0.0

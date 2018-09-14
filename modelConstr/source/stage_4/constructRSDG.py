@@ -12,7 +12,7 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT,model):
     seglvl = 0
     # initial error rate set to 100%
     error = 1.0
-    maxT = 2
+    maxT = 4 
     if model=="quad":
         maxT = 3
     while error>=threshold:

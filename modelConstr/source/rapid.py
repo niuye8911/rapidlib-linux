@@ -11,7 +11,7 @@ from plot import *
 from stage_2.qos_checker import *
 import imp
 
-configs = []
+configs = [1]
 service_levels = {}
 observed = ""
 fact = ""
@@ -31,11 +31,12 @@ methods_path = ""
 PLOT=False
 factfile = ""
 mvfactfile = ""
+mode = ""
 
-THRESHOLD = 0.05
+THRESHOLD = 0.01
 
 def main(argv):
-    global factfile, mvfactfile
+    global factfile, mvfactfile,mode
     #parse the argument
     parser = declareParser()
     options, args = parser.parse_args()
@@ -66,13 +67,12 @@ def main(argv):
     #######################STAGE-2########################
     #second stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
     # load user-supplied methods
-    if factfile=="" or mvfactfile=="":
-        print "RAPID-C: TRAINING..."
-        module = imp.load_source("", methods_path)
-        appMethods = module.appMethods(appname)
-        factfile, mvfactfile = genFact(appname,groundTruth_profile,appMethods)
-        if (stage == 2):
-            return
+    print "RAPID-C: TRAINING..."
+    module = imp.load_source("", methods_path)
+    appMethods = module.appMethods(appname)
+    factfile, mvfactfile = genFact(appname,groundTruth_profile,appMethods)
+    if (stage == 2):
+        return
 
     #######################STAGE-3########################
     #third stage: Modeling, use the specific modeling method to construct the RSDG
@@ -160,7 +160,7 @@ def declareParser():
     parser.add_option('--r2', dest='r2')
     parser.add_option('-a', dest='app')
     parser.add_option('-r', dest='remote')
-    parser.add_option('--model', dest="model")
+    parser.add_option('--model', dest="model", default="piecewise")
     parser.add_option("-p",dest="plot")
     parser.add_option('--rs', dest="rs")
     parser.add_option('--rsdg', dest="rsdg")

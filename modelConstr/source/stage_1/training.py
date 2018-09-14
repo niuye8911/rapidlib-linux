@@ -157,7 +157,7 @@ def genAllTraining(knobs):
         if knob.isContinuous():#continuous knob
             min = knob.min
             max = knob.max
-            step = (max-min)/9.0
+            step = (max-min)/3.0
             if step<1:
                 step = 1
             #print "step size for "+name + "is " + str(step)
