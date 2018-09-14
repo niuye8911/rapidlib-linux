@@ -1,0 +1,5 @@
+nn
+
+learningRate learning C [100,1000]
+regularization regular C [100,500]
+batchSize batch C [64,1024]

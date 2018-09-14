@@ -1,0 +1,5 @@
+svm
+
+learningRate learning C [1,100]
+regularization regular C [5000,25000]
+batchSize batch C [100,500]
