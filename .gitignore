@@ -9,3 +9,12 @@
 **/*.fact
 **/*.sol
 **/*.txt
+**/*.log
+**/*.swp
+**/*.csv
+**/*.rsdg
+**/*.profile
+**/*.scssc
+**/*.yml
+docs/.editorconfig
+docs/.github/*
