@@ -698,8 +698,8 @@ void rsdgMission::updateModel(int unitSinceLastCheckPoint) {
   realCost = (double)timeSinceLastCheckPoint / (double)unitSinceLastCheckPoint;
   logDebug("timesincelastCheckpoint" + to_string(timeSinceLastCheckPoint) +
            "   unitsince" + to_string(unitSinceLastCheckPoint));
-  logDebug("REAL=" + to_string(realCost) +
-           "   PREDICTED=" + to_string(predictedCost));
+  logDebug("REAL=" + to_string(realCost) + "   PREDICTED=" +
+           to_string(predictedCost));
   string targetNode = "";
   // get the current selected nodes
   // TODO: currently only support 1-node situation

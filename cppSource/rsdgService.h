@@ -1,10 +1,10 @@
 #ifndef RSDGSERVICE_H
 #define RSDGSERVICE_H
-#include <map>
 
 #include "RSDG.h"
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -29,9 +29,6 @@ public:
 // Class for a rsdg Service (service >> layer >> node)
 class rsdgService {
   string name; // name of the service
-  /**
-   * for synchronization of data flow dependency
-   */
   bool READY;
   int bufferReady;
   void *buffer;
