@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS =  -std=c++11 -pthread -Wall -g -c
+CFLAGS =  -std=c++11 -pthread -Wall -Wno-sign-compare -g -c
 TFLAGS =  -std=c++11 -pthread -Wall -g
 
 INCLUDE = -I/usr/include/curl
@@ -10,22 +10,33 @@ LDLIBS = -lcurl
 #	$(CC) $(TFLAGS) -o $@ $<
 
 all: ./build/rsdg.a
+
+# capsulating into static lib
 ./build/rsdg.a: rsdg.o rsdggraph.o rsdgparser.o rsdgwrapper.o
 	$(info building static library...)
 	ar -r -c -s $@ *.o
 
-rsdg.o: rsdgMission.cpp
+# top lvl object
+rsdg.o: rsdgMission.cpp rsdgservice.o rsdgService.h
 	$(info building rsdg Mission...)
-	$(CC) $(CFLAGS) $(INCLUDE) $(LDLIBS) -o $@ $<
+	$(CC) $(CFLAGS) $(INCLUDE) $(LDLIBS) -L rsdgservice.o -o $@ $<
 
+# RSDG Service
+rsdgservice.o: rsdgService.cpp
+	$(info building rsdg Service...)
+	$(CC) $(CFLAGS) -o $@ $<
+
+# C wrapper for rsdgMisison
 rsdgwrapper.o: rsdgMissionWrapper.cpp
 	$(info building rsdg Mission wrapper...)
 	$(CC) $(CFLAGS) $(INCLUDE) $<
 
+# RSDG graph core
 rsdggraph.o: RSDG.cpp
 	$(info building rsdg Graph...)
 	$(CC) $(CFLAGS) -o $@ $<
 
+# XML encoder / decoder
 rsdgparser.o: Parser.cpp
 	$(CC) $(CFLAGS) -o $@ $<
 	$(info Building rsdg Parser...)

@@ -3,11 +3,6 @@
 
 bool SUPPRESS_ERRORS = false;
 bool DEBUG_MSGS = false;
-/*
- Note:
- - sorry for the Java-esque style in a lot of this code.
- This is my first C++ project.
- */
 
 using namespace std;
 
