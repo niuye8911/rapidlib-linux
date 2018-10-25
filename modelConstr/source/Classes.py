@@ -1,5 +1,6 @@
 # Neccesary Data-Structures used in RAPID-C
 import time
+import datetime
 import os
 
 
@@ -656,3 +657,6 @@ class AppMethods():
         """
         filestream.write(configuration.printSelf() + " ")
         filestream.write(str(value) + "\n")
+
+    def pinTime(self, filestream):
+        filestream.write(str(datetime.datetime.now())+" ")

@@ -34,6 +34,7 @@ class appMethods(AppMethods):
 
         # iterate through configurations
         for configuration in configurations:
+            self.pinTime(costFact);
             # the purpose of each iteration is to fill in the two values below
             cost = 0.0
             mv = 0.0
