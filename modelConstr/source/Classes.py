@@ -583,11 +583,13 @@ class AppMethods():
         self.appName = name
 
     # Implement this function
-    def train(self, config_table, costFact, mvFact):
+    def train(self, config_table, costFact, mvFact, withMV, withSys):
 	""" Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
 	:param config_table: A table of class Profile containing all configurations to train
 	:param costFact: the destination of output file for recording costs
 	:param mvFact: the destination of output file for recording MV
+    :param withMV: whether to check MV or not
+    :param withSys: whether to check system usage or not
 	"""
         # perform a single run for training
         pass
@@ -628,13 +630,29 @@ class AppMethods():
 
     ### some utilities might be useful
 
-    def getTime(self, command, work_units=1):
+    def getTime(self, command, work_units=1, withSys=False):
         """ return the execution time of running a single work unit using func in milliseconds
         To measure the cost of running the application with a configuration, each training run may finish multiple
         work units to average out the noise.
         :param command: The shell command to use in format of ["app_binary","arg1","arg2",...]
         :param work_units: The total work units in each run
+        :param withSys: whether to check system usage or not
         :return: the average execution time for each work unit
+        """
+        time1 = time.time()
+        if withSys:
+            # reassemble the command with pcm calls
+            # sudo ./pcm.x -csv=results.csv
+            pcm_prefix = ['/home/liuliu/Research/pcm/pcm.x', '-csv=tmp.csv', '--']
+            command = pcm_prefix + command
+            print command
+        os.system(" ".join(command))
+        time2 = time.time()
+        return (time2 - time1) * 1000.0 / work_units
+
+    def getSysUsage(self, ):
+        """ return the average system usage for a period of time
+        :return: the system usage
         """
         time1 = time.time()
         os.system(" ".join(command))

@@ -11,9 +11,9 @@ class appMethods(AppMethods):
     this class
     """
 
-    bin_swaptions = "swaptions"  # the app binary to exec
+    bin_swaptions = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/swaptions/src/swaptions"  # the app binary to exec
 
-    def train(self, config_table, costFact, mvFact):
+    def train(self, config_table, costFact, mvFact, withMV=False, withSys=False):
         """ Override the train()
 
         The purpose of this application is to get the cost and mv for each configuration. It will iterate through all
@@ -27,6 +27,7 @@ class appMethods(AppMethods):
         :param config_table: the configuration table is an object of class Profile, containing all configurations,
         :param costFact: the path to cost.fact
         :param mvFact: the path to mv.fact
+        :param withSys: with or without recording system usage
         """
         configurations = config_table.configurations  # get the configurations in the table
         costFact = open(costFact, 'w')
@@ -50,14 +51,15 @@ class appMethods(AppMethods):
             command = self.get_command(str(num))
 
             # measure the "cost"
-            cost = self.getTime(command, 10)  # 10 jobs(swaption) per run
+            cost = self.getTime(command, 10, withSys)  # 10 jobs(swaption) per run
             # write the cost to file
             self.writeConfigMeasurementToFile(costFact, configuration, cost)
 
             # measure the "mv"
-            mv = self.checkSwaption()
-            # write the mv to file
-            self.writeConfigMeasurementToFile(mvFact, configuration, mv)
+            if withMV:
+                mv = self.checkSwaption()
+                # write the mv to file
+                self.writeConfigMeasurementToFile(mvFact, configuration, mv)
 
             # backup the generated output to another location
             self.moveFile("./output.txt", "./training_outputs/output" + str(int(num)) + ".txt")
