@@ -648,7 +648,27 @@ class AppMethods():
             print command
         os.system(" ".join(command))
         time2 = time.time()
-        return (time2 - time1) * 1000.0 / work_units
+        avg_time = (time2 - time1) * 1000.0 / work_units
+        # parse the csv
+        with open('tmp.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            line_count = 0
+            metric = []
+            value = []
+            metric_value = {}
+            for row in csv_reader:
+                if line_count == 0:
+                    line_count += 1
+                elif line_count == 1:  # header line
+                    for item in row:
+                        metric.append(item)
+                    line_count += 1
+                else:  # value line
+                    for item in row:
+                        value.append(item)
+            for i in range(0, len(metric)):
+                metric_value[metric[i]] = value[i]
+        return avg_time, metric_value
 
     def getSysUsage(self, ):
         """ return the average system usage for a period of time

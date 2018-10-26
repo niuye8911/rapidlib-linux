@@ -30,6 +30,9 @@ stage = -1
 methods_path = ""
 PLOT = False
 
+withSys = True
+withQoS = False
+
 THRESHOLD = 0.05
 
 
@@ -67,7 +70,7 @@ def main(argv):
     # load user-supplied methods
     module = imp.load_source("", methods_path)
     appMethods = module.appMethods(appname)
-    factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods)
+    factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods, withQoS, withSys)
 
     #######################STAGE-3########################
     # third stage: Modeling, use the specific modeling method to construct the RSDG
