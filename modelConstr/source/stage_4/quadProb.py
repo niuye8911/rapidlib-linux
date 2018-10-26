@@ -2,29 +2,31 @@ from os import system
 from psd import *
 from Classes import *
 
-def populateQuadRSDG(observed,quad):
+
+def populateQuadRSDG(observed, quad):
     # get the segments
-    paras,quadpara = genQuadContProblem(observed, quad, True)#Ture = cost
+    paras, quadpara = genQuadContProblem(observed, quad, True)  # Ture = cost
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
-    costrsdg = getContRSDG(paras, quadpara,quad,True)
+    costrsdg = getContRSDG(paras, quadpara, quad, True)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
-    paras,quadpara = genQuadContProblem(observed, quad, False)  # Ture = quad
+    paras, quadpara = genQuadContProblem(observed, quad, False)  # Ture = quad
     system("gurobi_cl BarHomogeneous=1 OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
-    mvrsdg = getContRSDG(paras, quadpara,quad,False)
+    mvrsdg = getContRSDG(paras, quadpara, quad, False)
     system("mv ./debug/max.sol ./debug/maxmv.sol")
     system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
-    return costrsdg,mvrsdg
+    return costrsdg, mvrsdg
+
 
 # Tools needed for generating QUAD contigous RSDG
 # observed is a file
-def genQuadContProblem(observed,quad,COST):
+def genQuadContProblem(observed, quad, COST):
     prob = open("./debug/fitting.lp", 'w')
-    constraints, paras, quadparas, errors = readContFactAndGenConstraint(observed,quad,COST)
+    constraints, paras, quadparas, errors = readContFactAndGenConstraint(observed, quad, COST)
     # write obj, err^2 - 2 err +1
     quadobj = "[ "
     for err in errors:
-        quadobj += err+" ^ 2 + "
+        quadobj += err + " ^ 2 + "
     quadobj = quadobj[:-3]
     quadobj += " ]\n"
     prob.write("Minimize\n")
@@ -35,19 +37,21 @@ def genQuadContProblem(observed,quad,COST):
         prob.write(c)
         prob.write("\n")
     # write Bounds
-    bounds = genBounds(errors,paras)
+    bounds = genBounds(errors, paras)
     prob.write(bounds)
     prob.close()
-    return paras,quadparas
+    return paras, quadparas
 
-def genBounds(errors,paras):
+
+def genBounds(errors, paras):
     bounds = "Bounds \n"
     for err in errors:
         # the quad term has to be greater than 0
         bounds += "-9999 < " + err + " < 9999\n"
     return bounds
 
-def getContRSDG(paras, quadparas, quad,COST):
+
+def getContRSDG(paras, quadparas, quad, COST):
     result = open("./debug/max.sol", 'r')
     rsdg = quadRSDG()
     for line in result:
@@ -77,25 +81,26 @@ def getContRSDG(paras, quadparas, quad,COST):
             knob_a = curPara[0]
             knob_b = curPara[1]
             part = curPara[2]
-            rsdg.addInterCoeff(knob_a, knob_b,part,float(val))
+            rsdg.addInterCoeff(knob_a, knob_b, part, float(val))
     # make the coefficients PSD
     if quad:
         for knob in rsdg.coeffTable:
             for dep in rsdg.coeffTable[knob]:
-                coeffs =rsdg.coeffTable[knob][dep]
+                coeffs = rsdg.coeffTable[knob][dep]
                 a = coeffs.a
                 b = coeffs.b
                 c = coeffs.c
-                coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a,b,c)
+                coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a, b, c)
                 print "before"
-                print a,b,c
+                print a, b, c
                 print "after PSD"
                 print coeffs.a, coeffs.b, coeffs.c
     rsdg.printRSDG(COST)
     return rsdg
-    #now check the rate
+    # now check the rate
 
-def compareQuadRSDG(groundTruth,rsdg,quad,PRINT):
+
+def compareQuadRSDG(groundTruth, rsdg, quad, PRINT):
     outfile = None
     if PRINT:
         outfile = open("outputs/modelValid.csv", 'w')
@@ -170,10 +175,11 @@ def compareQuadRSDG(groundTruth,rsdg,quad,PRINT):
     # report.write("Mean Error:" + str(totErr / total))
     # report.close()
 
-def readContFactAndGenConstraint(observed,quad,COST):
+
+def readContFactAndGenConstraint(observed, quad, COST):
     errors = set()
-    constraints = set() #list of constraints
-    paras = set() #set of parameters, o2, o1, and c for each service
+    constraints = set()  # list of constraints
+    paras = set()  # set of parameters, o2, o1, and c for each service
     quadparas = set()
     # added this for inter-relationship higher order constraint
     err_id = 0
@@ -185,7 +191,7 @@ def readContFactAndGenConstraint(observed,quad,COST):
         else:
             costVal = observed.getMV(configuration)
         costestimate = ""
-        quadconstraint = "" # this is the inter-service relationship
+        quadconstraint = ""  # this is the inter-service relationship
         # generate all single service terms
         for config in configuration.retrieve_configs():
             knob_name = config.knob.set_name
@@ -196,7 +202,7 @@ def readContFactAndGenConstraint(observed,quad,COST):
             paras.add(knob_name + "_1")
             paras.add(knob_name + "_c")
             if quad:
-                costestimate+=str(knob_val * knob_val) + " " + knob_name + "_2" + " + "
+                costestimate += str(knob_val * knob_val) + " " + knob_name + "_2" + " + "
                 paras.add(knob_name + "_2")
         costestimate = costestimate[:-3]
         # generate all inter service terms
@@ -205,10 +211,10 @@ def readContFactAndGenConstraint(observed,quad,COST):
         length = len(configs)
         if quad and (not length == 1) and COST:
             total_num = length
-            for i in range(0,length-1):
+            for i in range(0, length - 1):
                 knoba = configs[i].knob.set_name
                 knoba_val = configs[i].val
-                for j in range(i+1, length):
+                for j in range(i + 1, length):
                     knobb = configs[j].knob.set_name
                     knobb_val = configs[j].val
                     corr_a = knoba + "_" + knobb + "_a"
@@ -221,7 +227,7 @@ def readContFactAndGenConstraint(observed,quad,COST):
                     quadparas.add(corr_b)
                     quadparas.add(corr_c)
             inter_cost = inter_cost[:-3]
-        err_name = "err"+str(err_id)
+        err_name = "err" + str(err_id)
         err_id += 1
         errors.add(err_name)
         if quad:
@@ -234,126 +240,129 @@ def readContFactAndGenConstraint(observed,quad,COST):
         if not inter_cost == "":
             constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
             constraints.add(constraint2)
-    return constraints, paras, quadparas,errors
+    return constraints, paras, quadparas, errors
+
 
 # A function that generates cost / qual function in a way that Gurobi understands
 def readContFactAndGenModConstraint(fact):
     services = {}
-    constraints = [] #list of constraints
-    paras = set() #set of parameters, o2, o1, and c for each service
+    constraints = []  # list of constraints
+    paras = set()  # set of parameters, o2, o1, and c for each service
     # added this for inter-relationship higher order constraint
     num = 0
     f = open(fact, 'r')
     for line in f:
         col = line.split(',')
         length = len(col)
-        involved_services = [] # a list of involved services
+        involved_services = []  # a list of involved services
         constraint = ""
-        quadconstraint = "" # this is the inter-service relationship
-        for i in range (0,length):
-            if i == length-1:
-                constraint += " err"+str(num+1)+ " + "
-                #the last column which is the cost
+        quadconstraint = ""  # this is the inter-service relationship
+        for i in range(0, length):
+            if i == length - 1:
+                constraint += " err" + str(num + 1) + " + "
+                # the last column which is the cost
                 cost = float(col[i])
                 # construct the quadconstraint that has PSD property
                 # first construct the Svc ^ 2
-                #for service in involved_services:
+                # for service in involved_services:
                 #    quadconstraint += str(services[service] * services[service]) + " " + service+"_o2 " + " + "
                 # then construct the inter relation
                 quadconstraint += " [ "
-                for i in range(0,len(involved_services)-1):
+                for i in range(0, len(involved_services) - 1):
                     cur_service = involved_services[i]
-                    for j in range(i+1, len(involved_services)):
+                    for j in range(i + 1, len(involved_services)):
                         inter_service = involved_services[j]
-                        quadterm = cur_service+"_"+inter_service
-                        quadterm_t = inter_service+"_"+cur_service
+                        quadterm = cur_service + "_" + inter_service
+                        quadterm_t = inter_service + "_" + cur_service
                         val = services[cur_service]
                         val_inter = services[inter_service]
-                        #print(val,val_inter,2*val*val_inter)
-                        quad_cons = str(val*val) + " " + quadterm + " ^ 2 + " + str(val_inter * val_inter) + " " + quadterm_t + " ^ 2 - " + str(2*val_inter*val) + " "+quadterm + " * " + quadterm_t + " + "
+                        # print(val,val_inter,2*val*val_inter)
+                        quad_cons = str(val * val) + " " + quadterm + " ^ 2 + " + str(
+                            val_inter * val_inter) + " " + quadterm_t + " ^ 2 - " + str(
+                            2 * val_inter * val) + " " + quadterm + " * " + quadterm_t + " + "
                         quadconstraint += quad_cons
                 # clean the quad constraint
                 length = len(quadconstraint)
-                quadconstraint = quadconstraint[:length-2]
+                quadconstraint = quadconstraint[:length - 2]
                 quadconstraint += " ] "
                 # append the quadconstraint to constraint
                 constraint += quadconstraint
-                #greater_constraint = constraint + " >= "+str(cost-0.1)+"\n"
+                # greater_constraint = constraint + " >= "+str(cost-0.1)+"\n"
                 smaller_constraint = constraint + " <= " + str(cost + 0.1) + "\n"
-                #constraints.append(greater_constraint)
+                # constraints.append(greater_constraint)
                 constraints.append(smaller_constraint)
-                #clear the constraint
+                # clear the constraint
                 constraint = ""
                 quadconstraint = ""
                 services.clear()
                 involved_services = []
                 continue
             cur = col[i]
-            if not (cur.isdigit()): # this is a service name
+            if not (cur.isdigit()):  # this is a service name
                 name = cur
                 involved_services.append(name)
             else:
                 value = float(cur)
                 # add the inter-service relationship to the quad constraint
-               # for service in services:
-               #     inter_para = value * services[service]
-               #     quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
+                # for service in services:
+                #     inter_para = value * services[service]
+                #     quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
                 services[name] = value  # record the current value for this service
                 # write the 2-order constraint
-               # o2para = name+"_2"
-                o1para = name+"_1"
+                # o2para = name+"_2"
+                o1para = name + "_1"
                 cpara = name + "_c"
-               # paras.add(o2para)
+                # paras.add(o2para)
                 paras.add(o1para)
                 paras.add(cpara)
-                constraint +=  str(value) + " " + o1para + " + " + cpara + " + "
+                constraint += str(value) + " " + o1para + " + " + cpara + " + "
         num += 1
 
-    return constraints,num, paras
+    return constraints, num, paras
 
- # if i == length-1:
- #                #the last column which is the cost
- #                cost = float(col[i])
- #                # at this point, "services" contains all the services being used in current observation
- #                # clean up the last "+"
- #                length = len(quadconstraint)
- #                quadconstraint = quadconstraint[:length-2]
- #                # append the quadconstraint to constraint
- #                # uncomment the line below to support quad terms
- #                if quad:
- #                    constraint += quadconstraint
- #                # in case there's only 1 quad-constraints
- #                #if quadconstraint != "":
- #                #    constraint += " - "
- #                constraint += " -"+str(cost)+" err"+str(num+1)+" = 0\n"
- #                constraints.append(constraint)
- #                #clear the constraint
- #                constraint = ""
- #                quadconstraint = ""
- #                services.clear()
- #                continue
- #            cur = col[i]
- #            #print("cur="+cur)
- #            if not (cur.replace(".", "", 1).isdigit()): # this is a service name
- #                name = cur
- #            else:
- #                value = float(cur)
- #                # add the inter-service relationship to the quad constraint
- #                for service in services:
- #                    inter_para = value * services[service]
- #                    quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
- #                    if quad:
- #                        paras.add(name + "_" + service)
- #                services[name] = value  # record the current value for this service
- #                # write the 2-order constraint
- #                o2para = name+"_2"
- #                o1para = name+"_1"
- #                cpara = name + "_c"
- #                if quad:
- #                    paras.add(o2para)
- #                    paras.add(o1para)
- #                    paras.add(cpara)
- #                if quad:
- #                    constraint +=  str(value*value) + " " + o2para + " + "
- #                constraint += str(value) + " " + o1para + " + " + cpara + " + "
- #        num += 1
+# if i == length-1:
+#                #the last column which is the cost
+#                cost = float(col[i])
+#                # at this point, "services" contains all the services being used in current observation
+#                # clean up the last "+"
+#                length = len(quadconstraint)
+#                quadconstraint = quadconstraint[:length-2]
+#                # append the quadconstraint to constraint
+#                # uncomment the line below to support quad terms
+#                if quad:
+#                    constraint += quadconstraint
+#                # in case there's only 1 quad-constraints
+#                #if quadconstraint != "":
+#                #    constraint += " - "
+#                constraint += " -"+str(cost)+" err"+str(num+1)+" = 0\n"
+#                constraints.append(constraint)
+#                #clear the constraint
+#                constraint = ""
+#                quadconstraint = ""
+#                services.clear()
+#                continue
+#            cur = col[i]
+#            #print("cur="+cur)
+#            if not (cur.replace(".", "", 1).isdigit()): # this is a service name
+#                name = cur
+#            else:
+#                value = float(cur)
+#                # add the inter-service relationship to the quad constraint
+#                for service in services:
+#                    inter_para = value * services[service]
+#                    quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
+#                    if quad:
+#                        paras.add(name + "_" + service)
+#                services[name] = value  # record the current value for this service
+#                # write the 2-order constraint
+#                o2para = name+"_2"
+#                o1para = name+"_1"
+#                cpara = name + "_c"
+#                if quad:
+#                    paras.add(o2para)
+#                    paras.add(o1para)
+#                    paras.add(cpara)
+#                if quad:
+#                    constraint +=  str(value*value) + " " + o2para + " + "
+#                constraint += str(value) + " " + o1para + " + " + cpara + " + "
+#        num += 1
