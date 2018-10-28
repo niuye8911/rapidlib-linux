@@ -11,9 +11,7 @@ class appMethods(AppMethods):
     this class
     """
 
-    bin_swaptions = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/swaptions/src/swaptions"  # the app binary to exec
-
-    def train(self, config_table, costFact, mvFact, withMV=False, withSys=False):
+    def train(self, config_table, costFact, mvFact, sysFact, withMV=False, withSys=False):
         """ Override the train()
 
         The purpose of this application is to get the cost and mv for each configuration. It will iterate through all
@@ -32,6 +30,7 @@ class appMethods(AppMethods):
         configurations = config_table.configurations  # get the configurations in the table
         costFact = open(costFact, 'w')
         mvFact = open(mvFact, 'w')
+        sysFact = open(sysFact, 'w')
 
         # iterate through configurations
         for configuration in configurations:
@@ -51,7 +50,7 @@ class appMethods(AppMethods):
             command = self.get_command(str(num))
 
             # measure the "cost"
-            cost = self.getTime(command, 10, withSys)  # 10 jobs(swaption) per run
+            cost, metric = self.getTime(command, 10, withSys)  # 10 jobs(swaption) per run
             # write the cost to file
             self.writeConfigMeasurementToFile(costFact, configuration, cost)
 
@@ -60,10 +59,14 @@ class appMethods(AppMethods):
                 mv = self.checkSwaption()
                 # write the mv to file
                 self.writeConfigMeasurementToFile(mvFact, configuration, mv)
-
+            if withSys:
+                # write metric value to table
+                self.recordSysUsage(configuration, metric)
             # backup the generated output to another location
             self.moveFile("./output.txt", "./training_outputs/output" + str(int(num)) + ".txt")
-
+        # write the metric to file
+        if withSys:
+            self.printUsageTable(sysFact)
         costFact.close()
         mvFact.close()
 
@@ -77,7 +80,8 @@ class appMethods(AppMethods):
         somewhere else
         """
         # generate the ground truth
-        print "GENERATING GROUND TRUTH for SWAPTIONS"
+        print
+        "GENERATING GROUND TRUTH for SWAPTIONS"
         command = self.get_command(1000000)
         defaultTime = self.getTime(command, 10)
         self.gt_path = "./training_outputs/grountTruth.txt"
@@ -86,7 +90,7 @@ class appMethods(AppMethods):
 
     # helper function to assembly the command
     def get_command(self, numOfSim):
-        return [self.bin_swaptions, "-ns", "10", "-sm", str(numOfSim)]
+        return [self.obj_path, "-ns", "10", "-sm", str(numOfSim)]
 
     # helper function to evaluate the QoS
     def checkSwaption(self):

@@ -2,6 +2,7 @@
 import time
 import datetime
 import os
+import csv
 
 
 class Knob:
@@ -88,7 +89,7 @@ class Configuration:
             if knob_name == c.knob.set_name:
                 return c.val
 
-    def printSelf(self):
+    def printSelf(self, del =','):
         """ print the configuration to a readable string, separated by white-space
         :return: as described
         """
@@ -224,10 +225,13 @@ class Profile:
         else:
             table = self.mvprofile_table
         if not self.hashConfig(configuration) in table:
-            print "cannot found entry"
+            print
+            "cannot found entry"
             hashcode = self.hashConfig(configuration)
-            print configuration.printSelf(), hashcode
-            print self.profile_table
+            print
+            configuration.printSelf(), hashcode
+            print
+            self.profile_table
             return
         table[self.hashConfig(configuration)] = val
 
@@ -576,21 +580,24 @@ class AppMethods():
     2) get the training data by running the app in different configurations
     """
 
-    def __init__(self, name):
+    def __init__(self, name, obj_path):
         """ Initialization with app name
         :param name:
         """
         self.appName = name
+        self.obj_path = obj_path
+        self.sys_usage_table = dict()
 
     # Implement this function
-    def train(self, config_table, costFact, mvFact, withMV, withSys):
-	""" Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
-	:param config_table: A table of class Profile containing all configurations to train
-	:param costFact: the destination of output file for recording costs
-	:param mvFact: the destination of output file for recording MV
-    :param withMV: whether to check MV or not
-    :param withSys: whether to check system usage or not
-	"""
+    def train(self, config_table, costFact, mvFact, sysFact, withMV, withSys):
+        """ Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
+        :param config_table: A table of class Profile containing all configurations to train
+        :param costFact: the destination of output file for recording costs
+        :param mvFact: the destination of output file for recording MV
+        :param sysFact: the destination of output file for recording system usage
+        :param withMV: whether to check MV or not
+        :param withSys: whether to check system usage or not
+        """
         # perform a single run for training
         pass
 
@@ -643,9 +650,10 @@ class AppMethods():
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
-            pcm_prefix = ['/home/liuliu/Research/pcm/pcm.x', '-csv=tmp.csv', '--']
+            pcm_prefix = ['/home/liuliu/Tools/pcm-master/pcm.x', '-csv=tmp.csv', '--']
             command = pcm_prefix + command
-            print command
+            print
+            command
         os.system(" ".join(command))
         time2 = time.time()
         avg_time = (time2 - time1) * 1000.0 / work_units
@@ -667,7 +675,8 @@ class AppMethods():
                     for item in row:
                         value.append(item)
             for i in range(0, len(metric)):
-                metric_value[metric[i]] = value[i]
+                if metric[i] != '':
+                    metric_value[metric[i]] = value[i]
         return avg_time, metric_value
 
     def getSysUsage(self, ):
@@ -696,5 +705,32 @@ class AppMethods():
         filestream.write(configuration.printSelf() + " ")
         filestream.write(str(value) + "\n")
 
+    def recordSysUsage(self, configuration, metric):
+        """ record the system usage of a configuration
+        :param configuration: the configuration
+        :param metric: the dict of metric measured
+        """
+        self.sys_usage_table[configuration.printSelf()] = metric
+
+    def printUsageTable(self, filestream):
+        header_written = False
+        metrics = []
+        for configuration, metric in self.sys_usage_table.items():
+            if not header_written:
+                filestream.write(',')
+                for metric_name, metric_value in metric.items():
+                    # init the ordered metric list
+                    metrics.append(metric_name)
+                    # write the header
+                    filestream.write(metric_name + ",")
+                header_written = True
+                filestream.write(metric_name + "\n")
+            # write the configuration
+            filestream.write(configuration + ",")
+            for cur_metric in sorted(metrics):
+                filestream.write(metric[cur_metric] + ",")
+            filestream.write(metric_name + "\n")
+        filestream.close()
+
     def pinTime(self, filestream):
-        filestream.write(str(datetime.datetime.now())+" ")
+        filestream.write(str(datetime.datetime.now()) + " ")

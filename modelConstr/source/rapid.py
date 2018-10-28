@@ -10,6 +10,7 @@ from representset import populateRSDG, genRS
 from plot import *
 from stage_2.qos_checker import *
 import imp
+import json
 
 configs = []
 service_levels = {}
@@ -28,6 +29,9 @@ knob_samples = {}
 desc = ""
 stage = -1
 methods_path = ""
+obj_path = ""
+config_file = ""
+app_config = None
 PLOT = False
 
 withSys = True
@@ -54,7 +58,8 @@ def main(argv):
     #######################STAGE-1########################
     # generate initial training set
     if desc == "":
-        print "required a description of program with option --desc"
+        print
+        "required a description of program with option --desc"
         return
     global groundTruth_profile, knob_samples, knobs
     appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(desc)
@@ -69,7 +74,7 @@ def main(argv):
     # second stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
     # load user-supplied methods
     module = imp.load_source("", methods_path)
-    appMethods = module.appMethods(appname)
+    appMethods = module.appMethods(appname, obj_path)
     factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods, withQoS, withSys)
 
     #######################STAGE-3########################
@@ -99,10 +104,14 @@ def main(argv):
         genNewProblem(r1, r2, observed, KF1, KF2)
         rsdgMerge = genNewRSDG(r1, r2)
         [meanErr, maxErr, maxId, out] = checkRate(rsdgMerge, fact, targetMax)
-        print meanErr
-        print maxErr
-        print maxId
-        print len(out)
+        print
+        meanErr
+        print
+        maxErr
+        print
+        maxId
+        print
+        len(out)
 
         return 0
 
@@ -154,43 +163,46 @@ def declareParser():
     parser.add_option('-o', dest="observed")
     parser.add_option('--r1', dest="r1")
     parser.add_option('--r2', dest='r2')
-    parser.add_option('-a', dest='app')
     parser.add_option('-r', dest='remote')
     parser.add_option('--model', dest="model")
     parser.add_option("-p", dest="plot")
     parser.add_option('--rs', dest="rs")
     parser.add_option('--rsdg', dest="rsdg")
     parser.add_option('--rsdgmv', dest="rsdgmv")
-    parser.add_option('--dep', dest="dep")
-    parser.add_option('--desc', dest="desc")
     parser.add_option('--stage', dest='stage')
-    parser.add_option('--met', dest='method')
+    parser.add_option('-C', dest="config")
     return parser
 
 
 def parseCMD(options):
-    global config, observed, fact, KF, app, remote, model, rs, desc, stage, methods_path, mode, PLOT
+    global app_config, observed, fact, KF, remote, model, rs, stage, mode, PLOT, config_file
     observed = options.observed
     fact = options.fact
     KF = options.KF
     KF1 = options.KF1
     KF2 = options.KF2
-    app = options.app
     model = options.model
     if options.plot == "t":
         PLOT = True
     rs = options.rs
     remote = options.remote
     mode = options.mode
-    desc = options.desc
+    # read config
+    if not options.config == None:
+        config_file = options.config
+        app_config = parseConfig(config_file)
     if not options.stage == None:
         stage = int(options.stage)
-    if not options.method == None:
-        methods_path = options.method
-    else:
-        print("expected user supplied app methods")
-        if not (stage == 1):
-            exit(1)
+
+
+def parseConfig(config_file):
+    global desc, methods_path, obj_path
+    with open(config_file) as config_json:
+        config = json.load(config_json)
+        desc = config['appDep']
+        methods_path = config['appMet']
+        obj_path = config['appPath']
+    return config
 
 
 if __name__ == '__main__':

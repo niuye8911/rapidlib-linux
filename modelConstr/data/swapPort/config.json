@@ -1,0 +1,6 @@
+{
+"appName":"swaptions",
+"appPath":"/home/liuliu/Research/parsec3.0-rapid-source-master/parsec-3.0/pkgs/apps/swaptions/src/swaptions",
+"appMet":"/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/swaptionMet.py",
+"appDep":"/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort/depfileswaptions"
+}
