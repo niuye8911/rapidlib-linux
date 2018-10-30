@@ -6,42 +6,17 @@ from Classes import *  # import the parent class and other classes from the file
 
 
 class appMethods(AppMethods):
-    """ application specific class inherited from class AppMethods
-    Please keep the name of the class to be appMethods since it will be used in RAPID(C) to create an instance of
-    this class
-    """
+    input_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/bodytrack/run/sequenceB_261/"
 
-    input_path = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/bodytrack/run/sequenceB_261/"
-
-    bin_bodytrack = "bodytrack"  # the app binary to exec
-
-    def train(self, config_table, costFact, mvFact):
-        """ Override the train()
-
-        The purpose of this application is to get the cost and mv for each configuration. It will iterate through all
-        configurations in config_table and run the app with each of them. The developers are responsible to implement
-        their own logic to measure the Cost and QoS.
-
-        The output will be written to costFact and mvFact
-
-        In this example, the Cost is the execution time and the QoS is the distortion
-
-        :param config_table: the configuration table is an object of class Profile, containing all configurations,
-        :param costFact: the path to cost.fact
-        :param mvFact: the path to mv.fact
-        """
+    def train(self, config_table, costFact, mvFact, sysFact, withMV=False, withSys=False):
         configurations = config_table.configurations  # get the configurations in the table
         costFact = open(costFact, 'w')
         mvFact = open(mvFact, 'w')
-
-#iterate through configurations
+        sysFact = open(sysFact, 'w')
         for configuration in configurations:
-#the purpose of each iteration is to fill in the two values below
             cost = 0.0
             mv = 0.0
             configs = configuration.retrieve_configs()  # extract the configurations
-
-#fetch the concrete setting(s)
             for config in configs:
                 name = config.knob.set_name
                 if name == "particle":
@@ -49,22 +24,25 @@ class appMethods(AppMethods):
                 elif name == "layer":
                     layer = config.val  # retrieve the setting for each knob
 
-#assembly the command
-            command = self.get_command(str(particle),str(layer))
+            # assembly the command
+            command = self.get_command(str(particle), str(layer))
 
-#measure the "cost"
-            cost = self.getTime(command, 20)  # 20 jobs(bodytrack) per run
-#write the cost to file
+            # measure the "cost"
+            cost, metric = self.getTime(command, 20, withSys)  # 20 jobs(bodytrack) per run
+            # write the cost to file
             self.writeConfigMeasurementToFile(costFact, configuration, cost)
 
-#measure the "mv"
-            mv = self.checkBodytrack()
-#write the mv to file
-            self.writeConfigMeasurementToFile(mvFact, configuration, mv)
-
-#backup the generated output to another location
-            self.moveFile(self.input_path+"poses.txt", "./training_outputs/output_" + str(int(layer)) + "_"+str(int(particle))+".txt")
-
+            # measure the "mv"
+            if withMV:
+                mv = self.checkBodytrack()
+                self.writeConfigMeasurementToFile(mvFact, configuration, mv)
+            if withSys:
+                self.recordSysUsage(configuration, metric)
+            # backup the generated output to another location
+            self.moveFile(self.input_path + "poses.txt",
+                          "./training_outputs/output_" + str(int(layer)) + "_" + str(int(particle)) + ".txt")
+        if withSys:
+            self.printUsageTable(sysFact)
         costFact.close()
         mvFact.close()
 
@@ -77,25 +55,25 @@ class appMethods(AppMethods):
         In our example, we generate the output of the application when running in default mode and move it to
         somewhere else
         """
-#generate the ground truth
+        # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
-        command = self.get_command(4000,5)
+        command = self.get_command(4000, 5)
         defaultTime = self.getTime(command, 20)
         self.gt_path = "./training_outputs/grountTruth.txt"
-        output_path = self.input_path+"poses.txt"
+        output_path = self.input_path + "poses.txt"
         self.moveFile(output_path, self.gt_path)
         print("The Default Execution time of Bodytrack" + " = " + str(defaultTime) + "ms")
 
-#helper function to assembly the command
+    # helper function to assembly the command
     def get_command(self, numOfParticle, numOfLayer):
-        return [self.bin_bodytrack,
-                   self.input_path,
-                   "4", "20",
-                   str(numOfParticle),
-                   str(numOfLayer),
-                   '4']
+        return [self.obj_path,
+                self.input_path,
+                "4", "20",
+                str(numOfParticle),
+                str(numOfLayer),
+                '4']
 
-#helper function to evaluate the QoS
+    # helper function to evaluate the QoS
     def checkBodytrack(self):
         """
         In our example, after each run of the application, this function will be called to compare the current output
@@ -106,7 +84,7 @@ class appMethods(AppMethods):
         :return: a double value describing the QoS ( 0.0 ~ 100.0 )
         """
         gt_output = open(self.gt_path, "r")
-        mission_output = open(self.input_path+"poses.txt", "r")
+        mission_output = open(self.input_path + "poses.txt", "r")
         truth_results = []
         mission_results = []
         totalRound = 0
@@ -121,16 +99,16 @@ class appMethods(AppMethods):
         for i in range(0, len(truth_results)):
             # truth_results[i] is a vector, compute the vector distortion
             distortion = 0.0
-            for j in range (0, len(truth_results[i])):
-                if(truth_results[i][j]=="\n"):
+            for j in range(0, len(truth_results[i])):
+                if (truth_results[i][j] == "\n"):
                     continue
                 curtrue = float(truth_results[i][j])
                 curmission = float(mission_results[i][j])
                 val = abs((curtrue - curmission) / curtrue)
-                if val>1:
+                if val > 1:
                     val = 1
                 distortion += val
             distortion /= len(truth_results[i])
-            print "DISTORTION = "+str(distortion)
+            print "DISTORTION = " + str(distortion)
             totDistortion += distortion
-        return (1.0-(totDistortion / len(truth_results))) * 100.0
+        return (1.0 - (totDistortion / len(truth_results))) * 100.0
