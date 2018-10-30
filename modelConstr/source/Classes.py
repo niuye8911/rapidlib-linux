@@ -89,14 +89,16 @@ class Configuration:
             if knob_name == c.knob.set_name:
                 return c.val
 
-    def printSelf(self, del =','):
+    def printSelf(self, delimiter=' '):
         """ print the configuration to a readable string, separated by white-space
         :return: as described
         """
         result = ""
-        for config in self.knob_settings:
-            result += " " + config.knob.set_name + " " + str(config.val)
-        return result
+        items = map((lambda x: x.knob.set_name + delimiter + str(x.val)), self.knob_settings)
+        return delimiter.join(items)
+        # for config in self.knob_settings:
+        #    result += " " + config.knob.set_name + " " + str(config.val)
+        # return result
 
 
 ###################problem generation#########################
@@ -603,7 +605,9 @@ class AppMethods():
 
     # Implement this function
     def runGT(self):
-        """ Perform a default run of non-approxiamte version of the application to generate groundtruth result for QoS checking later in the future. The output can be application specific, but we recommend to output the result to a file.
+        """ Perform a default run of non-approxiamte version of the application to generate groundtruth result for
+        QoS checking later in the future. The output can be application specific, but we recommend to output the
+        result to a file.
 	"""
         pass
 
@@ -637,7 +641,7 @@ class AppMethods():
 
     ### some utilities might be useful
 
-    def getTime(self, command, work_units=1, withSys=False):
+    def getTime(self, command, work_units=1, withSys=False, configuration=''):
         """ return the execution time of running a single work unit using func in milliseconds
         To measure the cost of running the application with a configuration, each training run may finish multiple
         work units to average out the noise.
@@ -650,7 +654,7 @@ class AppMethods():
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
-            pcm_prefix = ['/home/liuliu/Tools/pcm-master/pcm.x', '-csv=tmp.csv', '--']
+            pcm_prefix = ['/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '-i=20', '2>/dev/null', '-csv=tmp.csv', '--']
             command = pcm_prefix + command
             print
             command
@@ -677,6 +681,11 @@ class AppMethods():
             for i in range(0, len(metric)):
                 if metric[i] != '':
                     metric_value[metric[i]] = value[i]
+        csv_file.close()
+        if configuration != '':
+            # back up the csv_file
+            os.system("mv tmp.csv " + configuration + ".csv")
+
         return avg_time, metric_value
 
     def getSysUsage(self, ):
@@ -717,19 +726,19 @@ class AppMethods():
         metrics = []
         for configuration, metric in self.sys_usage_table.items():
             if not header_written:
-                filestream.write(',')
-                for metric_name, metric_value in metric.items():
-                    # init the ordered metric list
-                    metrics.append(metric_name)
-                    # write the header
-                    filestream.write(metric_name + ",")
+                print metric.keys()
+                metrics = sorted(metric.keys())
+                print metrics
+                filestream.write(';')
+                for metric_name in metrics:
+                    filestream.write(metric_name + ";")
                 header_written = True
-                filestream.write(metric_name + "\n")
+                filestream.write("\n")
             # write the configuration
-            filestream.write(configuration + ",")
-            for cur_metric in sorted(metrics):
-                filestream.write(metric[cur_metric] + ",")
-            filestream.write(metric_name + "\n")
+            filestream.write(configuration + ";")
+            for cur_metric in metrics:
+                filestream.write(metric[cur_metric] + ";")
+            filestream.write("\n")
         filestream.close()
 
     def pinTime(self, filestream):

@@ -50,7 +50,7 @@ class appMethods(AppMethods):
             command = self.get_command(str(num))
 
             # measure the "cost"
-            cost, metric = self.getTime(command, 10, withSys)  # 10 jobs(swaption) per run
+            cost, metric = self.getTime(command, 10, withSys, configuration.printSelf('-'))  # 10 jobs(swaption) per run
             # write the cost to file
             self.writeConfigMeasurementToFile(costFact, configuration, cost)
 
