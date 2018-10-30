@@ -1,6 +1,7 @@
 from os import system
-from psd import *
+
 from Classes import *
+from psd import *
 
 
 def populateQuadRSDG(observed, quad):

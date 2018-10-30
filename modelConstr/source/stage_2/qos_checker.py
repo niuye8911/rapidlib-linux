@@ -9,9 +9,19 @@ knob_ferret_probe = numpy.linspace(2, 20, num=10)
 knob_bodytrack = numpy.linspace(100, 4000, num=40)
 knob_bodytrack_annealing = [1, 2, 3, 4, 5]
 
-weight = [160.000000000000,160.000000000000,0.883801457794,1.000000000000,90.000000000000,80.000000000000,1.000000000000,1.000000000000,80.000000000000,80.000000000000,1.000000000000,1.000000000000,90.000000000000,80.000000000000,1.000000000000,1.000000000000,80.000000000000,80.000000000000,1.000000000000,1.000000000000,60.000000000000,40.000000000000,1.000000000000,1.000000000000,40.000000000000,30.000000000000,1.000000000000,1.000000000000,60.000000000000,40.000000000000,1.000000000000,1.000000000000,40.000000000000,30.000000000000,1.000000000000,1.000000000000,108.219779804448,108.219779804448,
-1.000000000000,0.739581901676,578.571268037074,98.775717746183,424.775528050607,449.138638864995,0.000000000000,112.973551984717,393.591975105289,464.725142771880,0.000000000000,241.301534024968,205.666008552084,
-220.311272548189,0.000000000000,176.865773690142,243.325288891550,247.925686687300,0.000000000000,268.030179506415]
+weight = [160.000000000000, 160.000000000000, 0.883801457794, 1.000000000000, 90.000000000000, 80.000000000000,
+          1.000000000000, 1.000000000000, 80.000000000000, 80.000000000000, 1.000000000000, 1.000000000000,
+          90.000000000000, 80.000000000000, 1.000000000000, 1.000000000000, 80.000000000000, 80.000000000000,
+          1.000000000000, 1.000000000000, 60.000000000000, 40.000000000000, 1.000000000000, 1.000000000000,
+          40.000000000000, 30.000000000000, 1.000000000000, 1.000000000000, 60.000000000000, 40.000000000000,
+          1.000000000000, 1.000000000000, 40.000000000000, 30.000000000000, 1.000000000000, 1.000000000000,
+          108.219779804448, 108.219779804448,
+          1.000000000000, 0.739581901676, 578.571268037074, 98.775717746183, 424.775528050607, 449.138638864995,
+          0.000000000000, 112.973551984717, 393.591975105289, 464.725142771880, 0.000000000000, 241.301534024968,
+          205.666008552084,
+          220.311272548189, 0.000000000000, 176.865773690142, 243.325288891550, 247.925686687300, 0.000000000000,
+          268.030179506415]
+
 
 def checkFerretWrapper(fact, observed=""):
     name = "output_";
@@ -32,8 +42,9 @@ def checkFerretWrapper(fact, observed=""):
         checkFerret(fact, observed, report)
     report.close()
 
-#QOS checker for ferret
-def checkFerret(fact, observed, REPORT,report=""):
+
+# QOS checker for ferret
+def checkFerret(fact, observed, REPORT, report=""):
     truth = open(fact, "r")
     mission = open(observed, "r")
     truthmap = {}
@@ -53,7 +64,7 @@ def checkFerret(fact, observed, REPORT,report=""):
         if not name in missionmap:
             continue
         truthmap[name] = []
-        for i in range(1,len(col)): # 50 results
+        for i in range(1, len(col)):  # 50 results
             truthmap[name].append(col[i].split(':')[0])
     print len(truthmap)
     print len(missionmap)
@@ -73,7 +84,7 @@ def checkFerret(fact, observed, REPORT,report=""):
         # setup S and T
         S.update(truth_res)
         T.update(mission_res)
-        Z = S & T #Z includes images both in S and T
+        Z = S & T  # Z includes images both in S and T
         # clear S and T
         for s in Z:
             T.remove(s)
@@ -84,41 +95,46 @@ def checkFerret(fact, observed, REPORT,report=""):
         # normalize the error
         if REPORT:
             qos_report.write(query_image)
-            qos_report.write("S"+str(len(S)) + "  Z" + str(len(Z)) + " T"+str(len(T)) + "  ")
-            qos_report.write(str(compute2(truth_res, mission_res, Z)) + "  "+ str(compute1(truth_res, S)) + "  "+ str(compute1(mission_res, T)))
+            qos_report.write("S" + str(len(S)) + "  Z" + str(len(Z)) + " T" + str(len(T)) + "  ")
+            qos_report.write(str(compute2(truth_res, mission_res, Z)) + "  " + str(compute1(truth_res, S)) + "  " + str(
+                compute1(mission_res, T)))
             qos_report.write("\t")
             qos_report.write(str(ranking_res) + "\n")
-        toterr += 1.0-ranking_res
+        toterr += 1.0 - ranking_res
         S.clear()
         T.clear()
         Z.clear()
-    print (str(toterr/totimg*100.0))
+    print (str(toterr / totimg * 100.0))
     if REPORT:
         qos_report.close()
     if not REPORT:
-        report.write(str(toterr/totimg*100.0))
+        report.write(str(toterr / totimg * 100.0))
+
 
 def rank(img, imglist):
     if img in imglist:
-        return imglist.index(img)+1
+        return imglist.index(img) + 1
     return 0
+
 
 def compute1(list1, imgset):
     res = 0
     for img in imgset:
-        res += rank(img,list1)
+        res += rank(img, list1)
     return res
+
 
 def compute2(list1, list2, imgset):
     res = 0
     for img in imgset:
-        res += abs(rank(img,list1) - rank(img, list2))
+        res += abs(rank(img, list1) - rank(img, list2))
     return res
+
 
 def checkSwaptionWrapper(fact, observed=""):
     name = "output_";
-    report = open("finalReport",'w')
-    if(observed == ""):
+    report = open("finalReport", 'w')
+    if (observed == ""):
         for i in range(100000, 1100000, 100000):
             cur_name = name + str(i)
             cur_name += ".txt"
@@ -127,8 +143,9 @@ def checkSwaptionWrapper(fact, observed=""):
         checkSwaption(fact, observed, report)
     report.close()
 
-#QOS checker for Swaptions
-def checkSwaption(fact, observed,REPORT,report=""):
+
+# QOS checker for Swaptions
+def checkSwaption(fact, observed, REPORT, report=""):
     truth = open(fact, "r")
     mission = open(observed, "r")
     if REPORT:
@@ -149,12 +166,12 @@ def checkSwaption(fact, observed,REPORT,report=""):
         mission_map[round_num] = round_res
     # calculate the distortion
     toterr = 0.0
-    for round in range(0,totalRound):
-        roundname = "round"+str(round)
+    for round in range(0, totalRound):
+        roundname = "round" + str(round)
         truth_res = truth_map[roundname]
         mission_res = mission_map[roundname]
-        error = abs((truth_res - mission_res)/truth_res)
-        #print roundname, truth_res, mission_res, truth_res - mission_res,error
+        error = abs((truth_res - mission_res) / truth_res)
+        # print roundname, truth_res, mission_res, truth_res - mission_res,error
         if REPORT:
             qos_report.write(roundname)
             qos_report.write("\t")
@@ -163,32 +180,35 @@ def checkSwaption(fact, observed,REPORT,report=""):
         toterr += error
     # write the average error
     meanQoS = 1 - toterr / totalRound
-    meanQoS = meanQoS*1000.0-999
+    meanQoS = meanQoS * 1000.0 - 999
     if REPORT:
         qos_report.write(str(meanQoS) + "\n")
-    # close the report
+        # close the report
         qos_report.close()
     # write to final total
     if not REPORT:
-        report.write(str(meanQoS*100.0))
+        report.write(str(meanQoS * 100.0))
+
 
 def checkBodytrackWrapper(fact_path, observed_path):
     name = "output_";
-    report = open("finalReport",'w')
+    report = open("finalReport", 'w')
     for i in range(0, len(knob_bodytrack)):  # run the application for each configuratino
-            for j in range(0, len(knob_bodytrack_annealing)):
-                cur_name = name + str(int(knob_bodytrack[i]))
-                cur_name += "_" + str(int(knob_bodytrack_annealing[j]))
-                report.write(cur_name)
-                report.write(",")
-                cur_name += ".txt"
-                checkBodytrack(fact_path, cur_name, report)
-                report.write("\n")
+        for j in range(0, len(knob_bodytrack_annealing)):
+            cur_name = name + str(int(knob_bodytrack[i]))
+            cur_name += "_" + str(int(knob_bodytrack_annealing[j]))
+            report.write(cur_name)
+            report.write(",")
+            cur_name += ".txt"
+            checkBodytrack(fact_path, cur_name, report)
+            report.write("\n")
     else:
         checkBodytrack(fact_path, observed_path, report)
     report.close()
 
-weight1 = [0.01, 0.01, 0.1, 10,10,10, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1, 0.01, 0.1, 0.1, 1, 0.1, 1, 0.1, 0.1, 0.1,10, 0.1, 1, 0.1, 0.1, 0.01, 0.01, 0.1, 0.01, 0.1]
+
+weight1 = [0.01, 0.01, 0.1, 10, 10, 10, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1, 0.01, 0.1, 0.1, 1, 0.1, 1, 0.1, 0.1, 0.1, 10,
+           0.1, 1, 0.1, 0.1, 0.01, 0.01, 0.1, 0.01, 0.1]
 
 # #weight1=[0.011338610057,
 # 0.005919741171,
@@ -286,8 +306,9 @@ weight1 = [0.01, 0.01, 0.1, 10,10,10, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1, 0.01, 0.1
 
 norm_weight = sum(weight)
 
-#QOS checker for Bodytrack
-def checkBodytrack(fact, observed,REPORT,report):
+
+# QOS checker for Bodytrack
+def checkBodytrack(fact, observed, REPORT, report):
     print(len(weight))
     truth = open(fact, "r")
     mission = open(observed, "r")
@@ -308,14 +329,14 @@ def checkBodytrack(fact, observed,REPORT,report):
     for i in range(0, len(truth_results)):
         # truth_results[i] is a vector, compute the vector distortion
         distortion = 0.0
-        for j in range (0, len(truth_results[i])):
-            if(truth_results[i][j]=="\n"):
+        for j in range(0, len(truth_results[i])):
+            if (truth_results[i][j] == "\n"):
                 continue
             curtrue = float(truth_results[i][j])
             curmission = float(mission_results[i][j])
             val = abs((curtrue - curmission) / curtrue)
             print curtrue, curmission, val
-            if val>1:
+            if val > 1:
                 val = 1
             distortion += val
         distortion /= len(truth_results[i])
@@ -327,9 +348,9 @@ def checkBodytrack(fact, observed,REPORT,report):
             qos_report.write(str(distortion))
             qos_report.write("\n")
         totDistortion += distortion
-    print (1.0-(totDistortion / len(truth_results))) * 100.0
+    print (1.0 - (totDistortion / len(truth_results))) * 100.0
     if not REPORT:
-        report.write(str((1.0-(totDistortion / len(truth_results))) * 100.0))
+        report.write(str((1.0 - (totDistortion / len(truth_results))) * 100.0))
     if REPORT:
-        qos_report.write(str((1.0-(totDistortion / len(truth_results))) * 100.0))
+        qos_report.write(str((1.0 - (totDistortion / len(truth_results))) * 100.0))
         qos_report.close()

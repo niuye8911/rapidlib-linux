@@ -1,11 +1,10 @@
-import time
-import sys
-import getopt
-import numpy
-import subprocess
-from Classes import *
 import os
-import shlex
+import subprocess
+import sys
+import time
+
+from Classes import *
+
 from qos_checker import *
 
 appName = ""
@@ -22,14 +21,15 @@ body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/
 swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
 ferret_input = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/ferret/run/"
 
+
 # Run the application with developer-provided methods
 # The expected behavior of this application should be writing Cost and QoS metric to corresponding files
-def run(appName,config_table):
+def run(appName, config_table):
     config_table = config_table.configurations
     if not os.path.exists("./training_outputs"):
         os.system("mkdir ./training_outputs")
-    costFact = open("./outputs/"+appName+"-cost"+".fact",'w')
-    mvFact = open("./outputs/"+appName+"-mv"+".fact",'w')
+    costFact = open("./outputs/" + appName + "-cost" + ".fact", 'w')
+    mvFact = open("./outputs/" + appName + "-mv" + ".fact", 'w')
     if appName == "bodytrack":
         # for bodytrack
         particle = 0
@@ -51,27 +51,27 @@ def run(appName,config_table):
             configs = configuration.retrieve_configs()
             for config in configs:
                 name = config.knob.set_name
-                if name== "particle":
+                if name == "particle":
                     particle = config.val
                 else:
                     layer = config.val
             command = [bin_bodytrack,
-                           body_input,
-                           "4", "4",
-                           str(int(particle)),
-                           str(int(layer)),
-                           '4']
+                       body_input,
+                       "4", "4",
+                       str(int(particle)),
+                       str(int(layer)),
+                       '4']
             time1 = time.time()
             subprocess.call(command)
             time2 = time.time()
             elapsedTime = (time2 - time1) * 1000 / 4
             costFact.write('particle,{0},layer,{1},{2}\n'.format(int(particle), int(layer), elapsedTime))
             newfileloc = "./training_outputs/output_" + str(int(particle)) + "_" + str(int(layer)) + ".txt"
-            command = ["mv", body_input+"/poses.txt", newfileloc]
+            command = ["mv", body_input + "/poses.txt", newfileloc]
             subprocess.call(command)
             # generate mv fact
             mvFact.write('particle,{0},layer,{1},'.format(int(particle), int(layer)))
-            checkBodytrack(gt_path, newfileloc,False, mvFact)
+            checkBodytrack(gt_path, newfileloc, False, mvFact)
             mvFact.write("\n")
         costFact.close()
         mvFact.close()
@@ -81,14 +81,14 @@ def run(appName,config_table):
         num = 0.0
         # generate the ground truth
         print "GENERATING GROUND TRUTH for SWAPTIONS"
-        command = [bin_swaptions, #make sure the bin_swaptions is updated when doing the walk-through
+        command = [bin_swaptions,  # make sure the bin_swaptions is updated when doing the walk-through
                    "-ns",
                    "10",
                    "-sm",
                    str(1000000)
                    ]
         # in case subprocess might not work
-        #subprocess.call(command)
+        # subprocess.call(command)
         os.system(" ".join(command))
         gt_path = "./training_outputs/grountTruth.txt"
         command = ["mv", "./output.txt", gt_path]
@@ -112,7 +112,7 @@ def run(appName,config_table):
 
             # measure the execution time for the run
             time1 = time.time()
-            #subprocess.call(command)
+            # subprocess.call(command)
             os.system(" ".join(command))
             time2 = time.time()
             elapsedTime = (time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
@@ -124,7 +124,7 @@ def run(appName,config_table):
             subprocess.call(command)
             # write the mv to file
             mvFact.write('num,{0},'.format(int(num)))
-            checkSwaption(gt_path, newfileloc, False,mvFact)
+            checkSwaption(gt_path, newfileloc, False, mvFact)
             mvFact.write("\n")
 
         costFact.close()
@@ -138,20 +138,20 @@ def run(appName,config_table):
         # generate the ground truth
         print "GENERATING GROUND TRUTH for Ferret"
         command = [bin_ferret,
-                    ferret_input+"corelnative",
-                    "lsh",
-                    ferret_input+"queries",
-                    "50",
-                    "20",
-                    "1",
-                    "output.txt",
-                    "-l",
-                    str(8),
-                    "-t",
-                    str(20),
-                    "-itr",
-                    str(25)
-                    ]
+                   ferret_input + "corelnative",
+                   "lsh",
+                   ferret_input + "queries",
+                   "50",
+                   "20",
+                   "1",
+                   "output.txt",
+                   "-l",
+                   str(8),
+                   "-t",
+                   str(20),
+                   "-itr",
+                   str(25)
+                   ]
         subprocess.call(command)
         print "Done: GENERATING GROUND TRUTH for Ferret"
         gt_path = "./training_outputs/grountTruth.txt"
@@ -162,16 +162,16 @@ def run(appName,config_table):
             configs = configuration.retrieve_configs()
             for config in configs:
                 name = config.knob.set_name
-                if name== "hash":
+                if name == "hash":
                     hash = config.val
                 elif name == "iteration":
                     itr = config.val
                 else:
                     probe = config.val
             command2 = [bin_ferret,
-                        ferret_input+"corelnative",
+                        ferret_input + "corelnative",
                         "lsh",
-                        ferret_input+"queries",
+                        ferret_input + "queries",
                         "50",
                         "20",
                         "1",
@@ -187,13 +187,15 @@ def run(appName,config_table):
             subprocess.call(command2)
             time2 = time.time()
             elapsedTime = (time2 - time1) * 1000 / 20
-            costFact.write('hash,{0},probe,{1},iteration,{2},{3}\n'.format(int(hash), int(probe), int(itr), elapsedTime))
-            newfileloc = "./training_outputs/output_" + str(int(hash)) + "_" + str(int(probe))+ "_" + str(int(itr)) + ".txt"
+            costFact.write(
+                'hash,{0},probe,{1},iteration,{2},{3}\n'.format(int(hash), int(probe), int(itr), elapsedTime))
+            newfileloc = "./training_outputs/output_" + str(int(hash)) + "_" + str(int(probe)) + "_" + str(
+                int(itr)) + ".txt"
             command = ["mv", "./output.txt", newfileloc]
             subprocess.call(command)
             # generate mv fact
             mvFact.write('hash,{0},probe,{1},iteration,{2},'.format(int(hash), int(probe), int(itr)))
-            checkFerret(gt_path, newfileloc, False,mvFact)
+            checkFerret(gt_path, newfileloc, False, mvFact)
             mvFact.write("\n")
         costFact.close()
         mvFact.close()

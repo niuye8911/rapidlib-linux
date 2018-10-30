@@ -1,8 +1,10 @@
+from os import system
+
 from Classes import *
 from contigous import *
-from stage_1.training import *
-from os import system
 from psd import *
+from stage_1.training import *
+
 
 def populatePieceWiseRSDG(observed, partitions):
     # get the segments
@@ -17,25 +19,27 @@ def populatePieceWiseRSDG(observed, partitions):
     system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
     return costrsdg, mvrsdg
 
-# generate a cont problem
-def generatePieceWiseContProblem(observed,partitions,COST=True):
-        #genContProblem("observed.csv","quad")
-    observed.printProfile("./outputs/observed.csv")
-        # get the segments
-    segments = getSegments(partitions)
-        # get the variables
-    seg_indicators, seg_values,segconst, knob_values = getVariables(partitions,segments)
-        # get the constraints
-    costConstraints, segConstraints, errors,inter_coeff = genConstraints(segments,observed, COST)
-        # get obj functions
-    obj = errorFunction(errors)
-        # get the bounds
-    intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
-        # beatutifyProblem
-    beautifyProblem(obj,costConstraints,segConstraints,intBounds,floatBounds,seg_indicators)
-    return segments, seg_values, segconst,inter_coeff
 
-#construct variables
+# generate a cont problem
+def generatePieceWiseContProblem(observed, partitions, COST=True):
+    # genContProblem("observed.csv","quad")
+    observed.printProfile("./outputs/observed.csv")
+    # get the segments
+    segments = getSegments(partitions)
+    # get the variables
+    seg_indicators, seg_values, segconst, knob_values = getVariables(partitions, segments)
+    # get the constraints
+    costConstraints, segConstraints, errors, inter_coeff = genConstraints(segments, observed, COST)
+    # get obj functions
+    obj = errorFunction(errors)
+    # get the bounds
+    intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
+    # beatutifyProblem
+    beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds, seg_indicators)
+    return segments, seg_values, segconst, inter_coeff
+
+
+# construct variables
 def getSegments(samples):
     segments = {}
     for knob in samples:
@@ -44,21 +48,22 @@ def getSegments(samples):
         segments[name] = []
         id = 0
         min = points[0]
-        for i in range(1,len(points)):
+        for i in range(1, len(points)):
             segname = name
             max = points[i]
-            seg = Segment(segname,name,min,max)
+            seg = Segment(segname, name, min, max)
             seg.setID(id)
             segments[name].append(seg)
-            id+=1
+            id += 1
             min = points[i]
     return segments
 
+
 # construct variables
-def getVariables(partitions,segments):
+def getVariables(partitions, segments):
     seg_indicators = set()
     seg_values = set()
-    seg_const  = set()
+    seg_const = set()
     knob_values = set()
     for knob in partitions:
         name = knob
@@ -70,7 +75,8 @@ def getVariables(partitions,segments):
             seg_indicators.add(knob_seg.printID())
             seg_values.add(knob_seg.printVar())
             seg_const.add(knob_seg.printConst())
-    return seg_indicators,seg_values,seg_const,knob_values
+    return seg_indicators, seg_values, seg_const, knob_values
+
 
 # generate the error function
 def errorFunction(errors):
@@ -78,21 +84,22 @@ def errorFunction(errors):
     obj = ""
     quadobj = "[ "
     for i in range(0, num):
-        #obj += "-2 " + errors[i]
+        # obj += "-2 " + errors[i]
         quadobj += errors[i] + " ^ 2"
-        if not (i == num-1):
-            #obj += " + "
+        if not (i == num - 1):
+            # obj += " + "
             quadobj += " + "
     quadobj += " ] \n"
     obj += " + " + quadobj
     return obj
 
-#construct costFunction based on modes
+
+# construct costFunction based on modes
 # mode=="piece-wise" || mode == "quadratic"
-def costFunction(segments,observed):
+def costFunction(segments, observed):
     costFunction = ""
     if True:
-        #generate piece wise linear cost fuctions
+        # generate piece wise linear cost fuctions
         first_order_coeff = 0
         const_coeff = 0
         # first order
@@ -101,11 +108,13 @@ def costFunction(segments,observed):
                 knob_name = config.knob.set_name
                 knob_val = config.val
                 for seg in segments[knob_name]:
-                    costFunction+=str(knob_val) + " " + seg.printVar() + " + "+str(knob_val) + " + "+ seg.printID() + " + "
-            costFunction=costFunction[:-3]
+                    costFunction += str(knob_val) + " " + seg.printVar() + " + " + str(
+                        knob_val) + " + " + seg.printID() + " + "
+            costFunction = costFunction[:-3]
     return costFunction
 
-def genConstraints(segments,observed, COST=True):
+
+def genConstraints(segments, observed, COST=True):
     if True:
         # generate piece wise linear cost fuctions
         costConstraints = set()
@@ -125,19 +134,19 @@ def genConstraints(segments,observed, COST=True):
                 knob_name = config.knob.set_name
                 knob_val = config.val
                 for seg in segments[knob_name]:
-                    if knob_val<seg.min or knob_val > seg.max:
+                    if knob_val < seg.min or knob_val > seg.max:
                         continue
                     if not knob_name in fall_within_segs:
                         fall_within_segs[knob_name] = []
                     fall_within_segs[knob_name].append(seg)
                     # generate the seg Constraints
-                    #posSegConstraint = seg.printID() + " = 1 -> " + seg.printVar() + " = " + knob_name
-                    #negSegConstraint = seg.printID() + " = 0 -> " + seg.printVar() + " = 0"
-                    #seg_sum += seg.printID() + " + "
-                    #segConstraints.add(posSegConstraint)
-                    #segConstraints.add(negSegConstraint)
-                #seg_sum = seg_sum[:-3]
-                #segConstraints.add(seg_sum+ " = 1")
+                    # posSegConstraint = seg.printID() + " = 1 -> " + seg.printVar() + " = " + knob_name
+                    # negSegConstraint = seg.printID() + " = 0 -> " + seg.printVar() + " = 0"
+                    # seg_sum += seg.printID() + " + "
+                    # segConstraints.add(posSegConstraint)
+                    # segConstraints.add(negSegConstraint)
+                # seg_sum = seg_sum[:-3]
+                # segConstraints.add(seg_sum+ " = 1")
                 # get all combinations of fall_within_segs
             flatted_segs = getFlattedSeg(fall_within_segs)
             costEstimates = []
@@ -145,47 +154,49 @@ def genConstraints(segments,observed, COST=True):
                 costEstimate = ""
                 for flatted_seg in flatted_seg_list:
                     knob_val = configuration.getSetting(flatted_seg.knob_name)
-                    costEstimate += str(knob_val) + " " + flatted_seg.printVar() + " + " + flatted_seg.printConst() + " + "
+                    costEstimate += str(
+                        knob_val) + " " + flatted_seg.printVar() + " + " + flatted_seg.printConst() + " + "
                 costEstimate = costEstimate[:-3]
                 costEstimates.append(costEstimate)
             # generate inter-service
             inter_cost = ""
-            if (not len(configuration.retrieve_configs())==1) and COST:
-                #inter_cost = " [ "
+            if (not len(configuration.retrieve_configs()) == 1) and COST:
+                # inter_cost = " [ "
                 configs = configuration.retrieve_configs()
                 total_num = len(configs)
-                for i in range(0,total_num-1):
+                for i in range(0, total_num - 1):
                     s1 = configs[i].knob.set_name
                     s1_val = configs[i].val
-                    for j in range(i+1,total_num):
+                    for j in range(i + 1, total_num):
                         s2 = configs[j].knob.set_name
                         s2_val = configs[j].val
-                        corr_a = s1+"_"+s2+"_a"
-                        corr_b = s1+"_"+s2+"_b"
-                        corr_c = s1+"_"+s2+"_c"
-                        #inter_cost+=str(s1_val * s1_val) + " " + s1+"_"+s2 + " + "
-                        inter_cost += str(s1_val*s1_val) + " " + corr_a  + " + "
+                        corr_a = s1 + "_" + s2 + "_a"
+                        corr_b = s1 + "_" + s2 + "_b"
+                        corr_c = s1 + "_" + s2 + "_c"
+                        # inter_cost+=str(s1_val * s1_val) + " " + s1+"_"+s2 + " + "
+                        inter_cost += str(s1_val * s1_val) + " " + corr_a + " + "
                         inter_cost += str(s2_val * s2_val) + " " + corr_b + " + "
                         inter_cost += str(s1_val * s2_val) + " " + corr_c + " + "
-                        #inter_coeff.add(s1+"_"+s2)
+                        # inter_coeff.add(s1+"_"+s2)
                         inter_coeff.add(corr_a)
                         inter_coeff.add(corr_b)
                         inter_coeff.add(corr_c)
                 inter_cost = inter_cost[:-3]
-                #inter_cost += " ]"
+                # inter_cost += " ]"
             for costEstimate in costEstimates:
                 err_name = "err" + str(err_id)
                 err_id += 1
                 errors.append(err_name)
                 if not inter_cost == "":
-                    costEstimate+=" + " + inter_cost
-                constraint = err_name + " + " + costEstimate  + " = " + str(costVal)
+                    costEstimate += " + " + inter_cost
+                constraint = err_name + " + " + costEstimate + " = " + str(costVal)
                 costConstraints.add(constraint)
                 # add the PSD constraints
-                if not inter_cost=="":
+                if not inter_cost == "":
                     constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
                     costConstraints.add(constraint2)
-    return costConstraints,segConstraints,errors,inter_coeff
+    return costConstraints, segConstraints, errors, inter_coeff
+
 
 # get a combination of cost estimates
 def getFlattedSeg(fall_within_segs):
@@ -198,7 +209,8 @@ def getFlattedSeg(fall_within_segs):
     flatted = flatAll(prod)
     return flatted
 
-def genBounds(seg_indicators, seg_values, segconst,knob_values, errors):
+
+def genBounds(seg_indicators, seg_values, segconst, knob_values, errors):
     integerBounds = set()
     floatBounds = set()
     # segIDs
@@ -208,19 +220,20 @@ def genBounds(seg_indicators, seg_values, segconst,knob_values, errors):
     for seg_value in seg_values:
         floatBound = "1e-5 < " + seg_value
         floatBounds.add(floatBound)
-    #for seg_value in segconst:
+    # for seg_value in segconst:
     #    floatBound = "-99999 <= " + seg_value + " <= 99999"
     #    floatBounds.add(floatBound)
-    #for knob_value in knob_values:
+    # for knob_value in knob_values:
     #    floatBound = "-99999 <= " + knob_value + " <= 99999"
     #    floatBounds.add(floatBound)
     for error in errors:
         floatBound = "-99999 <= " + error + " <= 99999"
         floatBounds.add(floatBound)
-    return integerBounds,floatBounds
+    return integerBounds, floatBounds
 
-def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds,seg_indicators):
-    probfile = open("./debug/fitting.lp",'w')
+
+def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds, seg_indicators):
+    probfile = open("./debug/fitting.lp", 'w')
     probfile.write("Minimize\n")
     probfile.write(obj)
     probfile.write("\nSubject To\n")
@@ -240,15 +253,16 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
         probfile.write(seg + "\n")
     probfile.close()
 
-def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
+
+def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff, COST=True):
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
-    result = open("./debug/max.sol",'r')
+    result = open("./debug/max.sol", 'r')
     rsdg = pieceRSDG()
     # setup the knob table
     for knob in segments:
         rsdg.addKnob(knob)
         for seg in segments[knob]:
-            rsdg.addSeg(knob,seg)
+            rsdg.addSeg(knob, seg)
     for line in result:
         col = line.split()
         if not (len(col) == 2):
@@ -258,9 +272,9 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
         if val > 9999 or val < -9999:
             print "found not derived value", name, val
             if val > 0:
-                val = 99999-val
+                val = 99999 - val
             else:
-                val = -99999-val
+                val = -99999 - val
         if name in seg_values:
             # knob_id_V
             cols = name.split("_")
@@ -293,31 +307,30 @@ def solveAndPopulateRSDG(segments, seg_values, segconst,inter_coeff,COST=True):
     if COST:
         for knob in rsdg.coeffTable:
             for dep in rsdg.coeffTable[knob]:
-                coeffs =rsdg.coeffTable[knob][dep]
+                coeffs = rsdg.coeffTable[knob][dep]
                 a = coeffs.a
                 b = coeffs.b
                 c = coeffs.c
-                coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a,b,c)
+                coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a, b, c)
                 print "before"
-                print a,b,c
+                print a, b, c
                 print "after PSD"
                 print coeffs.a, coeffs.b, coeffs.c
     rsdg.printRSDG(COST)
     return rsdg
 
 
-
-def modelValid(rsdg,groundTruth,PRINT):
+def modelValid(rsdg, groundTruth, PRINT):
     outfile = None
     if PRINT:
-        outfile = open("outputs/modelValid.csv",'w')
+        outfile = open("outputs/modelValid.csv", 'w')
     error = 0.0
     count = 0
     for configuration in groundTruth.configurations:
         count += 1
         rsdgCost = rsdg.calCost(configuration)
         measurement = groundTruth.getCost(configuration)
-        error += abs(measurement-rsdgCost)/measurement
+        error += abs(measurement - rsdgCost) / measurement
         if PRINT:
             for config in configuration.retrieve_configs():
                 outfile.write(config.knob.set_name)
@@ -328,9 +341,9 @@ def modelValid(rsdg,groundTruth,PRINT):
             outfile.write(",")
             outfile.write(str(rsdgCost))
             outfile.write(",")
-            outfile.write(str((measurement-rsdgCost)/measurement))
+            outfile.write(str((measurement - rsdgCost) / measurement))
             outfile.write("\n")
     if PRINT:
         outfile.close()
-        print error/count
+        print error / count
     return error / count

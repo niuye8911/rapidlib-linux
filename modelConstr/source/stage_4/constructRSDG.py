@@ -1,6 +1,7 @@
-from stage_1.training import *
 from Classes import *
 from representset import *
+from stage_1.training import *
+
 from piecewiseProb import *
 from quadProb import *
 

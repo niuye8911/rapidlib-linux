@@ -1,6 +1,3 @@
-from performance import *
-
-
 def genFact(appname, config_table, appMethods, withQoS, withSys):
     cost_path = "outputs/" + appname + "-cost" + ".fact"
     mv_path = "outputs/" + appname + "-mv" + ".fact"

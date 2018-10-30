@@ -1,8 +1,8 @@
 # Neccesary Data-Structures used in RAPID-C
-import time
+import csv
 import datetime
 import os
-import csv
+import time
 
 
 class Knob:
