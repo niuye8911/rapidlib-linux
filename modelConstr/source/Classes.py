@@ -302,8 +302,10 @@ class Profile:
         for i in sorted(self.profile_table):
             output.write(i)
             output.write(",")
-            output.write(str(self.profile_table[i]) + ",")
-            output.write(str(self.mvprofile_table[i]))
+            if i in self.profile_table:
+                output.write(str(self.profile_table[i]))
+            if i in self.mvprofile_table:
+                output.write("," + str(self.mvprofile_table[i]))
             output.write("\n")
         output.close()
 
@@ -589,6 +591,15 @@ class AppMethods():
         self.appName = name
         self.obj_path = obj_path
         self.sys_usage_table = dict()
+        self.training_units = 1;
+
+    # Implement this function
+    def getCommand(self, configs=None):
+        """ Assembly the CMD line for running the app
+        :param configs: a concrete configuration with knob settings
+                        Default setting would assemble command for GT
+        """
+        pass
 
     # Implement this function
     def train(self, config_table, costFact, mvFact, sysFact, withMV, withSys):
@@ -601,7 +612,37 @@ class AppMethods():
         :param withSys: whether to check system usage or not
         """
         # perform a single run for training
-        pass
+        configurations = config_table.configurations  # get the configurations in the table
+        costFact = open(costFact, 'w')
+        mvFact = open(mvFact, 'w')
+        sysFact = open(sysFact, 'w')
+
+        # iterate through configurations
+        for configuration in configurations:
+            # the purpose of each iteration is to fill in the two values below
+            cost = 0.0
+            mv = 0.0
+            configs = configuration.retrieve_configs()  # extract the configurations
+            # assembly the command
+            command = self.getCommand(configs)
+            # measure the "cost"
+            cost, metric = self.getCostAndSys(command, self.training_units, withSys, configuration.printSelf('-'))
+            # write the cost to file
+            self.writeConfigMeasurementToFile(costFact, configuration, cost)
+            # measure the "mv"
+            if withMV:
+                mv = self.getQoS()
+                # write the mv to file
+                self.writeConfigMeasurementToFile(mvFact, configuration, mv)
+            if withSys:
+                # write metric value to table
+                self.recordSysUsage(configuration, metric)
+            self.cleanUpAfterEachRun(configs)
+        # write the metric to file
+        if withSys:
+            self.printUsageTable(sysFact)
+        costFact.close()
+        mvFact.close()
 
     # Implement this function
     def runGT(self):
@@ -609,10 +650,12 @@ class AppMethods():
         QoS checking later in the future. The output can be application specific, but we recommend to output the
         result to a file.
 	"""
-        pass
+        print "GENERATING GROUND TRUTH for " + self.appName
+        command = self.getCommand()
+        os.system(" ".join(command))
+        self.afterGTRun()
 
     # Some default APIs
-
     def getName(self):
         """ Return the name of the app
         :return: string
@@ -641,7 +684,7 @@ class AppMethods():
 
     ### some utilities might be useful
 
-    def getTime(self, command, work_units=1, withSys=False, configuration=''):
+    def getCostAndSys(self, command, work_units=1, withSys=False, configuration=''):
         """ return the execution time of running a single work unit using func in milliseconds
         To measure the cost of running the application with a configuration, each training run may finish multiple
         work units to average out the noise.
@@ -651,44 +694,47 @@ class AppMethods():
         :return: the average execution time for each work unit
         """
         time1 = time.time()
+        metric_value = {}
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
             pcm_prefix = ['/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '-i=20', '2>/dev/null', '-csv=tmp.csv', '--']
             command = pcm_prefix + command
-            print
-            command
         os.system(" ".join(command))
         time2 = time.time()
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
-        with open('tmp.csv') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=';')
-            line_count = 0
-            metric = []
-            value = []
-            metric_value = {}
-            for row in csv_reader:
-                if line_count == 0:
-                    line_count += 1
-                elif line_count == 1:  # header line
-                    for item in row:
-                        metric.append(item)
-                    line_count += 1
-                else:  # value line
-                    for item in row:
-                        value.append(item)
-            for i in range(0, len(metric)):
-                if metric[i] != '':
-                    metric_value[metric[i]] = value[i]
-        csv_file.close()
-        if configuration != '':
-            # back up the csv_file
-            os.system("mv tmp.csv " + configuration + ".csv")
+        if withSys:
+            with open('tmp.csv') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=';')
+                line_count = 0
+                metric = []
+                value = []
+                for row in csv_reader:
+                    if line_count == 0:
+                        line_count += 1
+                    elif line_count == 1:  # header line
+                        for item in row:
+                            metric.append(item)
+                        line_count += 1
+                    else:  # value line
+                        for item in row:
+                            value.append(item)
+                for i in range(0, len(metric)):
+                    if metric[i] != '':
+                        metric_value[metric[i]] = value[i]
+            csv_file.close()
+            if configuration != '':
+                # back up the csv_file
+                os.system("mv tmp.csv " + configuration + ".csv")
 
         return avg_time, metric_value
 
-    def getSysUsage(self, ):
+    def getQoS(self):
+        """ Return the QoS for a configuration"""
+        return 0.0
+
+    def getSysUsage(self):
         """ return the average system usage for a period of time
         :return: the system usage
         """
@@ -740,6 +786,16 @@ class AppMethods():
                 filestream.write(metric[cur_metric] + ";")
             filestream.write("\n")
         filestream.close()
+
+    def cleanUpAfterEachRun(self, configs=None):
+        """ This function will be called after every training iteration for a config
+        """
+        pass
+
+    def afterGTRun(self):
+        """ This function will be called after runGT()
+        """
+        pass
 
     def pinTime(self, filestream):
         filestream.write(str(datetime.datetime.now()) + " ")
