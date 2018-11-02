@@ -95,7 +95,7 @@ class Configuration:
         """
         result = ""
         items = map((lambda x: x.knob.set_name + delimiter + str(x.val)), self.knob_settings)
-        return delimiter.join(items)
+        return delimiter.join(sorted(items))
         # for config in self.knob_settings:
         #    result += " " + config.knob.set_name + " " + str(config.val)
         # return result
@@ -700,6 +700,7 @@ class AppMethods():
             # sudo ./pcm.x -csv=results.csv
             pcm_prefix = ['/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '-i=20', '2>/dev/null', '-csv=tmp.csv', '--']
             command = pcm_prefix + command
+        print " ".join(command)
         os.system(" ".join(command))
         time2 = time.time()
         avg_time = (time2 - time1) * 1000.0 / work_units
@@ -726,7 +727,7 @@ class AppMethods():
             csv_file.close()
             if configuration != '':
                 # back up the csv_file
-                os.system("mv tmp.csv " + configuration + ".csv")
+                os.system("mv tmp.csv ./debug/" + configuration + ".csv")
 
         return avg_time, metric_value
 
@@ -783,7 +784,8 @@ class AppMethods():
             # write the configuration
             filestream.write(configuration + ";")
             for cur_metric in metrics:
-                filestream.write(metric[cur_metric] + ";")
+                if cur_metric in metric:
+                    filestream.write(metric[cur_metric] + ";")
             filestream.write("\n")
         filestream.close()
 
