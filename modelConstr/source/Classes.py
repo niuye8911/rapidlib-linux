@@ -2,7 +2,40 @@
 import csv
 import datetime
 import os
+import random
+import signal
+import subprocess
 import time
+
+
+class SysArgs:
+    def __init__(self):
+        self.env = {}
+        self.env["cpu_num"] = [1, 2, 3, 4, 5, 6, 7]
+        self.env["io"] = [1, 2, 3, 4]
+        self.env["vm"] = [1, 2, 3]
+        self.env["vm_bytes"] = ["32M", "64M", "128M", "256M"]
+        self.env["hdd"] = [1, 2, 3, 4, 5, 6]
+        self.env["hdd_bytes"] = ["100M", "500M", "1G"]
+
+    def getRandomEnv(self):
+        cpu_num = random.choice(self.env['cpu_num'])
+        io = random.choice(self.env['io'])
+        vm = random.choice(self.env['vm'])
+        vm_bytes = random.choice(self.env['vm_bytes'])
+        hdd = random.choice(self.env['hdd'])
+        hdd_bytes = random.choice(self.env['hdd_bytes'])
+        command = [
+            'stress',
+            "--cpu",
+            str(cpu_num), '--io',
+            str(io), '--vm',
+            str(vm), '--vm-bytes',
+            str(vm_bytes), '--hdd',
+            str(hdd), '--hdd-bytes',
+            str(hdd_bytes)
+        ]
+        return command
 
 
 class Knob:
@@ -94,7 +127,8 @@ class Configuration:
         :return: as described
         """
         result = ""
-        items = map((lambda x: x.knob.set_name + delimiter + str(x.val)), self.knob_settings)
+        items = map((lambda x: x.knob.set_name + delimiter + str(x.val)),
+                    self.knob_settings)
         return delimiter.join(sorted(items))
         # for config in self.knob_settings:
         #    result += " " + config.knob.set_name + " " + str(config.val)
@@ -103,13 +137,15 @@ class Configuration:
 
 ###################problem generation#########################
 
+
 class Constraint:
     """ a continuous constraint with source and sink
     The syntax of a constraint is:
     if sink_min <= sink <= sink_max, then source_min <= source <= source_max
     """
 
-    def __init__(self, type, source, sink, source_min, source_max, sink_min, sink_max):
+    def __init__(self, type, source, sink, source_min, source_max, sink_min,
+                 sink_max):
         """ Initialization
         :param type: AND or OR, in string
         :param source: string
@@ -186,6 +222,7 @@ class Segment:
 
 
 ###################parsing classes#############################
+
 
 class Profile:
     """ a profile table, could be observed, or ground truth
@@ -417,8 +454,10 @@ class quadRSDG:
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
                 rsdg.write("\t")
-                rsdg.write(knob + "_" + b + ":" + str(self.coeffTable[knob][b].a) + "/" + str(
-                    self.coeffTable[knob][b].b) + "/" + str(self.coeffTable[knob][b].c) + "\n")
+                rsdg.write(knob + "_" + b + ":" +
+                           str(self.coeffTable[knob][b].a) + "/" +
+                           str(self.coeffTable[knob][b].b) + "/" +
+                           str(self.coeffTable[knob][b].c) + "\n")
         rsdg.close()
 
     def calCost(self, configuration):
@@ -433,7 +472,8 @@ class quadRSDG:
             knob_name = config.knob.set_name
             knob_val = config.val
             coeffs = self.knob_table[knob_name]
-            totalcost += coeffs[0] * knob_val * knob_val + coeffs[1] * knob_val + coeffs[2]
+            totalcost += coeffs[0] * knob_val * knob_val + coeffs[
+                1] * knob_val + coeffs[2]
 
         # calculate inter cost
         configs = []
@@ -444,14 +484,17 @@ class quadRSDG:
                 if i == j:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
-                    if configs[j].knob.set_name in self.coeffTable[configs[i].knob.set_name]:
+                    if configs[j].knob.set_name in self.coeffTable[
+                        configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
                         coeff_inter = coeff_entry[configs[j].knob.set_name]
                         a, b, c = coeff_inter.retrieveCoeffs()
-                        totalcost += float(knoba_val) * float(knoba_val) * a + float(knobb_val) * float(
-                            knobb_val) * b + float(knobb_val) * float(knoba_val) * c
+                        totalcost += float(knoba_val) * float(
+                            knoba_val) * a + float(knobb_val) * float(
+                            knobb_val) * b + float(knobb_val) * float(
+                            knoba_val) * c
 
         return totalcost
 
@@ -515,15 +558,18 @@ class pieceRSDG:
             for seg in seglist:
                 rsdg.write("\t")
                 rsdg.write(str(seg.min) + " " + str(seg.max) + " ")
-                rsdg.write(seg.printID() + " " + str(seg.a) + " " + str(seg.b) + "\n")
+                rsdg.write(seg.printID() + " " + str(seg.a) + " " +
+                           str(seg.b) + "\n")
             rsdg.write("\n")
         # print the coeff
         rsdg.write("COEFF\n")
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
                 rsdg.write("\t")
-                rsdg.write(knob + "_" + b + ":" + str(self.coeffTable[knob][b].a) + "/" + str(
-                    self.coeffTable[knob][b].b) + "/" + str(self.coeffTable[knob][b].c) + "\n")
+                rsdg.write(knob + "_" + b + ":" +
+                           str(self.coeffTable[knob][b].a) + "/" +
+                           str(self.coeffTable[knob][b].b) + "/" +
+                           str(self.coeffTable[knob][b].c) + "\n")
         rsdg.close()
 
     def calCost(self, configuration):
@@ -547,14 +593,17 @@ class pieceRSDG:
                 if i == j:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
-                    if configs[j].knob.set_name in self.coeffTable[configs[i].knob.set_name]:
+                    if configs[j].knob.set_name in self.coeffTable[
+                        configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
                         coeff_inter = coeff_entry[configs[j].knob.set_name]
                         a, b, c = coeff_inter.retrieveCoeffs()
-                        totalcost += float(knoba_val) * float(knoba_val) * a + float(knobb_val) * float(
-                            knobb_val) * b + float(knobb_val) * float(knoba_val) * c
+                        totalcost += float(knoba_val) * float(
+                            knoba_val) * a + float(knobb_val) * float(
+                            knobb_val) * b + float(knobb_val) * float(
+                            knoba_val) * c
         return totalcost
 
     def findSeg(self, knob_name, knob_val):
@@ -591,7 +640,7 @@ class AppMethods():
         self.appName = name
         self.obj_path = obj_path
         self.sys_usage_table = dict()
-        self.training_units = 1;
+        self.training_units = 1
 
     # Implement this function
     def getCommand(self, configs=None):
@@ -602,7 +651,7 @@ class AppMethods():
         pass
 
     # Implement this function
-    def train(self, config_table, costFact, mvFact, sysFact, withMV, withSys):
+    def train(self, config_table, costFact, mvFact, sysFact, perfFact):
         """ Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
         :param config_table: A table of class Profile containing all configurations to train
         :param costFact: the destination of output file for recording costs
@@ -610,23 +659,34 @@ class AppMethods():
         :param sysFact: the destination of output file for recording system usage
         :param withMV: whether to check MV or not
         :param withSys: whether to check system usage or not
+        :param withPerf: whether to record slow-down or not
         """
         # perform a single run for training
         configurations = config_table.configurations  # get the configurations in the table
+        withMV = mvFact is not ""
+        withSys = sysFact is not ""
+        withPerf = perfFact is not ""
         costFact = open(costFact, 'w')
-        mvFact = open(mvFact, 'w')
-        sysFact = open(sysFact, 'w')
+        if withMV:
+            mvFact = open(mvFact, 'w')
+        if withSys:
+            sysFact = open(sysFact, 'w')
+        if withPerf:
+            slowdownProfile = open(perfFact, 'w')
 
         # iterate through configurations
         for configuration in configurations:
             # the purpose of each iteration is to fill in the two values below
             cost = 0.0
             mv = 0.0
-            configs = configuration.retrieve_configs()  # extract the configurations
+            configs = configuration.retrieve_configs(
+            )  # extract the configurations
             # assembly the command
             command = self.getCommand(configs)
             # measure the "cost"
-            cost, metric = self.getCostAndSys(command, self.training_units, withSys, configuration.printSelf('-'))
+            cost, metric = self.getCostAndSys(command, self.training_units,
+                                              withSys,
+                                              configuration.printSelf('-'))
             # write the cost to file
             self.writeConfigMeasurementToFile(costFact, configuration, cost)
             # measure the "mv"
@@ -637,12 +697,18 @@ class AppMethods():
             if withSys:
                 # write metric value to table
                 self.recordSysUsage(configuration, metric)
+            if withPerf:
+                # examine the execution time slow-down
+                self.runStressTest(configuration, cost, slowdownProfile)
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
+        costFact.close()
         if withSys:
             self.printUsageTable(sysFact)
-        costFact.close()
-        mvFact.close()
+        if withMV:
+            mvFact.close()
+        if withPerf:
+            perfFact.close()
 
     # Implement this function
     def runGT(self):
@@ -654,6 +720,23 @@ class AppMethods():
         command = self.getCommand()
         os.system(" ".join(command))
         self.afterGTRun()
+
+    def runStressTest(self, configuration, orig_cost, slowdownProfile):
+        app_command = self.getCommand(configuration.retrieve_configs())
+        env = SysArgs()
+        slowdownTable = {}
+        for i in range(1, 20):  # run 20 different environment
+            env_command = env.getRandomEnv()
+            # start the env
+            env_creater = subprocess.Popen(env_command, stdout=subprocess.PIPE,
+                                           shell=True, preexec_fn=os.setsid)
+            cost, metric = self.getCostAndSys(app_command, self.training_units, True,
+                                              configuration.printSelf('-'))
+            # end the #!/usr/bin/env python
+            os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
+            # write the measurement to file
+            slowdown = cost / orig_cost
+            # TODO: print slowdown
 
     # Some default APIs
     def getName(self):
@@ -684,7 +767,11 @@ class AppMethods():
 
     ### some utilities might be useful
 
-    def getCostAndSys(self, command, work_units=1, withSys=False, configuration=''):
+    def getCostAndSys(self,
+                      command,
+                      work_units=1,
+                      withSys=False,
+                      configuration=''):
         """ return the execution time of running a single work unit using func in milliseconds
         To measure the cost of running the application with a configuration, each training run may finish multiple
         work units to average out the noise.
@@ -698,7 +785,10 @@ class AppMethods():
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
-            pcm_prefix = ['/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '-i=20', '2>/dev/null', '-csv=tmp.csv', '--']
+            pcm_prefix = [
+                '/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '-i=20',
+                '2>/dev/null', '-csv=tmp.csv', '--'
+            ]
             command = pcm_prefix + command
         print " ".join(command)
         os.system(" ".join(command))
@@ -706,43 +796,39 @@ class AppMethods():
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
-            with open('tmp.csv') as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=';')
-                line_count = 0
-                metric = []
-                value = []
-                for row in csv_reader:
-                    if line_count == 0:
-                        line_count += 1
-                    elif line_count == 1:  # header line
-                        for item in row:
-                            metric.append(item)
-                        line_count += 1
-                    else:  # value line
-                        for item in row:
-                            value.append(item)
-                for i in range(0, len(metric)):
-                    if metric[i] != '':
-                        metric_value[metric[i]] = value[i]
-            csv_file.close()
+            metric_value = self.parseTmpCSV()
             if configuration != '':
                 # back up the csv_file
                 os.system("mv tmp.csv ./debug/" + configuration + ".csv")
 
         return avg_time, metric_value
 
+    def parseTmpCSV(self):
+        metric_value = {}
+        with open('tmp.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            line_count = 0
+            metric = []
+            value = []
+            for row in csv_reader:
+                if line_count == 0:
+                    line_count += 1
+                elif line_count == 1:  # header line
+                    for item in row:
+                        metric.append(item)
+                    line_count += 1
+                else:  # value line
+                    for item in row:
+                        value.append(item)
+            for i in range(0, len(metric)):
+                if metric[i] != '':
+                    metric_value[metric[i]] = value[i]
+        csv_file.close()
+        return metric_value
+
     def getQoS(self):
         """ Return the QoS for a configuration"""
         return 0.0
-
-    def getSysUsage(self):
-        """ return the average system usage for a period of time
-        :return: the system usage
-        """
-        time1 = time.time()
-        os.system(" ".join(command))
-        time2 = time.time()
-        return (time2 - time1) * 1000.0 / work_units
 
     def moveFile(self, fromfile, tofile):
         """ move a file to another location

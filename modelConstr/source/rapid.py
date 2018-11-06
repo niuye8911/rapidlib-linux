@@ -1,16 +1,17 @@
-import optparse
-from LP_Util.merge import *
-from xmlgen import *
-from Parsing_Util.readFact import *
-from stage_1.training import *
-from stage_2.trainApp import *
-from stage_4.constructRSDG import *
-from Classes import *
-from representset import populateRSDG, genRS
-from plot import *
-from stage_2.qos_checker import *
 import imp
 import json
+import optparse
+
+from Classes import *
+from LP_Util.merge import *
+from Parsing_Util.readFact import *
+from plot import *
+from representset import populateRSDG, genRS
+from stage_1.training import *
+from stage_2.qos_checker import *
+from stage_2.trainApp import *
+from stage_4.constructRSDG import *
+from xmlgen import *
 
 configs = []
 service_levels = {}
@@ -34,8 +35,9 @@ config_file = ""
 app_config = None
 PLOT = False
 
-withSys = True
+withSys = False
 withQoS = False
+withPerf = True
 
 THRESHOLD = 0.05
 
@@ -75,7 +77,7 @@ def main(argv):
     # load user-supplied methods
     module = imp.load_source("", methods_path)
     appMethods = module.appMethods(appname, obj_path)
-    factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods, withQoS, withSys)
+    factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods, withQoS, withSys, withPerf)
 
     #######################STAGE-3########################
     # third stage: Modeling, use the specific modeling method to construct the RSDG
