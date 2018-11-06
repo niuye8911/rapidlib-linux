@@ -16,7 +16,7 @@ class appMethods(AppMethods):
         itr = 25
         hash = 8
         probe = 20
-        if not configs == None:
+        if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "hash":
@@ -39,7 +39,7 @@ class appMethods(AppMethods):
         itr = 25
         hash = 8
         probe = 20
-        if not configs == None:
+        if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "hash":
@@ -49,18 +49,18 @@ class appMethods(AppMethods):
                 elif name == "itr":
                     itr = config.val  # retrieve the setting for each knob
         return [self.obj_path,
-                    self.database_path,
-                    self.table, self.query_path,
-                    "50",
-                    "20",
-                    "1",
-                    "output.txt",
-                    '-l',
-                    str(hash),
-                    '-t',
-                    str(probe),
-                    '-itr',
-                    str(itr)]
+                self.database_path,
+                self.table, self.query_path,
+                "50",
+                "20",
+                "1",
+                "output.txt",
+                '-l',
+                str(hash),
+                '-t',
+                str(probe),
+                '-itr',
+                str(itr)]
 
     # helper function to evaluate the QoS
     def getQoS(self):
@@ -76,7 +76,6 @@ class appMethods(AppMethods):
         mission_output = open(self.input_path + "poses.txt", "r")
         truth_results = []
         mission_results = []
-        totalRound = 0
         for line in gt_output:
             round_res = line.split()
             truth_results.append(round_res)
