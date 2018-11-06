@@ -16,5 +16,6 @@
 **/*.profile
 **/*.scssc
 **/*.yml
+modelConstr/source/outputs/*
 docs/.editorconfig
 docs/.github/*

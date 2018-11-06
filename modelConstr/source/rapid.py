@@ -35,7 +35,7 @@ config_file = ""
 app_config = None
 PLOT = False
 
-withSys = False
+withSys = True
 withQoS = False
 withPerf = True
 

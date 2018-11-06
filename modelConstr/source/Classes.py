@@ -7,6 +7,40 @@ import signal
 import subprocess
 import time
 
+class Metric:
+    def __init__(self):
+        self.metrics = dict()
+        self.metric_names = []
+    def add_metric(self,name,value):
+        self.metrics[name] = value
+        self.metric_names.append(name)
+        self.metric_names = sorted(self.metric_names)
+    def printAsCSVLine(self,delimiter):
+        line = ''
+        metricsNames = map(lambda metric: self.metrics[metric],self.metric_names)
+        return delimiter.join(metricsNames)
+
+class SysUsageTable:
+    def __init__(self):
+        self.table = dict()
+        self.metrics = []
+    def add_entry(self, configuration, metric):
+        self.table[configuration] = metric
+        if not self.metrics:
+            self.metrics = metric.metrics
+    def printAsCSV(self, filestream, delimiter):
+        # write the header
+        filestream.write(delimiter)
+        for metric_name in self.metrics:
+            filestream.write(metric_name + ";")
+        filestream.write('\n')
+        # write the body
+        for configuration, metric in self.table.items():
+            # write the configuration
+            filestream.write(configuration + delimiter)
+            filestream.write(metric.printAsCSVLine(delimiter))
+            filestream.write("\n")
+        filestream.close()
 
 class SysArgs:
     def __init__(self):
@@ -639,7 +673,7 @@ class AppMethods():
         """
         self.appName = name
         self.obj_path = obj_path
-        self.sys_usage_table = dict()
+        self.sys_usage_table = SysUsageTable()
         self.training_units = 1
 
     # Implement this function
@@ -732,10 +766,11 @@ class AppMethods():
                                            shell=True, preexec_fn=os.setsid)
             cost, metric = self.getCostAndSys(app_command, self.training_units, True,
                                               configuration.printSelf('-'))
-            # end the #!/usr/bin/env python
+            # end the env
             os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
             # write the measurement to file
             slowdown = cost / orig_cost
+            print "slowdown is :" + str(slowdown)
             # TODO: print slowdown
 
     # Some default APIs
@@ -804,7 +839,7 @@ class AppMethods():
         return avg_time, metric_value
 
     def parseTmpCSV(self):
-        metric_value = {}
+        metric_value = Metric()
         with open('tmp.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=';')
             line_count = 0
@@ -822,7 +857,7 @@ class AppMethods():
                         value.append(item)
             for i in range(0, len(metric)):
                 if metric[i] != '':
-                    metric_value[metric[i]] = value[i]
+                    metric_value.add_metric(metric[i], value[i])
         csv_file.close()
         return metric_value
 
@@ -852,28 +887,10 @@ class AppMethods():
         :param configuration: the configuration
         :param metric: the dict of metric measured
         """
-        self.sys_usage_table[configuration.printSelf()] = metric
+        self.sys_usage_table.add_entry(configuration.printSelf(),metric)
 
     def printUsageTable(self, filestream):
-        header_written = False
-        metrics = []
-        for configuration, metric in self.sys_usage_table.items():
-            if not header_written:
-                print metric.keys()
-                metrics = sorted(metric.keys())
-                print metrics
-                filestream.write(';')
-                for metric_name in metrics:
-                    filestream.write(metric_name + ";")
-                header_written = True
-                filestream.write("\n")
-            # write the configuration
-            filestream.write(configuration + ";")
-            for cur_metric in metrics:
-                if cur_metric in metric:
-                    filestream.write(metric[cur_metric] + ";")
-            filestream.write("\n")
-        filestream.close()
+        self.sys_usage_table.printAsCSV(filestream, ';')
 
     def cleanUpAfterEachRun(self, configs=None):
         """ This function will be called after every training iteration for a config

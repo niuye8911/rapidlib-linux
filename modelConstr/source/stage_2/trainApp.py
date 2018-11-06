@@ -1,6 +1,6 @@
 def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf):
     cost_path = "outputs/" + appname + "-cost" + ".fact"
-    mv_path = "outputs/" + appname + "-mv" + ".fact" if withQos else ''
+    mv_path = "outputs/" + appname + "-mv" + ".fact" if withQoS else ''
     sys_path = "outputs/" + appname + "-sys" + ".csv" if withSys else ''
     perf_path = "outputs/" + appname + "-perf" + ".csv" if withPerf else ''
     # run(appname,config_table)
