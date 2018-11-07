@@ -10,18 +10,23 @@ import time
 
 
 class Metric:
+    EXCLUDED_METRIC = {"Date", "Time"}
     def __init__(self):
         self.metrics = dict()
         self.metric_names = []
 
     def add_metric(self, name, value):
-        self.metrics[name] = value
-        self.metric_names.append(name)
-        self.metric_names = sorted(self.metric_names)
+        if name not in self.EXCLUDED_METRIC:
+            self.metrics[name] = value
+            self.metric_names.append(name)
+            self.metric_names = sorted(self.metric_names)
 
     def printAsCSVLine(self, delimiter):
         metricsNames = map(lambda metric: self.metrics[metric], self.metric_names)
         return delimiter.join(metricsNames)
+
+    def printAsHeader(self, delimiter):
+        return delimiter + delimiter.join(sorted(self.metric_names))
 
 
 class SlowDown:
@@ -65,16 +70,17 @@ class SysUsageTable:
     def add_entry(self, configuration, metric):
         self.table[configuration] = metric
         if not self.metrics:
-            self.metrics = metric.metrics
+            self.metrics = metric.metric_names
 
     def printAsCSV(self, filestream, delimiter):
         # write the header
-        filestream.write(delimiter)
-        for metric_name in self.metrics:
-            filestream.write(metric_name + ";")
-        filestream.write('\n')
+        header_written = False
         # write the body
         for configuration, metric in self.table.items():
+            # write the header
+            if not header_written:
+                filestream.write(metric.printAsHeader(delimiter))
+                header_written = True
             # write the configuration
             filestream.write(configuration + delimiter)
             filestream.write(metric.printAsCSVLine(delimiter))
@@ -100,7 +106,7 @@ class SysArgs:
         hdd = random.choice(self.env['hdd'])
         hdd_bytes = random.choice(self.env['hdd_bytes'])
         command = [
-            'stress',
+            '/usr/bin/stress',
             "--cpu",
             str(cpu_num), '--io',
             str(io), '--vm',
@@ -746,6 +752,7 @@ class AppMethods():
             sysFact = open(sysFact, 'w')
         if withPerf:
             slowdownProfile = open(perfFact, 'w')
+            slowdownHeader = False
 
         # iterate through configurations
         for configuration in configurations:
@@ -774,8 +781,12 @@ class AppMethods():
                 # examine the execution time slow-down
                 print "START STRESS TRAINING"
                 slowdownTable = self.runStressTest(configuration, cost, slowdownProfile)
+                # write the header
+                if not slowdownHeader:
+                    slowdownProfile.write(metric.printAsHeader(';'))
+                    slowdownHeader = True
                 slowdownTable.writeSlowDownTable(slowdownProfile)
-                withPerf = False  # remove this for full training
+                # withPerf = False  # remove this for full training
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
         costFact.close()
@@ -784,7 +795,7 @@ class AppMethods():
         if withMV:
             mvFact.close()
         if withPerf:
-            perfFact.close()
+            slowdownProfile.close()
 
     # Implement this function
     def runGT(self):
@@ -803,9 +814,9 @@ class AppMethods():
         slowdownTable = SlowDown(configuration)
         for i in range(0, 20):  # run 20 different environment
             env_command = env.getRandomEnv()
+            print env_command
             # start the env
-            env_creater = subprocess.Popen(env_command, stdout=subprocess.PIPE,
-                                           shell=True, preexec_fn=os.setsid)
+            env_creater = subprocess.Popen(" ".join(env_command), shell=True, preexec_fn=os.setsid)
             cost, metric = self.getCostAndSys(app_command, self.training_units, True,
                                               configuration.printSelf('-'))
             # end the env
