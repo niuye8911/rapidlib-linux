@@ -1,33 +1,72 @@
 # Neccesary Data-Structures used in RAPID-C
 import csv
 import datetime
+import hashlib
 import os
 import random
 import signal
 import subprocess
 import time
 
+
 class Metric:
     def __init__(self):
         self.metrics = dict()
         self.metric_names = []
-    def add_metric(self,name,value):
+
+    def add_metric(self, name, value):
         self.metrics[name] = value
         self.metric_names.append(name)
         self.metric_names = sorted(self.metric_names)
-    def printAsCSVLine(self,delimiter):
-        line = ''
-        metricsNames = map(lambda metric: self.metrics[metric],self.metric_names)
+
+    def printAsCSVLine(self, delimiter):
+        metricsNames = map(lambda metric: self.metrics[metric], self.metric_names)
         return delimiter.join(metricsNames)
+
+
+class SlowDown:
+    def __init__(self, configuration):
+        self.configuration = configuration
+        self.slowdown_table = dict()
+        self.metrics = dict()
+
+    def add_slowdown(self, metric, slowdown):
+        self.slowdown_table[self.get_md5(metric).hexdigest()] = slowdown
+        self.metrics[self.get_md5(metric).hexdigest()] = metric
+
+    def get_md5(self, metric):
+        return hashlib.md5(metric.printAsCSVLine(';').encode())
+
+    def get_metric(self, md5string):
+        return self.metrics[md5string].printAsCSVLine(';') if md5string in self.metrics else ''
+
+    def get_slowdown(self, metric):
+        md5hex = self.get_md5(metric).hexdigest()
+        return self.slowdown_table[md5hex] if md5hex in self.slowdown_table else -1.
+
+    def writeSlowDownTable(self, filestream):
+        filestream.write('\n')
+        # write the config
+        filestream.write(self.configuration.printSelf('-'))
+        # write the metric
+        for metricmd5, slowdown in self.slowdown_table.items():
+            filestream.write(';')
+            filestream.write(self.get_metric(metricmd5))
+            filestream.write(';')
+            filestream.write(str(slowdown))
+            filestream.write('\n')
+
 
 class SysUsageTable:
     def __init__(self):
         self.table = dict()
         self.metrics = []
+
     def add_entry(self, configuration, metric):
         self.table[configuration] = metric
         if not self.metrics:
             self.metrics = metric.metrics
+
     def printAsCSV(self, filestream, delimiter):
         # write the header
         filestream.write(delimiter)
@@ -41,6 +80,7 @@ class SysUsageTable:
             filestream.write(metric.printAsCSVLine(delimiter))
             filestream.write("\n")
         filestream.close()
+
 
 class SysArgs:
     def __init__(self):
@@ -160,7 +200,6 @@ class Configuration:
         """ print the configuration to a readable string, separated by white-space
         :return: as described
         """
-        result = ""
         items = map((lambda x: x.knob.set_name + delimiter + str(x.val)),
                     self.knob_settings)
         return delimiter.join(sorted(items))
@@ -733,7 +772,10 @@ class AppMethods():
                 self.recordSysUsage(configuration, metric)
             if withPerf:
                 # examine the execution time slow-down
-                self.runStressTest(configuration, cost, slowdownProfile)
+                print "START STRESS TRAINING"
+                slowdownTable = self.runStressTest(configuration, cost, slowdownProfile)
+                slowdownTable.writeSlowDownTable(slowdownProfile)
+                withPerf = False  # remove this for full training
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
         costFact.close()
@@ -758,8 +800,8 @@ class AppMethods():
     def runStressTest(self, configuration, orig_cost, slowdownProfile):
         app_command = self.getCommand(configuration.retrieve_configs())
         env = SysArgs()
-        slowdownTable = {}
-        for i in range(1, 20):  # run 20 different environment
+        slowdownTable = SlowDown(configuration)
+        for i in range(0, 20):  # run 20 different environment
             env_command = env.getRandomEnv()
             # start the env
             env_creater = subprocess.Popen(env_command, stdout=subprocess.PIPE,
@@ -770,8 +812,8 @@ class AppMethods():
             os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
             # write the measurement to file
             slowdown = cost / orig_cost
-            print "slowdown is :" + str(slowdown)
-            # TODO: print slowdown
+            slowdownTable.add_slowdown(metric, slowdown)
+        return slowdownTable
 
     # Some default APIs
     def getName(self):
@@ -825,13 +867,13 @@ class AppMethods():
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
-        print " ".join(command)
         os.system(" ".join(command))
         time2 = time.time()
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
             metric_value = self.parseTmpCSV()
+            print metric_value
             if configuration != '':
                 # back up the csv_file
                 os.system("mv tmp.csv ./debug/" + configuration + ".csv")
@@ -887,7 +929,7 @@ class AppMethods():
         :param configuration: the configuration
         :param metric: the dict of metric measured
         """
-        self.sys_usage_table.add_entry(configuration.printSelf(),metric)
+        self.sys_usage_table.add_entry(configuration.printSelf(), metric)
 
     def printUsageTable(self, filestream):
         self.sys_usage_table.printAsCSV(filestream, ';')

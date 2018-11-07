@@ -2,7 +2,6 @@ import imp
 import json
 import optparse
 
-from Classes import *
 from LP_Util.merge import *
 from Parsing_Util.readFact import *
 from plot import *
