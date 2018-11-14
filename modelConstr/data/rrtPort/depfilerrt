@@ -1,0 +1,6 @@
+rrt
+obstacleDistance obstacleDistance 0 5
+trials trails 10 1000
+goalBias goalBias 0 50
+goalTolerance goalTolerance 10 60
+stepSize stepSize 3 100

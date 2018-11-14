@@ -34,9 +34,9 @@ config_file = ""
 app_config = None
 PLOT = False
 
-withSys = True
-withQoS = False
-withPerf = True
+withSys = False
+withQoS = True
+withPerf = False
 
 THRESHOLD = 0.05
 
