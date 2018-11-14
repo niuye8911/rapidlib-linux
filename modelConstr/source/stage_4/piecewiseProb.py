@@ -218,7 +218,7 @@ def genBounds(seg_indicators, seg_values, segconst, knob_values, errors):
         bound = seg_indicator + " <= 1"
         integerBounds.add(bound)
     for seg_value in seg_values:
-        floatBound = "1e-5 < " + seg_value
+        floatBound = seg_value + " free"
         floatBounds.add(floatBound)
     # for seg_value in segconst:
     #    floatBound = "-99999 <= " + seg_value + " <= 99999"
@@ -227,7 +227,7 @@ def genBounds(seg_indicators, seg_values, segconst, knob_values, errors):
     #    floatBound = "-99999 <= " + knob_value + " <= 99999"
     #    floatBounds.add(floatBound)
     for error in errors:
-        floatBound = "-99999 <= " + error + " <= 99999"
+        floatBound = error + " free"
         floatBounds.add(floatBound)
     return integerBounds, floatBounds
 
@@ -244,13 +244,13 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
         probfile.write(segConstraint)
         probfile.write("\n")
     probfile.write("Bounds\n")
-    for bound in intBounds:
-        probfile.write(bound + "\n")
+    # for bound in intBounds:
+    #    probfile.write(bound + "\n")
     for bound in floatBounds:
         probfile.write(bound + "\n")
-    probfile.write("Integers\n")
-    for seg in seg_indicators:
-        probfile.write(seg + "\n")
+    # probfile.write("Integers\n")
+    # for seg in seg_indicators:
+    #        probfile.write(seg + "\n")
     probfile.close()
 
 
@@ -269,12 +269,12 @@ def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff, COST=True)
             continue
         name = col[0]
         val = float(col[1])
-        if val > 9999 or val < -9999:
-            print "found not derived value", name, val
-            if val > 0:
-                val = 99999 - val
-            else:
-                val = -99999 - val
+        # if val > 9999 or val < -9999:
+        #        print "found not derived value", name, val
+        #            if val > 0:
+        # val = 99999 - val
+        # else:
+        # val = -99999 - val
         if name in seg_values:
             # knob_id_V
             cols = name.split("_")

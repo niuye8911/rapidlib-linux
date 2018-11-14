@@ -2,6 +2,8 @@
 This is an example file for prepraing Bodytrack for RAPID(C)
 """
 
+import math
+
 from Classes import *  # import the parent class and other classes from the file Classes.py
 
 
@@ -10,28 +12,28 @@ class appMethods(AppMethods):
 
     def cleanUpAfterEachRun(self, configs=None):
         obstacleDistance = 25
-        trials = 500
+        trials = 100
         goalBias = 10
         goalTolerance = 0
-        stepSize = 1
+        stepSize = 3
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "obstacleDistance":
-                    obstacleDistance = config.val  # retrieve the setting for each knob
+                    obstacleDistance = 6 - config.val  # retrieve the setting for each knob
                 elif name == "trials":
                     trials = config.val  # retrieve the setting for each knob
                 elif name == "goalBias":
-                    goalBias = config.val  # retrieve the setting for each knob
+                    goalBias = 60 - config.val  # retrieve the setting for each knob
                 elif name == "goalTolerance":
-                    goalTolerance = config.val  # retrieve the setting for each knob
+                    goalTolerance = 11 - config.val  # retrieve the setting for each knob
                 elif name == "stepSize":
                     stepSize = config.val  # retrieve the setting for each knob
 
         self.moveFile("./rrtout.txt",
                       "./training_outputs/output_" + str(obstacleDistance) + "_"
                       + str(trials) + "_"
-                      + str(goalBias)+ "_"
+                      + str(goalBias) + "_"
                       + str(goalTolerance) + "_"
                       + str(stepSize) +
                       ".txt")
@@ -42,35 +44,35 @@ class appMethods(AppMethods):
     # helper function to assembly the command
     def getCommand(self, configs=None):
         obstacleDistance = 25
-        trials = 500
+        trials = 100
         goalBias = 10
         goalTolerance = 0
-        stepSize = 1
+        stepSize = 3
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "obstacleDistance":
-                    obstacleDistance = config.val  # retrieve the setting for each knob
+                    obstacleDistance = 6 - config.val  # retrieve the setting for each knob
                 elif name == "trials":
                     trials = config.val  # retrieve the setting for each knob
                 elif name == "goalBias":
-                    goalBias = config.val  # retrieve the setting for each knob
+                    goalBias = 60 - config.val  # retrieve the setting for each knob
                 elif name == "goalTolerance":
-                    goalTolerance = config.val  # retrieve the setting for each knob
+                    goalTolerance = 11 - config.val  # retrieve the setting for each knob
                 elif name == "stepSize":
                     stepSize = config.val  # retrieve the setting for each knob
 
         return [self.obj_path,
                 str(obstacleDistance),
-				str(trials),
-				str(goalBias),
-				str(goalTolerance),
-				str(stepSize),
-				"6",
-				"30",
-				"30",
-				"363",
-				"363"]
+                str(trials),
+                str(goalBias),
+                str(goalTolerance),
+                str(stepSize),
+                "6",
+                "30",
+                "30",
+                "363",
+                "363"]
 
     # helper function to evaluate the QoS
     def getQoS(self):
@@ -82,10 +84,10 @@ class appMethods(AppMethods):
         extract the mean price and calculate the distortion
         :return: a double value describing the QoS ( 0.0 ~ 100.0 )
         """
-        f= open("./rrtout.txt","r")
+        f = open("./rrtout.txt", "r")
         stLine = float(f.readline())
         pthDist = float(f.readline())
         obDist = float(f.readline())
         closeness = float(f.readline())
-        quality = abs(stLine/pthDist - obDist/pthDist) * 1/closeness;
+        quality = abs(stLine / pthDist - obDist / pthDist) * 1 / math.sqrt(closeness + 1);
         return quality
