@@ -195,7 +195,6 @@ def parseCMD(options):
     if not options.stage == None:
         stage = int(options.stage)
 
-
 def parseConfig(config_file):
     global desc, methods_path, obj_path
     with open(config_file) as config_json:
