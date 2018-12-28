@@ -7,8 +7,8 @@ from Classes import *  # import the parent class and other classes from the file
 
 class appMethods(AppMethods):
     database_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/corel/"
-    table="lsh"
-    query_path="/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/queries"
+    table = "lsh"
+    query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/queries"
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -27,7 +27,7 @@ class appMethods(AppMethods):
                     itr = config.val  # retrieve the setting for each knob
 
         self.moveFile("output.txt",
-                      "./training_outputs/output_" + str(hash) + "_" + str(probe) + "_"+str(itr)+".txt")
+                      "./training_outputs/output_" + str(hash) + "_" + str(probe) + "_" + str(itr) + ".txt")
 
     def afterGTRun(self):
         self.gt_path = "./training_outputs/grountTruth.txt"
@@ -124,7 +124,8 @@ class appMethods(AppMethods):
                 T.remove(s)
                 S.remove(s)
             # now that Z, S, and T are set, compute the ranking function
-            ranking_res = self.compute2(truth_res, mission_res, Z) - self.compute1(truth_res, S) - self.compute1(mission_res, T)
+            ranking_res = self.compute2(truth_res, mission_res, Z) - self.compute1(truth_res, S) - self.compute1(
+                mission_res, T)
             ranking_res = abs(float(ranking_res) / float(maxError))
             toterr += 1.0 - ranking_res
             S.clear()

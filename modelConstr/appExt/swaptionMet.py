@@ -3,6 +3,8 @@ This is an example file for prepraing Swaptions for RAPID(C)
 """
 
 from Classes import *  # import the parent class and other classes from the
+
+
 # file Classes.py
 
 
@@ -17,7 +19,7 @@ class appMethods(AppMethods):
         """ Initialization with app name
         :param name:
         """
-        AppMethods.__init__(self,name,obj_path)
+        AppMethods.__init__(self, name, obj_path)
         self.training_units = 20
 
     def cleanUpAfterEachRun(self, configs=None):
