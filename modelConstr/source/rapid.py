@@ -5,8 +5,6 @@ import optparse
 from LP_Util.merge import *
 from Parsing_Util.readFact import *
 from plot import *
-from representset import populateRSDG, genRS
-from stage_1.training import *
 from stage_2.qos_checker import *
 from stage_2.trainApp import *
 from stage_4.constructRSDG import *
@@ -37,6 +35,8 @@ PLOT = False
 withSys = False
 withQoS = True
 withPerf = False
+
+NUM_OF_FIXED_ENV = -1
 
 THRESHOLD = 0.05
 
@@ -72,19 +72,23 @@ def main(argv):
         return
 
     #######################STAGE-2########################
-    # second stage: Training, the source library will take care of the training, the output is a bodytrack.fact file
+    # second stage: Training, the source library will take care of the
+    # training, the output is a bodytrack.fact file
     # load user-supplied methods
     module = imp.load_source("", methods_path)
     appMethods = module.appMethods(appname, obj_path)
-    factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods, withQoS, withSys, withPerf)
+    factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods,
+                                   withQoS, withSys, withPerf, NUM_OF_FIXED_ENV)
 
     #######################STAGE-3########################
-    # third stage: Modeling, use the specific modeling method to construct the RSDG
+    # third stage: Modeling, use the specific modeling method to construct
+    # the RSDG
     readFact(factfile, knobs, groundTruth_profile)
     readFact(mvfactfile, knobs, groundTruth_profile, False)
     groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
     # construct the cost rsdg iteratively given a threshold
-    cost_rsdg, mv_rsdg = constructRSDG(groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
+    cost_rsdg, mv_rsdg = constructRSDG(groundTruth_profile, knob_samples,
+                                       THRESHOLD, knobs, True, model)
     if PLOT:
         draw("outputs/modelValid.csv")
 
@@ -176,12 +180,10 @@ def declareParser():
 
 
 def parseCMD(options):
-    global app_config, observed, fact, KF, remote, model, rs, stage, mode, PLOT, config_file
+    global app_config, observed, fact, KF, remote, model, rs, stage, mode, \
+        PLOT, config_file
     observed = options.observed
     fact = options.fact
-    KF = options.KF
-    KF1 = options.KF1
-    KF2 = options.KF2
     model = options.model
     if options.plot == "t":
         PLOT = True
@@ -189,19 +191,26 @@ def parseCMD(options):
     remote = options.remote
     mode = options.mode
     # read config
-    if not options.config == None:
+    if options.config is not None:
         config_file = options.config
         app_config = parseConfig(config_file)
-    if not options.stage == None:
+    if options.stage is not None:
         stage = int(options.stage)
 
+
 def parseConfig(config_file):
-    global desc, methods_path, obj_path
+    global desc, methods_path, obj_path, withSys, withQoS, withPerf
     with open(config_file) as config_json:
         config = json.load(config_json)
         desc = config['appDep']
         methods_path = config['appMet']
         obj_path = config['appPath']
+        if 'withSys' in config:
+            withSys = config['withSys'] == 1
+        if 'withQoS' in config:
+            withQoS = config['withQoS'] == 1
+        if 'withPerf' in config:
+            withPerf = config['withPerf'] == 1
     return config
 
 

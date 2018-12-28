@@ -9,13 +9,13 @@ class appMethods(AppMethods):
     database_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/corel/"
     table="lsh"
     query_path="/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/queries"
-    training_units = 20
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
         itr = 25
         hash = 8
         probe = 20
+        self.training_units = 20
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
@@ -62,41 +62,72 @@ class appMethods(AppMethods):
                 '-itr',
                 str(itr)]
 
+    def rank(self, img, imglist):
+        if img in imglist:
+            return imglist.index(img) + 1
+        return 0
+
+    def compute1(self, list1, imgset):
+        res = 0
+        for img in imgset:
+            res += self.rank(img, list1)
+        return res
+
+    def compute2(self, list1, list2, imgset):
+        res = 0
+        for img in imgset:
+            res += abs(self.rank(img, list1) - self.rank(img, list2))
+        return res
+
     # helper function to evaluate the QoS
     def getQoS(self):
-        """
-        In our example, after each run of the application, this function will be called to compare the current output
-        with the groundtruth output.
+        truth = open(self.gt_path, "r")
+        mission = open("./output.txt", "r")
+        truthmap = {}
+        missionmap = {}
+        truth_res = []
+        mission_res = []
+        for line in mission:
+            col = line.split('\t')
+            name = col[0].split("/")[1]
+            missionmap[name] = []
+            for i in range(1, len(col)):  # 50 results
+                missionmap[name].append(col[i].split(':')[0])
+        for line in truth:
+            col = line.split('\t')
+            name = col[0].split("/")[1]
+            if name not in missionmap:
+                continue
+            truthmap[name] = []
+            for i in range(1, len(col)):  # 50 results
+                truthmap[name].append(col[i].split(':')[0])
 
-        Two files both contains multiple rows where each row represents the calculated mean price for a swaption. We
-        extract the mean price and calculate the distortion
-        :return: a double value describing the QoS ( 0.0 ~ 100.0 )
-        """
-        gt_output = open(self.gt_path, "r")
-        mission_output = open(self.input_path + "poses.txt", "r")
-        truth_results = []
-        mission_results = []
-        for line in gt_output:
-            round_res = line.split()
-            truth_results.append(round_res)
-        for line in mission_output:
-            round_res = line.split()
-            mission_results.append(round_res)
-        totDistortion = 0.0
-
-        for i in range(0, len(truth_results)):
-            # truth_results[i] is a vector, compute the vector distortion
-            distortion = 0.0
-            for j in range(0, len(truth_results[i])):
-                if (truth_results[i][j] == "\n"):
-                    continue
-                curtrue = float(truth_results[i][j])
-                curmission = float(mission_results[i][j])
-                val = abs((curtrue - curmission) / curtrue)
-                if val > 1:
-                    val = 1
-                distortion += val
-            distortion /= len(truth_results[i])
-            print "DISTORTION = " + str(distortion)
-            totDistortion += distortion
-        return (1.0 - (totDistortion / len(truth_results))) * 100.0
+        # now that 2 maps are set, compare each item
+        # setup the Z / S/ and T
+        Z = set()
+        S = set()
+        T = set()
+        toterr = 0.0
+        totimg = 0
+        for query_image in truthmap:
+            totimg += 1
+            truth_res = truthmap[query_image]
+            mission_res = missionmap[query_image]
+            # compute the worst case senario, where Z = empty
+            maxError = ((1 + len(truth_res)) * len(truth_res) / 2) * 2
+            # setup S and T
+            S.update(truth_res)
+            T.update(mission_res)
+            Z = S & T  # Z includes images both in S and T
+            # clear S and T
+            for s in Z:
+                T.remove(s)
+                S.remove(s)
+            # now that Z, S, and T are set, compute the ranking function
+            ranking_res = self.compute2(truth_res, mission_res, Z) - self.compute1(truth_res, S) - self.compute1(mission_res, T)
+            ranking_res = abs(float(ranking_res) / float(maxError))
+            toterr += 1.0 - ranking_res
+            S.clear()
+            T.clear()
+            Z.clear()
+        return (1.0 - (toterr / totimg)) * 100.0

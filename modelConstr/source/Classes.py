@@ -11,6 +11,7 @@ import time
 
 class Metric:
     EXCLUDED_METRIC = {"Date", "Time"}
+
     def __init__(self):
         self.metrics = dict()
         self.metric_names = []
@@ -22,7 +23,8 @@ class Metric:
             self.metric_names = sorted(self.metric_names)
 
     def printAsCSVLine(self, delimiter):
-        metricsNames = map(lambda metric: self.metrics[metric], self.metric_names)
+        metricsNames = map(lambda metric: self.metrics[metric],
+                           self.metric_names)
         return delimiter.join(metricsNames)
 
     def printAsHeader(self, delimiter):
@@ -43,18 +45,19 @@ class SlowDown:
         return hashlib.md5(metric.printAsCSVLine(';').encode())
 
     def get_metric(self, md5string):
-        return self.metrics[md5string].printAsCSVLine(';') if md5string in self.metrics else ''
+        return self.metrics[md5string].printAsCSVLine(
+            ';') if md5string in self.metrics else ''
 
     def get_slowdown(self, metric):
         md5hex = self.get_md5(metric).hexdigest()
-        return self.slowdown_table[md5hex] if md5hex in self.slowdown_table else -1.
+        return self.slowdown_table[
+            md5hex] if md5hex in self.slowdown_table else -1.
 
     def writeSlowDownTable(self, filestream):
-        filestream.write('\n')
-        # write the config
-        filestream.write(self.configuration.printSelf('-'))
         # write the metric
         for metricmd5, slowdown in self.slowdown_table.items():
+            # write the config
+            filestream.write(self.configuration.printSelf('-'))
             filestream.write(';')
             filestream.write(self.get_metric(metricmd5))
             filestream.write(';')
@@ -119,7 +122,8 @@ class SysArgs:
 
 
 class Knob:
-    """a knob setting with max and min settings. It's the smallest unit for RAPID-C
+    """a knob setting with max and min settings. It's the smallest unit for
+    RAPID-C
     """
 
     def __init__(self, svc_name, set_name, min, max):
@@ -203,7 +207,8 @@ class Configuration:
                 return c.val
 
     def printSelf(self, delimiter=' '):
-        """ print the configuration to a readable string, separated by white-space
+        """ print the configuration to a readable string, separated by
+        white-space
         :return: as described
         """
         items = map((lambda x: x.knob.set_name + delimiter + str(x.val)),
@@ -706,7 +711,8 @@ class pieceRSDG:
 
 class AppMethods():
     """ the parent class of app-specific methods
-    Developers will inherit from this class to implement the app-specific methods. RAPID(C) will run their
+    Developers will inherit from this class to implement the app-specific
+    methods. RAPID(C) will run their
     implementations to
     1) get the groundtruth of the app by running the app in default mode.
     2) get the training data by running the app in different configurations
@@ -721,6 +727,9 @@ class AppMethods():
         self.sys_usage_table = SysUsageTable()
         self.training_units = 1
 
+    def setTrainingUnits(self, unit):
+        self.training_units = unit
+
     # Implement this function
     def getCommand(self, configs=None):
         """ Assembly the CMD line for running the app
@@ -730,18 +739,24 @@ class AppMethods():
         pass
 
     # Implement this function
-    def train(self, config_table, costFact, mvFact, sysFact, perfFact):
-        """ Train the application with all configurations in config_table and write Cost / Qos in costFact and mvFact.
-        :param config_table: A table of class Profile containing all configurations to train
+    def train(self, config_table, numOfFixedEnv, costFact, mvFact, sysFact,
+              perfFact):
+        """ Train the application with all configurations in config_table and
+        write Cost / Qos in costFact and mvFact.
+        :param config_table: A table of class Profile containing all
+        configurations to train
+        :param numOfFixedEnv: number of environments if running for fixed env
         :param costFact: the destination of output file for recording costs
         :param mvFact: the destination of output file for recording MV
-        :param sysFact: the destination of output file for recording system usage
+        :param sysFact: the destination of output file for recording system
+        usage
         :param withMV: whether to check MV or not
         :param withSys: whether to check system usage or not
         :param withPerf: whether to record slow-down or not
         """
         # perform a single run for training
-        configurations = config_table.configurations  # get the configurations in the table
+        configurations = config_table.configurations  # get the
+        # configurations in the table
         withMV = mvFact is not ""
         withSys = sysFact is not ""
         withPerf = perfFact is not ""
@@ -753,6 +768,13 @@ class AppMethods():
         if withPerf:
             slowdownProfile = open(perfFact, 'w')
             slowdownHeader = False
+
+        # comment the lines below if need random coverage
+        env = SysArgs()
+        env_commands = []
+        if numOfFixedEnv != -1:
+            for i in range(0, numOfFixedEnv):  # run 3 different environment
+                env_commands.append(env.getRandomEnv())
 
         # iterate through configurations
         for configuration in configurations:
@@ -779,8 +801,11 @@ class AppMethods():
                 self.recordSysUsage(configuration, metric)
             if withPerf:
                 # examine the execution time slow-down
-                print "START STRESS TRAINING"
-                slowdownTable = self.runStressTest(configuration, cost, slowdownProfile)
+
+                # comment the lines below if need random coverage
+                print("START STRESS TRAINING")
+                slowdownTable = self.runStressTest(configuration, cost,
+                                                   env_commands)
                 # write the header
                 if not slowdownHeader:
                     slowdownProfile.write(metric.printAsHeader(';'))
@@ -799,25 +824,32 @@ class AppMethods():
 
     # Implement this function
     def runGT(self):
-        """ Perform a default run of non-approxiamte version of the application to generate groundtruth result for
-        QoS checking later in the future. The output can be application specific, but we recommend to output the
+        """ Perform a default run of non-approxiamte version of the
+        application to generate groundtruth result for
+        QoS checking later in the future. The output can be application
+        specific, but we recommend to output the
         result to a file.
 	"""
-        print "GENERATING GROUND TRUTH for " + self.appName
+        print("GENERATING GROUND TRUTH for " + self.appName)
         command = self.getCommand()
         os.system(" ".join(command))
         self.afterGTRun()
 
-    def runStressTest(self, configuration, orig_cost, slowdownProfile):
+    def runStressTest(self, configuration, orig_cost, env_commands=[]):
         app_command = self.getCommand(configuration.retrieve_configs())
         env = SysArgs()
         slowdownTable = SlowDown(configuration)
-        for i in range(0, 20):  # run 20 different environment
-            env_command = env.getRandomEnv()
-            print env_command
+        # if running random coverage, create the commands
+        if len(env_commands) == 0:
+            for i in range(0, 20):  # run 40 different environment
+                env_command = env.getRandomEnv()
+                env_commands.append(env_command)
+        for env_command in env_commands:
             # start the env
-            env_creater = subprocess.Popen(" ".join(env_command), shell=True, preexec_fn=os.setsid)
-            cost, metric = self.getCostAndSys(app_command, self.training_units, True,
+            env_creater = subprocess.Popen(" ".join(env_command), shell=True,
+                                           preexec_fn=os.setsid)
+            cost, metric = self.getCostAndSys(app_command, self.training_units,
+                                              True,
                                               configuration.printSelf('-'))
             # end the env
             os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
@@ -860,14 +892,18 @@ class AppMethods():
                       work_units=1,
                       withSys=False,
                       configuration=''):
-        """ return the execution time of running a single work unit using func in milliseconds
-        To measure the cost of running the application with a configuration, each training run may finish multiple
+        """ return the execution time of running a single work unit using
+        func in milliseconds
+        To measure the cost of running the application with a configuration,
+        each training run may finish multiple
         work units to average out the noise.
-        :param command: The shell command to use in format of ["app_binary","arg1","arg2",...]
+        :param command: The shell command to use in format of ["app_binary",
+        "arg1","arg2",...]
         :param work_units: The total work units in each run
         :param withSys: whether to check system usage or not
         :return: the average execution time for each work unit
         """
+        print(command)
         time1 = time.time()
         metric_value = {}
         if withSys:
@@ -884,7 +920,6 @@ class AppMethods():
         # parse the csv
         if withSys:
             metric_value = self.parseTmpCSV()
-            print metric_value
             if configuration != '':
                 # back up the csv_file
                 os.system("mv tmp.csv ./debug/" + configuration + ".csv")
@@ -927,7 +962,8 @@ class AppMethods():
         os.system(" ".join(command))
 
     def writeConfigMeasurementToFile(self, filestream, configuration, value):
-        """ write a configuration with its value (could be cost or mv) to a opened file stream
+        """ write a configuration with its value (could be cost or mv) to a
+        opened file stream
         :param filestream: the file stream, need to be opened with 'w'
         :param configuration: the configuration
         :param value: the value in double or string
@@ -946,7 +982,8 @@ class AppMethods():
         self.sys_usage_table.printAsCSV(filestream, ';')
 
     def cleanUpAfterEachRun(self, configs=None):
-        """ This function will be called after every training iteration for a config
+        """ This function will be called after every training iteration for a
+        config
         """
         pass
 

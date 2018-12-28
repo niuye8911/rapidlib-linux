@@ -2,5 +2,8 @@
   "appName": "ferret",
   "appPath": "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/inst/amd64-linux.gcc-serial/bin/ferret",
   "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/ferretMet.py",
-  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/ferretPort/depfileferret"
+  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/ferretPort/depfileferret",
+  "withQoS": 1,
+  "withSys": 0,
+  "withPerf": 0
 }

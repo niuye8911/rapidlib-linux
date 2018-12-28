@@ -2,15 +2,23 @@
 This is an example file for prepraing Swaptions for RAPID(C)
 """
 
-from Classes import *  # import the parent class and other classes from the file Classes.py
+from Classes import *  # import the parent class and other classes from the
+# file Classes.py
 
 
 class appMethods(AppMethods):
     """ application specific class inherited from class AppMethods
-    Please keep the name of the class to be appMethods since it will be used in RAPID(C) to create an instance of
+    Please keep the name of the class to be appMethods since it will be used
+    in RAPID(C) to create an instance of
     this class
     """
-    training_units = 20
+
+    def __init__(self, name, obj_path):
+        """ Initialization with app name
+        :param name:
+        """
+        AppMethods.__init__(self,name,obj_path)
+        self.training_units = 20
 
     def cleanUpAfterEachRun(self, configs=None):
         num = 1000000
@@ -20,7 +28,8 @@ class appMethods(AppMethods):
                 if name == "num":
                     num = config.val  # retrieve the setting for each knob
         # backup the generated output to another location
-        self.moveFile("./output.txt", "./training_outputs/output" + str(int(num)) + ".txt")
+        self.moveFile("./output.txt",
+                      "./training_outputs/output" + str(int(num)) + ".txt")
 
     def afterGTRun(self):
         # generate the ground truth
@@ -35,16 +44,17 @@ class appMethods(AppMethods):
                 name = config.knob.set_name
                 if name == "num":
                     num = config.val  # retrieve the setting for each knob
-        print self.obj_path
-        return [self.obj_path, "-ns", "10", "-sm", str(num)]
+        return [self.obj_path, "-ns", str(self.training_units), "-sm", str(num)]
 
     # helper function to evaluate the QoS
     def getQoS(self):
         """
-        In our example, after each run of the application, this function will be called to compare the current output
+        In our example, after each run of the application, this function will
+        be called to compare the current output
         with the groundtruth output.
 
-        Two files both contains multiple rows where each row represents the calculated mean price for a swaption. We
+        Two files both contains multiple rows where each row represents the
+        calculated mean price for a swaption. We
         extract the mean price and calculate the distortion
         :return: a double value describing the QoS ( 0.0 ~ 100.0 )
         """
