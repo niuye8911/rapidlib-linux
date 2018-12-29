@@ -8,8 +8,10 @@ from stage_1.training import *
 
 def populatePieceWiseRSDG(observed, partitions):
     # get the segments
-    segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(observed, partitions)
-    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
+    segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(
+        observed, partitions)
+    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst,
+                                    inter_coeff)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     # generate multiple RSDG
@@ -17,9 +19,11 @@ def populatePieceWiseRSDG(observed, partitions):
     mvrsdgs = []
     for mvprofile in mvprofiles:
         # solve and retrieve the result
-        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(mvprofile, partitions, False)
+        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = \
+            generatePieceWiseContProblem(mvprofile, partitions, False)
 
-        mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
+        mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv,
+                                      inter_coeff_mv, False)
         system("mv ./debug/max.sol ./debug/maxmv.sol")
         system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
         mvrsdgs.append(mvrsdg)
@@ -33,15 +37,19 @@ def generatePieceWiseContProblem(observed, partitions, COST=True):
     # get the segments
     segments = getSegments(partitions)
     # get the variables
-    seg_indicators, seg_values, segconst, knob_values = getVariables(partitions, segments)
+    seg_indicators, seg_values, segconst, knob_values = getVariables(
+        partitions, segments)
     # get the constraints
-    costConstraints, segConstraints, errors, inter_coeff = genConstraints(segments, observed, COST)
+    costConstraints, segConstraints, errors, inter_coeff = genConstraints(
+        segments, observed, COST)
     # get obj functions
     obj = errorFunction(errors)
     # get the bounds
-    intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst, knob_values, errors)
+    intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst,
+                                       knob_values, errors)
     # beatutifyProblem
-    beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds, seg_indicators)
+    beautifyProblem(obj, costConstraints, segConstraints, intBounds,
+                    floatBounds, seg_indicators)
     return segments, seg_values, segconst, inter_coeff
 
 
@@ -114,7 +122,8 @@ def costFunction(segments, observed):
                 knob_name = config.knob.set_name
                 knob_val = config.val
                 for seg in segments[knob_name]:
-                    costFunction += str(knob_val) + " " + seg.printVar() + " + " + str(
+                    costFunction += str(
+                        knob_val) + " " + seg.printVar() + " + " + str(
                         knob_val) + " + " + seg.printID() + " + "
             costFunction = costFunction[:-3]
     return costFunction
@@ -180,9 +189,12 @@ def genConstraints(segments, observed, COST=True):
                         corr_b = s1 + "_" + s2 + "_b"
                         corr_c = s1 + "_" + s2 + "_c"
                         # inter_cost+=str(s1_val * s1_val) + " " + s1+"_"+s2 + " + "
-                        inter_cost += str(s1_val * s1_val) + " " + corr_a + " + "
-                        inter_cost += str(s2_val * s2_val) + " " + corr_b + " + "
-                        inter_cost += str(s1_val * s2_val) + " " + corr_c + " + "
+                        inter_cost += str(
+                            s1_val * s1_val) + " " + corr_a + " + "
+                        inter_cost += str(
+                            s2_val * s2_val) + " " + corr_b + " + "
+                        inter_cost += str(
+                            s1_val * s2_val) + " " + corr_c + " + "
                         # inter_coeff.add(s1+"_"+s2)
                         inter_coeff.add(corr_a)
                         inter_coeff.add(corr_b)
@@ -195,7 +207,8 @@ def genConstraints(segments, observed, COST=True):
                 errors.append(err_name)
                 if not inter_cost == "":
                     costEstimate += " + " + inter_cost
-                constraint = err_name + " + " + costEstimate + " = " + str(costVal)
+                constraint = err_name + " + " + costEstimate + " = " + str(
+                    costVal)
                 costConstraints.add(constraint)
                 # add the PSD constraints
                 if not inter_cost == "":
@@ -238,7 +251,8 @@ def genBounds(seg_indicators, seg_values, segconst, knob_values, errors):
     return integerBounds, floatBounds
 
 
-def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds, seg_indicators):
+def beautifyProblem(obj, costConstraints, segConstraints, intBounds,
+                    floatBounds, seg_indicators):
     probfile = open("./debug/fitting.lp", 'w')
     probfile.write("Minimize\n")
     probfile.write(obj)
@@ -260,8 +274,10 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds, floatBounds
     probfile.close()
 
 
-def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff, COST=True):
-    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
+                         COST=True):
+    system(
+        "gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
     result = open("./debug/max.sol", 'r')
     rsdg = pieceRSDG()
     # setup the knob table
@@ -318,10 +334,14 @@ def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff, COST=True)
                 b = coeffs.b
                 c = coeffs.c
                 coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a, b, c)
-                print "before"
-                print a, b, c
-                print "after PSD"
-                print coeffs.a, coeffs.b, coeffs.c
+                print
+                "before"
+                print
+                a, b, c
+                print
+                "after PSD"
+                print
+                coeffs.a, coeffs.b, coeffs.c
     rsdg.printRSDG(COST)
     return rsdg
 
@@ -351,5 +371,6 @@ def modelValid(rsdg, groundTruth, PRINT):
             outfile.write("\n")
     if PRINT:
         outfile.close()
-        print error / count
+        print
+        error / count
     return error / count

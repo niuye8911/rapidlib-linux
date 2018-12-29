@@ -435,11 +435,12 @@ class Profile:
 
     def genMultipleMV(self):
         profiles = []
-        for i in range (0,self.numOfMVs):
+        for i in range(0, self.numOfMVs):
             profile = Profile()
             profile.profile_table = self.profile_table
             profile.configurations = self.configurations
-            profile.mvprofile_table = {k: v[i] for k,v in self.mvprofile_table.items()}
+            profile.mvprofile_table = {k: v[i] for k, v in
+                                       self.mvprofile_table.items()}
             profile.numOfMVs = 1
             profiles.append(profile)
         return profiles

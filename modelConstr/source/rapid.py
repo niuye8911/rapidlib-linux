@@ -78,7 +78,8 @@ def main(argv):
     module = imp.load_source("", methods_path)
     appMethods = module.appMethods(appname, obj_path)
     factfile, mvfactfile = genFact(appname, groundTruth_profile, appMethods,
-                                   withQoS, withSys, withPerf, NUM_OF_FIXED_ENV)
+                                   withQoS, withSys, withPerf,
+                                   NUM_OF_FIXED_ENV)
 
     #######################STAGE-3########################
     # third stage: Modeling, use the specific modeling method to construct
@@ -88,7 +89,7 @@ def main(argv):
     groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
     # construct the cost rsdg iteratively given a threshold
     cost_rsdg, mv_rsdgs = constructRSDG(groundTruth_profile, knob_samples,
-                                       THRESHOLD, knobs, True, model)
+                                        THRESHOLD, knobs, True, model)
     if PLOT:
         draw("outputs/modelValid.csv")
 

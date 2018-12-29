@@ -1,8 +1,10 @@
-from lxml import etree
 from xml.dom import minidom
-from Classes import *
 
-def completeXML(appname,xml,rsdg,mv_rsdgs,model):
+from Classes import *
+from lxml import etree
+
+
+def completeXML(appname, xml, rsdg, mv_rsdgs, model):
     # fill in the XML with piece wise XML
     # fill in the knob cont Cost:
     knob_table = rsdg.knob_table
@@ -10,12 +12,13 @@ def completeXML(appname,xml,rsdg,mv_rsdgs,model):
     knobmv_tables = []
     for mvrsdg in mv_rsdgs:
         knobmv_tables.append(mvrsdg.knob_table)
-    #coeffmv_table = mv_rsdgs.coeffTable
+    # coeffmv_table = mv_rsdgs.coeffTable
     visited_service = set()
     for services in xml.findall("service"):
-        knobname = services.find("servicelayer").find("basicnode").find("nodename").text
+        knobname = services.find("servicelayer").find("basicnode").find(
+            "nodename").text
         node = services.find("servicelayer").find("basicnode")
-        if model=="piecewise":
+        if model == "piecewise":
             contpiece = etree.SubElement(node, "contpiece")
             # fill in the cont cost of each segment
             seglist = knob_table[knobname]
@@ -24,7 +27,7 @@ def completeXML(appname,xml,rsdg,mv_rsdgs,model):
                 seglist_mvs.append(knobmv_table[knobname])
             for seg in seglist:
                 segxml = etree.SubElement(contpiece, "seg")
-                etree.SubElement(segxml,"min").text = str(seg.min)
+                etree.SubElement(segxml, "min").text = str(seg.min)
                 etree.SubElement(segxml, "max").text = str(seg.max)
                 etree.SubElement(segxml, "costL").text = str(seg.a)
                 etree.SubElement(segxml, "costC").text = str(seg.b)
@@ -32,20 +35,20 @@ def completeXML(appname,xml,rsdg,mv_rsdgs,model):
                 segmvs = []
                 for seglist_mv in seglist_mvs:
                     for segmv in seglist_mv:
-                        if segmv.min==seg.min:
+                        if segmv.min == seg.min:
                             segmvs.append(segmv)
                             break
                 segas = list(map(lambda x: str(x.a), segmvs))
                 segbs = list(map(lambda x: str(x.b), segmvs))
                 etree.SubElement(segxml, "mvL").text = str(','.join(segas))
                 etree.SubElement(segxml, "mvC").text = str(','.join(segbs))
-        elif model=="quad" or model == "linear":
-            contcost = etree.SubElement(node,"contcost")
-            [o2,o1,c] = knob_table[knobname]
-            etree.SubElement(contcost,"o2").text = str(o2)
+        elif model == "quad" or model == "linear":
+            contcost = etree.SubElement(node, "contcost")
+            [o2, o1, c] = knob_table[knobname]
+            etree.SubElement(contcost, "o2").text = str(o2)
             etree.SubElement(contcost, "o1").text = str(o1)
             etree.SubElement(contcost, "c").text = str(c)
-            contmv = etree.SubElement(node,"contmv")
+            contmv = etree.SubElement(node, "contmv")
             o2s = []
             o1s = []
             cs = []
@@ -59,36 +62,40 @@ def completeXML(appname,xml,rsdg,mv_rsdgs,model):
             etree.SubElement(contmv, "c").text = str(cs)
 
         # fill in the cont with
-        if coeff_table is None or len(coeff_table)==0:
+        if coeff_table is None or len(coeff_table) == 0:
             continue
         if knobname not in coeff_table:
             continue
         for sink_coeff in coeff_table[knobname]:
-            print knobname, sink_coeff
-            print visited_service
-            if(sink_coeff in visited_service):
+            print
+            knobname, sink_coeff
+            print
+            visited_service
+            if (sink_coeff in visited_service):
                 continue
-            if model=="piecewise":
+            if model == "piecewise":
                 contwith = etree.SubElement(node, "contpiecewith")
-                #sink = etree.SubElement(contwith,"knob")
-                sink = etree.SubElement(contwith,"knob")
+                # sink = etree.SubElement(contwith,"knob")
+                sink = etree.SubElement(contwith, "knob")
                 etree.SubElement(sink, "name").text = sink_coeff
-                costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
-                #mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
-                etree.SubElement(sink,"costa").text = str(costa)
+                costa, costb, costc = coeff_table[knobname][
+                    sink_coeff].retrieveCoeffs()
+                # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
+                etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
                 etree.SubElement(sink, "costc").text = str(costc)
-                #etree.SubElement(sink, "mva").text = str(mva)
-                #etree.SubElement(sink, "mvb").text = str(mvb)
-                #etree.SubElement(sink, "mvc").text = str(mvc)
+                # etree.SubElement(sink, "mva").text = str(mva)
+                # etree.SubElement(sink, "mvb").text = str(mvb)
+                # etree.SubElement(sink, "mvc").text = str(mvc)
                 etree.SubElement(sink, "mva").text = str(0.0)
                 etree.SubElement(sink, "mvb").text = str(0.0)
                 etree.SubElement(sink, "mvc").text = str(0.0)
-            elif model=="quad":
-                contwith = etree.SubElement(node,"contwith")
+            elif model == "quad":
+                contwith = etree.SubElement(node, "contwith")
                 sink = etree.SubElement(contwith, "knob")
-                etree.SubElement(sink,"name").text = sink_coeff
-                costa, costb, costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
+                etree.SubElement(sink, "name").text = sink_coeff
+                costa, costb, costc = coeff_table[knobname][
+                    sink_coeff].retrieveCoeffs()
                 # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
                 etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
@@ -99,70 +106,74 @@ def completeXML(appname,xml,rsdg,mv_rsdgs,model):
         visited_service.add(knobname)
     writeXML(appname, xml)
 
-def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
-    print "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
-    rsdg_map,relationmap = readcontrsdg(rsdgfile)
-    rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
-    and_list,or_list,range_map = readcontdep(depfile)
 
-    #write the root:resource
+def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile):
+    print
+    "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
+    rsdg_map, relationmap = readcontrsdg(rsdgfile)
+    rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
+    and_list, or_list, range_map = readcontdep(depfile)
+
+    # write the root:resource
     xml = etree.Element("resource")
 
-    #create all the service with range
+    # create all the service with range
     for service, node in range_map.items():
-        for node_name,node_range in node.items():
-            servicefield = etree.SubElement(xml,"service")
-            etree.SubElement(servicefield,"servicename").text = service
-            layer = etree.SubElement(servicefield,"servicelayer")
-            node = etree.SubElement(layer,"basicnode")
-            etree.SubElement(node,"nodename").text = node_name
-            etree.SubElement(node,"contmin").text = node_range[0]
+        for node_name, node_range in node.items():
+            servicefield = etree.SubElement(xml, "service")
+            etree.SubElement(servicefield, "servicename").text = service
+            layer = etree.SubElement(servicefield, "servicelayer")
+            node = etree.SubElement(layer, "basicnode")
+            etree.SubElement(node, "nodename").text = node_name
+            etree.SubElement(node, "contmin").text = node_range[0]
             etree.SubElement(node, "contmax").text = node_range[1]
 
-    #create all contcost
+    # create all contcost
     if not rsdg_map is None:
-        for service,paras in rsdg_map.items():
+        for service, paras in rsdg_map.items():
             for services in xml.findall("service"):
-                name = services.find("servicelayer").find("basicnode").find("nodename").text
-                if not name==service:
+                name = services.find("servicelayer").find("basicnode").find(
+                    "nodename").text
+                if not name == service:
                     continue
                 node = services.find("servicelayer").find("basicnode")
-                contcost = etree.SubElement(node,"contcost")
-                etree.SubElement(contcost,"o2").text = str(paras[0])
+                contcost = etree.SubElement(node, "contcost")
+                etree.SubElement(contcost, "o2").text = str(paras[0])
                 etree.SubElement(contcost, "o1").text = str(paras[1])
                 etree.SubElement(contcost, "c").text = str(paras[2])
 
-    #create all contmv
+    # create all contmv
     if not rsdgmv_map is None:
-        for service,paras in rsdgmv_map.items():
+        for service, paras in rsdgmv_map.items():
             for services in xml.findall("service"):
-                name = services.find("servicelayer").find("basicnode").find("nodename").text
-                if not name==service:
+                name = services.find("servicelayer").find("basicnode").find(
+                    "nodename").text
+                if not name == service:
                     continue
                 node = services.find("servicelayer").find("basicnode")
-                contmv = etree.SubElement(node,"contmv")
-                etree.SubElement(contmv,"o2").text = str(paras[0])
+                contmv = etree.SubElement(node, "contmv")
+                etree.SubElement(contmv, "o2").text = str(paras[0])
                 etree.SubElement(contmv, "o1").text = str(paras[1])
                 etree.SubElement(contmv, "c").text = str(paras[2])
 
-    #create all contwith
+    # create all contwith
     if not relationmap is None:
-        for sink,sourcelist in relationmap.items():
-            for source,coeff in sourcelist.items():
+        for sink, sourcelist in relationmap.items():
+            for source, coeff in sourcelist.items():
                 for services in xml.findall("service"):
                     node = services.find("servicelayer").find("basicnode")
                     nodename = node.find("nodename").text
                     if not nodename == sink:
                         continue
-                    contwith = etree.SubElement(node,"contwith")
-                    etree.SubElement(contwith,"name").text = source
+                    contwith = etree.SubElement(node, "contwith")
+                    etree.SubElement(contwith, "name").text = source
                     etree.SubElement(contwith, "costcoeff").text = str(coeff)
                     etree.SubElement(contwith, "mvcoeff").text = "0"
 
-    #create all contwithmv
+    # create all contwithmv
     if not relationmvmap is None:
-        for sink,sourcelist in relationmvmap.items():
-            for source,coeff in sourcelist.items():
+        for sink, sourcelist in relationmvmap.items():
+            for source, coeff in sourcelist.items():
                 for services in xml.findall("service"):
                     node = services.find("servicelayer").find("basicnode")
                     nodename = node.find("nodename").text
@@ -171,14 +182,14 @@ def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
                     for contwiths in node.findall("contwith"):
                         mvcoeff = contwiths.find("mvcoeff")
 
-    #create all contand and contor
+    # create all contand and contor
     for and_edge in and_list:
         for services in xml.findall("service"):
             node = services.find("servicelayer").find("basicnode")
             nodename = node.find("nodename").text
             if not nodename == and_edge.sink:
                 continue
-            contand = etree.SubElement(node,"contand")
+            contand = etree.SubElement(node, "contand")
             etree.SubElement(contand, "ifrangemin").text = and_edge.sinkmin
             etree.SubElement(contand, "ifrangemax").text = and_edge.sinkmax
             etree.SubElement(contand, "name").text = and_edge.source
@@ -191,53 +202,61 @@ def genxml(appname,rsdgfile,rsdgmvfile,cont,depfile):
             nodename = node.find("nodename").text
             if not nodename == and_edge.sink:
                 continue
-            contand = etree.SubElement(node,"contor")
+            contand = etree.SubElement(node, "contor")
             etree.SubElement(contand, "ifrangemin").text = and_edge.sinkmin
             etree.SubElement(contand, "ifrangemax").text = and_edge.sinkmax
             etree.SubElement(contand, "name").text = and_edge.source
             etree.SubElement(contand, "thenrangemin").text = and_edge.sourcemin
             etree.SubElement(contand, "thenrangemax").text = and_edge.sourcemax
-    writeXML(appname,xml)
+    writeXML(appname, xml)
     return xml
 
-def writeXML(appname,xml):
+
+def writeXML(appname, xml):
     xmlfile = prettify(xml)
-    name = appname+ ".xml"
-    outputfile = open("./outputs/"+name, 'w')
+    name = appname + ".xml"
+    outputfile = open("./outputs/" + name, 'w')
     outputfile.write(xmlfile)
     outputfile.close()
 
+
 def readcontdep(depfile):
-    dep = open(depfile,'r')
+    dep = open(depfile, 'r')
     and_list = []
     or_list = []
     range_map = {}
     for line in dep:
         col = line.split()
-        if len(col)==1:
+        if len(col) == 1:
             continue
-        if len(col)==4:# this is a range line
+        if len(col) == 4:  # this is a range line
             servicename = col[0]
             nodename = col[1]
             minrange = col[2]
             maxrange = col[3]
             range_map[servicename] = {}
             range_map[servicename][nodename] = [0.0] * 2
-            range_map[servicename][nodename][0]=minrange
+            range_map[servicename][nodename][0] = minrange
             range_map[servicename][nodename][1] = maxrange
-        else:# this is a dep line
-            type,sink,source,sinkmin,sinkmax,sourcemin,sourcemax = col
-            if type=="and":
-                and_list.append(RangeClass(sink,sinkmin,sinkmax,source,sourcemin,sourcemax))
+        else:  # this is a dep line
+            type, sink, source, sinkmin, sinkmax, sourcemin, sourcemax = col
+            if type == "and":
+                and_list.append(
+                    RangeClass(sink, sinkmin, sinkmax, source, sourcemin,
+                               sourcemax))
             else:
-                or_list.append(RangeClass(sink,sinkmin,sinkmax,source,sourcemin,sourcemax))
-    return and_list,or_list,range_map
+                or_list.append(
+                    RangeClass(sink, sinkmin, sinkmax, source, sourcemin,
+                               sourcemax))
+    return and_list, or_list, range_map
+
 
 def readcontrsdg(rsdgfile):
-    if rsdgfile=="":
-        print "[WARNING] RSDG not provided, generating strucutral info only"
-        return [None,None]
-    rsdg = open(rsdgfile,'r')
+    if rsdgfile == "":
+        print
+        "[WARNING] RSDG not provided, generating strucutral info only"
+        return [None, None]
+    rsdg = open(rsdgfile, 'r')
     rsdg_map = {}
     relation_map = {}
     for line in rsdg:
@@ -271,13 +290,14 @@ def readcontrsdg(rsdgfile):
 
 
 class RangeClass:
-    def __init__(self, sink, sinkmin, sinkmax,source,sourcemin,sourcemax):
+    def __init__(self, sink, sinkmin, sinkmax, source, sourcemin, sourcemax):
         self.sinkmin = sinkmin
         self.sinkmax = sinkmax
         self.sourcemin = sourcemin
         self.sourcemax = sourcemax
         self.sink = sink
         self.source = source
+
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.

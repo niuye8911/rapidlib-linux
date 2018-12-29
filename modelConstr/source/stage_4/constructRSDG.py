@@ -1,12 +1,12 @@
 from Classes import *
+from piecewiseProb import *
+from quadProb import *
 from representset import *
 from stage_1.training import *
 
-from piecewiseProb import *
-from quadProb import *
 
-
-# contains functions to compute the representative list of a RSDG, given the fact profile
+# contains functions to compute the representative list of a RSDG, given the
+# fact profile
 def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model):
     # gT is a dictionary where entry is the config and value is hte cost
     # profile_configs is the structured configuration
@@ -19,7 +19,8 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model):
         maxT = 3
     while error >= threshold:
         if seglvl >= maxT:
-            print "Reached Highest Segmentation Granularity"
+            print
+            "Reached Highest Segmentation Granularity"
             break
         seglvl += 1
         partitions = partition(seglvl, knob_samples)
@@ -28,7 +29,8 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model):
         error = compare(costrsdg, gt, False, model)
     if PRINT:
         compare(costrsdg, gt, True, model)
-        print "Granulatiry = " + str(seglvl)
+        print
+        "Granulatiry = " + str(seglvl)
     return costrsdg, mvrsdgs
 
 
@@ -82,7 +84,8 @@ def retrieve(partitions, gt, knobs):
     return observed_profile
 
 
-# given an observed profile, generate the continuous problem and populate the rsdg
+# given an observed profile, generate the continuous problem and populate the
+# rsdg
 def populate(observed, partitions, model):
     if model == "piecewise":
         return populatePieceWiseRSDG(observed, partitions)

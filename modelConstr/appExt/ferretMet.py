@@ -33,7 +33,8 @@ class appMethods(AppMethods):
                     itr = config.val  # retrieve the setting for each knob
 
         self.moveFile("output.txt",
-                      "./training_outputs/output_" + str(hash) + "_" + str(probe) + "_" + str(itr) + ".txt")
+                      "./training_outputs/output_" + str(hash) + "_" + str(
+                          probe) + "_" + str(itr) + ".txt")
 
     def afterGTRun(self):
         self.gt_path = "./training_outputs/grountTruth.txt"
@@ -122,7 +123,7 @@ class appMethods(AppMethods):
             truth_res = truthmap[query_image]
             mission_res = missionmap[query_image]
             # compute the worst case senario, where Z = empty
-            maxError = -1.0 * (len(truth_res)+1) * len(truth_res)
+            maxError = -1.0 * (len(truth_res) + 1) * len(truth_res)
             # setup S and T
             S.update(truth_res)
             T.update(mission_res)
@@ -134,7 +135,8 @@ class appMethods(AppMethods):
             # now that Z, S, and T are set, compute the ranking function
             coverage = abs((self.compute1(truth_res, S) + self.compute1(
                 mission_res, T)) / float(maxError))
-            relavance = abs(self.compute2(truth_res, mission_res, Z) / float(maxError))
+            relavance = abs(
+                self.compute2(truth_res, mission_res, Z) / float(maxError))
             ranking_res = abs(relavance - coverage)
             totAcuracy += 1.0 - ranking_res
             totRelavance += relavance
@@ -142,4 +144,5 @@ class appMethods(AppMethods):
             S.clear()
             T.clear()
             Z.clear()
-        return [totCoverage / float(totimg), totRelavance / float(totimg), totAcuracy * 100.0 / float(totimg)]
+        return [totCoverage / float(totimg), totRelavance / float(totimg),
+                totAcuracy * 100.0 / float(totimg)]
