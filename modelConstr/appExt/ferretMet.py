@@ -89,13 +89,13 @@ class appMethods(AppMethods):
         mission_res = []
         for line in mission:
             col = line.split('\t')
-            name = col[0].split("/")[1]
+            name = col[0].split("/")[-1]
             missionmap[name] = []
             for i in range(1, len(col)):  # 50 results
                 missionmap[name].append(col[i].split(':')[0])
         for line in truth:
             col = line.split('\t')
-            name = col[0].split("/")[1]
+            name = col[0].split("/")[-1]
             if name not in missionmap:
                 continue
             truthmap[name] = []
@@ -107,14 +107,14 @@ class appMethods(AppMethods):
         Z = set()
         S = set()
         T = set()
-        toterr = 0.0
+        totAcuracy = 0.0
         totimg = 0
         for query_image in truthmap:
             totimg += 1
             truth_res = truthmap[query_image]
             mission_res = missionmap[query_image]
             # compute the worst case senario, where Z = empty
-            maxError = ((1 + len(truth_res)) * len(truth_res) / 2) * 2
+            maxError = -1.0 * (len(truth_res)+1) * len(truth_res)
             # setup S and T
             S.update(truth_res)
             T.update(mission_res)
@@ -127,8 +127,9 @@ class appMethods(AppMethods):
             ranking_res = self.compute2(truth_res, mission_res, Z) - self.compute1(truth_res, S) - self.compute1(
                 mission_res, T)
             ranking_res = abs(float(ranking_res) / float(maxError))
-            toterr += 1.0 - ranking_res
+            totAcuracy += 1.0 - ranking_res
             S.clear()
             T.clear()
             Z.clear()
-        return (1.0 - (toterr / totimg)) * 100.0
+        print("*****accuracy = " + str(totAcuracy * 100.0 / float(totimg)))
+        return totAcuracy * 100.0 / float(totimg)
