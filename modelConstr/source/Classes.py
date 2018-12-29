@@ -518,9 +518,9 @@ class quadRSDG:
         :param val: the value
         :return:
         """
-        if not a in self.coeffTable:
+        if a not in self.coeffTable:
             self.coeffTable[a] = {}
-        if not b in self.coeffTable[a]:
+        if b not in self.coeffTable[a]:
             self.coeffTable[a][b] = InterCoeff()
         if abc == "a":
             self.coeffTable[a][b].addQuadCoeff(val)
@@ -584,7 +584,7 @@ class quadRSDG:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[
-                        configs[i].knob.set_name]:
+                            configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -628,9 +628,9 @@ class pieceRSDG:
         :param val: the value
         :return:
         """
-        if not a in self.coeffTable:
+        if a not in self.coeffTable:
             self.coeffTable[a] = {}
-        if not b in self.coeffTable[a]:
+        if b not in self.coeffTable[a]:
             self.coeffTable[a][b] = InterCoeff()
         if abc == "a":
             self.coeffTable[a][b].addQuadCoeff(val)
@@ -693,7 +693,7 @@ class pieceRSDG:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[
-                        configs[i].knob.set_name]:
+                            configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -844,7 +844,7 @@ class AppMethods():
         QoS checking later in the future. The output can be application
         specific, but we recommend to output the
         result to a file.
-	"""
+        """
         print("GENERATING GROUND TRUTH for " + self.appName)
         command = self.getCommand()
         os.system(" ".join(command))

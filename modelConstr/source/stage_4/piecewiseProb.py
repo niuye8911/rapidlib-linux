@@ -83,7 +83,6 @@ def getVariables(partitions, segments):
         name = knob
         knob_values.add(name)
     for segment in segments:
-        knob_name = segment
         knob_segs = segments[segment]
         for knob_seg in knob_segs:
             seg_indicators.add(knob_seg.printID())
@@ -114,8 +113,8 @@ def costFunction(segments, observed):
     costFunction = ""
     if True:
         # generate piece wise linear cost fuctions
-        first_order_coeff = 0
-        const_coeff = 0
+        # first_order_coeff = 0
+        # const_coeff = 0
         # first order
         for configuration in observed.configurations:
             for config in configuration.retrieve_configs():
@@ -219,7 +218,6 @@ def genConstraints(segments, observed, COST=True):
 
 # get a combination of cost estimates
 def getFlattedSeg(fall_within_segs):
-    result = []
     finalsets = set()
     for knob in fall_within_segs:
         singleset = frozenset(fall_within_segs[knob])
@@ -301,7 +299,6 @@ def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
             # knob_id_V
             cols = name.split("_")
             knob_name = cols[0]
-            id = cols[1]
             seglist = rsdg.knob_table[knob_name]
             for seg in seglist:
                 segname = seg.printVar()
@@ -312,7 +309,6 @@ def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
             # knob_id_V
             cols = name.split("_")
             knob_name = cols[0]
-            id = cols[1]
             seglist = rsdg.knob_table[knob_name]
             for seg in seglist:
                 segname = seg.printConst()
