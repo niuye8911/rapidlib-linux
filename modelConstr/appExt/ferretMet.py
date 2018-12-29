@@ -10,12 +10,18 @@ class appMethods(AppMethods):
     table = "lsh"
     query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/queries"
 
+    def __init__(self, name, obj_path):
+        """ Initialization with app name
+        :param name:
+        """
+        AppMethods.__init__(self, name, obj_path)
+        self.training_units = 20
+
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
         itr = 25
         hash = 8
         probe = 20
-        self.training_units = 20
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
