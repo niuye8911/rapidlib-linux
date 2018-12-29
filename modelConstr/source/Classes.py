@@ -318,6 +318,7 @@ class Profile:
         self.profile_table = {}
         self.configurations = set()
         self.mvprofile_table = {}
+        self.numOfMVs = 1
 
     def addCostEntry(self, configuration, cost):
         """ Record the cost for a configuration
@@ -328,12 +329,13 @@ class Profile:
         self.configurations.add(configuration)
         return
 
-    def addMVEntry(self, configuration, mv):
+    def addMVEntry(self, configuration, mvs):
         """ Record the MV for a configuration
         :param configuration: the configuration
         :param mv: the mv
         """
-        self.mvprofile_table[self.hashConfig(configuration)] = mv
+        self.mvprofile_table[self.hashConfig(configuration)] = mvs
+        self.numOfMVs = len(mvs)
         return
 
     def updateEntry(self, configuration, val, COST=True):
@@ -392,12 +394,13 @@ class Profile:
         entry = self.hashConfig(configuration)
         return self.profile_table[entry]
 
-    def setMV(self, configuration, val):
+    def setMV(self, configuration, vals):
         """Set the MV of a configuration
         :param configuration: the configuration
-        :param val: the MV
+        :param vals: the MVs
         """
-        self.mvprofile_table[self.hashConfig(configuration)] = val
+        self.numOfMVs = len(vals)
+        self.mvprofile_table[self.hashConfig(configuration)] = vals
 
     def getMV(self, configuration):
         """Get the MV of a configuration
@@ -429,6 +432,17 @@ class Profile:
                 output.write("," + str(self.mvprofile_table[i]))
             output.write("\n")
         output.close()
+
+    def genMultipleMV(self):
+        profiles = []
+        for i in range (0,self.numOfMVs):
+            profile = Profile()
+            profile.profile_table = self.profile_table
+            profile.configurations = self.configurations
+            profile.mvprofile_table = {k: v[i] for k,v in self.mvprofile_table.items()}
+            profile.numOfMVs = 1
+            profiles.append(profile)
+        return profiles
 
 
 class InterCoeff:
@@ -780,7 +794,7 @@ class AppMethods():
         for configuration in configurations:
             # the purpose of each iteration is to fill in the two values below
             cost = 0.0
-            mv = 0.0
+            mv = [0.0]
             configs = configuration.retrieve_configs(
             )  # extract the configurations
             # assembly the command
@@ -951,7 +965,7 @@ class AppMethods():
 
     def getQoS(self):
         """ Return the QoS for a configuration"""
-        return 0.0
+        return [0.0]
 
     def moveFile(self, fromfile, tofile):
         """ move a file to another location
@@ -961,7 +975,7 @@ class AppMethods():
         command = ["mv", fromfile, tofile]
         os.system(" ".join(command))
 
-    def writeConfigMeasurementToFile(self, filestream, configuration, value):
+    def writeConfigMeasurementToFile(self, filestream, configuration, values):
         """ write a configuration with its value (could be cost or mv) to a
         opened file stream
         :param filestream: the file stream, need to be opened with 'w'
@@ -969,7 +983,12 @@ class AppMethods():
         :param value: the value in double or string
         """
         filestream.write(configuration.printSelf() + " ")
-        filestream.write(str(value) + "\n")
+        if type(values) is list:
+            for value in values:
+                filestream.write(str(value) + " ")
+        else:
+            filestream.write(str(values))
+        filestream.write('\n')
 
     def recordSysUsage(self, configuration, metric):
         """ record the system usage of a configuration

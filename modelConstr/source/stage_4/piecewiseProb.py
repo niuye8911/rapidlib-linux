@@ -12,12 +12,18 @@ def populatePieceWiseRSDG(observed, partitions):
     costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
-    #  solve and retrieve the result
-    segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(observed, partitions, False)
-    mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
-    system("mv ./debug/max.sol ./debug/maxmv.sol")
-    system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
-    return costrsdg, mvrsdg
+    # generate multiple RSDG
+    mvprofiles = observed.genMultipleMV()
+    mvrsdgs = []
+    for mvprofile in mvprofiles:
+        # solve and retrieve the result
+        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(mvprofile, partitions, False)
+
+        mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False)
+        system("mv ./debug/max.sol ./debug/maxmv.sol")
+        system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
+        mvrsdgs.append(mvrsdg)
+    return costrsdg, mvrsdgs
 
 
 # generate a cont problem
@@ -136,7 +142,7 @@ def genConstraints(segments, observed, COST=True):
                 for seg in segments[knob_name]:
                     if knob_val < seg.min or knob_val > seg.max:
                         continue
-                    if not knob_name in fall_within_segs:
+                    if knob_name not in fall_within_segs:
                         fall_within_segs[knob_name] = []
                     fall_within_segs[knob_name].append(seg)
                     # generate the seg Constraints

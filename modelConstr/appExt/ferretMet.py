@@ -114,6 +114,8 @@ class appMethods(AppMethods):
         S = set()
         T = set()
         totAcuracy = 0.0
+        totCoverage = 0.0
+        totRelavance = 0.0
         totimg = 0
         for query_image in truthmap:
             totimg += 1
@@ -130,12 +132,14 @@ class appMethods(AppMethods):
                 T.remove(s)
                 S.remove(s)
             # now that Z, S, and T are set, compute the ranking function
-            ranking_res = self.compute2(truth_res, mission_res, Z) - self.compute1(truth_res, S) - self.compute1(
-                mission_res, T)
-            ranking_res = abs(float(ranking_res) / float(maxError))
+            coverage = abs((self.compute1(truth_res, S) + self.compute1(
+                mission_res, T)) / float(maxError))
+            relavance = abs(self.compute2(truth_res, mission_res, Z) / float(maxError))
+            ranking_res = abs(relavance - coverage)
             totAcuracy += 1.0 - ranking_res
+            totRelavance += relavance
+            totCoverage += coverage
             S.clear()
             T.clear()
             Z.clear()
-        print("*****accuracy = " + str(totAcuracy * 100.0 / float(totimg)))
-        return totAcuracy * 100.0 / float(totimg)
+        return [totCoverage / float(totimg), totRelavance / float(totimg), totAcuracy * 100.0 / float(totimg)]

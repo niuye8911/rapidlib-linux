@@ -24,12 +24,12 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model):
         seglvl += 1
         partitions = partition(seglvl, knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        costrsdg, mvrsdg = populate(observed_profile, partitions, model)
+        costrsdg, mvrsdgs = populate(observed_profile, partitions, model)
         error = compare(costrsdg, gt, False, model)
     if PRINT:
         compare(costrsdg, gt, True, model)
         print "Granulatiry = " + str(seglvl)
-    return costrsdg, mvrsdg
+    return costrsdg, mvrsdgs
 
 
 # given a partion level, return a list of configurations
@@ -76,9 +76,9 @@ def retrieve(partitions, gt, knobs):
         if not gt.hasEntry(configuration):
             continue
         costval = gt.getCost(configuration)
-        mvval = gt.getMV(configuration)
+        mvvals = gt.getMV(configuration)
         observed_profile.addCostEntry(configuration, costval)
-        observed_profile.addMVEntry(configuration, mvval)
+        observed_profile.addMVEntry(configuration, mvvals)
     return observed_profile
 
 

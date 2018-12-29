@@ -2,13 +2,15 @@ from lxml import etree
 from xml.dom import minidom
 from Classes import *
 
-def completeXML(appname,xml,rsdg,mv_rsdg,model):
+def completeXML(appname,xml,rsdg,mv_rsdgs,model):
     # fill in the XML with piece wise XML
     # fill in the knob cont Cost:
     knob_table = rsdg.knob_table
     coeff_table = rsdg.coeffTable
-    knobmv_table = mv_rsdg.knob_table
-    coeffmv_table = mv_rsdg.coeffTable
+    knobmv_tables = []
+    for mvrsdg in mv_rsdgs:
+        knobmv_tables.append(mvrsdg.knob_table)
+    #coeffmv_table = mv_rsdgs.coeffTable
     visited_service = set()
     for services in xml.findall("service"):
         knobname = services.find("servicelayer").find("basicnode").find("nodename").text
@@ -17,19 +19,26 @@ def completeXML(appname,xml,rsdg,mv_rsdg,model):
             contpiece = etree.SubElement(node, "contpiece")
             # fill in the cont cost of each segment
             seglist = knob_table[knobname]
-            seglist_mv = knobmv_table[knobname]
+            seglist_mvs = []
+            for knobmv_table in knobmv_tables:
+                seglist_mvs.append(knobmv_table[knobname])
             for seg in seglist:
                 segxml = etree.SubElement(contpiece, "seg")
                 etree.SubElement(segxml,"min").text = str(seg.min)
                 etree.SubElement(segxml, "max").text = str(seg.max)
                 etree.SubElement(segxml, "costL").text = str(seg.a)
                 etree.SubElement(segxml, "costC").text = str(seg.b)
-            #find the corresponding mv
-                for segmv in seglist_mv:
-                    if segmv.min==seg.min:
-                        etree.SubElement(segxml, "mvL").text = str(segmv.a)
-                        etree.SubElement(segxml, "mvC").text = str(segmv.b)
-                        break
+                # find the corresponding mv
+                segmvs = []
+                for seglist_mv in seglist_mvs:
+                    for segmv in seglist_mv:
+                        if segmv.min==seg.min:
+                            segmvs.append(segmv)
+                            break
+                segas = list(map(lambda x: str(x.a), segmvs))
+                segbs = list(map(lambda x: str(x.b), segmvs))
+                etree.SubElement(segxml, "mvL").text = str(','.join(segas))
+                etree.SubElement(segxml, "mvC").text = str(','.join(segbs))
         elif model=="quad" or model == "linear":
             contcost = etree.SubElement(node,"contcost")
             [o2,o1,c] = knob_table[knobname]
@@ -37,15 +46,22 @@ def completeXML(appname,xml,rsdg,mv_rsdg,model):
             etree.SubElement(contcost, "o1").text = str(o1)
             etree.SubElement(contcost, "c").text = str(c)
             contmv = etree.SubElement(node,"contmv")
-            [o2, o1, c] = knobmv_table[knobname]
-            etree.SubElement(contmv, "o2").text = str(o2)
-            etree.SubElement(contmv, "o1").text = str(o1)
-            etree.SubElement(contmv, "c").text = str(c)
+            o2s = []
+            o1s = []
+            cs = []
+            for knobmv_table in knobmv_tables:
+                [o2, o1, c] = knobmv_table[knobname]
+                o2s.append(o2)
+                o1s.append(o1)
+                cs.append(c)
+            etree.SubElement(contmv, "o2").text = str(o2s)
+            etree.SubElement(contmv, "o1").text = str(o1s)
+            etree.SubElement(contmv, "c").text = str(cs)
 
         # fill in the cont with
-        if coeff_table==None or len(coeff_table)==0:
+        if coeff_table is None or len(coeff_table)==0:
             continue
-        if not knobname in coeff_table:
+        if knobname not in coeff_table:
             continue
         for sink_coeff in coeff_table[knobname]:
             print knobname, sink_coeff

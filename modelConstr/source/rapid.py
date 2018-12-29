@@ -87,14 +87,14 @@ def main(argv):
     readFact(mvfactfile, knobs, groundTruth_profile, False)
     groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
     # construct the cost rsdg iteratively given a threshold
-    cost_rsdg, mv_rsdg = constructRSDG(groundTruth_profile, knob_samples,
+    cost_rsdg, mv_rsdgs = constructRSDG(groundTruth_profile, knob_samples,
                                        THRESHOLD, knobs, True, model)
     if PLOT:
         draw("outputs/modelValid.csv")
 
     #######################STAGE-4########################
     # forth stage, generate the final RSDG in XML format
-    completeXML(appname, xml, cost_rsdg, mv_rsdg, model)
+    completeXML(appname, xml, cost_rsdg, mv_rsdgs, model)
 
     # cleaning
     os.system("rm *.log *.sol")
