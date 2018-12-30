@@ -17,16 +17,18 @@ def populatePieceWiseRSDG(observed, partitions):
     # generate multiple RSDG
     mvprofiles = observed.genMultipleMV()
     mvrsdgs = []
+    id = 0
     for mvprofile in mvprofiles:
         # solve and retrieve the result
         segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = \
             generatePieceWiseContProblem(mvprofile, partitions, False)
 
         mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv,
-                                      inter_coeff_mv, False)
-        system("mv ./debug/max.sol ./debug/maxmv.sol")
-        system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
+                                      inter_coeff_mv, False, id)
+        system("mv ./debug/max.sol ./debug/maxmv"+str(id)+".sol")
+        system("mv ./debug/fitting.lp ./debug/fittingmv"+str(id)+".lp")
         mvrsdgs.append(mvrsdg)
+        id+=1
     return costrsdg, mvrsdgs
 
 
@@ -273,7 +275,7 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds,
 
 
 def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
-                         COST=True):
+                         COST=True, id = 0):
     system(
         "gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
     result = open("./debug/max.sol", 'r')
@@ -338,7 +340,7 @@ def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
                 "after PSD"
                 print
                 coeffs.a, coeffs.b, coeffs.c
-    rsdg.printRSDG(COST)
+    rsdg.printRSDG(COST,id)
     return rsdg
 
 

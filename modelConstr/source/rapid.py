@@ -9,6 +9,7 @@ from stage_2.qos_checker import *
 from stage_2.trainApp import *
 from stage_4.constructRSDG import *
 from xmlgen import *
+import xml.etree.ElementTree as ET
 
 configs = []
 service_levels = {}
@@ -27,6 +28,7 @@ knob_samples = {}
 desc = ""
 stage = -1
 methods_path = ""
+xml_path = ""
 obj_path = ""
 config_file = ""
 app_config = None
@@ -47,6 +49,13 @@ def main(argv):
     options, args = parser.parse_args()
     # insert to global variables
     parseCMD(options)
+
+    if (mode == "finalize"):
+        module = imp.load_source("", methods_path)
+        appMethods = module.appMethods("", obj_path)
+        # finalize a XML during runtime
+        finalizeXML(xml_path, appMethods)
+        return
 
     # make the output dirs
     if not os.path.exists("./outputs"):
@@ -177,21 +186,26 @@ def declareParser():
     parser.add_option('--rsdgmv', dest="rsdgmv")
     parser.add_option('--stage', dest='stage')
     parser.add_option('-C', dest="config")
+    parser.add_option('--xml', dest="xml", default="")
     return parser
 
 
 def parseCMD(options):
     global app_config, observed, fact, KF, remote, model, rs, stage, mode, \
-        PLOT, config_file
+        PLOT, config_file, xml_path
     observed = options.observed
     fact = options.fact
     model = options.model
+    xml_path = options.xml
     if options.plot == "t":
         PLOT = True
     rs = options.rs
     remote = options.remote
     mode = options.mode
     # read config
+    if options.mode == "finalize" and options.xml == "":
+        print(" WARNING: no xml provided for finalization")
+        sys.exit()
     if options.config is not None:
         config_file = options.config
         app_config = parseConfig(config_file)

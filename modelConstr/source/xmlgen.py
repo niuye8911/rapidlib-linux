@@ -3,6 +3,19 @@ from xml.dom import minidom
 from Classes import *
 from lxml import etree
 
+def isMultiple(str):
+    try:
+        col = str.split(',')
+        return len(col)>1
+    except ValueError:
+        return False
+
+def finalizeXML(xml, appMet):
+    xml = etree.parse(xml)
+    for node in xml.iter():
+        if isMultiple(node.text):
+            node.text = str(appMet.computeQoSWeight([1.0,1.0], map(lambda x: float(x), node.text.split(',')[0:-1])))
+    writeXML("finalized_xml", xml)
 
 def completeXML(appname, xml, rsdg, mv_rsdgs, model):
     # fill in the XML with piece wise XML

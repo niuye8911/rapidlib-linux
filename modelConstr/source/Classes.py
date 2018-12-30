@@ -639,7 +639,7 @@ class pieceRSDG:
         elif abc == "c":
             self.coeffTable[a][b].addConstCoeff(val)
 
-    def printRSDG(self, COST=True):
+    def printRSDG(self, COST=True, id =0):
         """ print the RSDG to a file
         The output path is ./outputs/[cost/mv].rsdg
         :param COST: if True, print the Cost rsdg, else the MV rsdg
@@ -648,7 +648,7 @@ class pieceRSDG:
         if COST:
             outfilename = "./outputs/cost.rsdg"
         else:
-            outfilename = "./outputs/mv.rsdg"
+            outfilename = "./outputs/mv"+str(id)+".rsdg"
         rsdg = open(outfilename, 'w')
         # print the segments
         for knob in self.knob_table:
@@ -1011,6 +1011,11 @@ class AppMethods():
         """ This function will be called after runGT()
         """
         pass
+
+    def computeQoSWeight(self, preferences, values):
+        """ This function will be called by C++ end to finalize a xml
+        """
+        return 0.0
 
     def pinTime(self, filestream):
         filestream.write(str(datetime.datetime.now()) + " ")

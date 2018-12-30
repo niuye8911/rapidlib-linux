@@ -69,6 +69,15 @@ class appMethods(AppMethods):
                 '-itr',
                 str(itr)]
 
+    def computeQoSWeight(self, preferences, values):
+        # preferences is the preferecne and values contains the raw mv weight
+        coverage = values[1]
+        relavance = values[0]
+        coverage_pref = preferences[1]
+        relavance_pref = preferences[0]
+        ranking_res = abs(relavance_pref * relavance - coverage_pref * coverage)
+        return 100.0-ranking_res
+
     def rank(self, img, imglist):
         if img in imglist:
             return imglist.index(img) + 1
@@ -144,5 +153,5 @@ class appMethods(AppMethods):
             S.clear()
             T.clear()
             Z.clear()
-        return [totCoverage / float(totimg), totRelavance / float(totimg),
+        return [totCoverage * 100.0 / float(totimg), totRelavance * 100.0 / float(totimg),
                 totAcuracy * 100.0 / float(totimg)]
