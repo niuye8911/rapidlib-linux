@@ -35,6 +35,8 @@ public:
   int numThreads;
   const string pythonScript =
       "/home/ubuntu/parsec-3.0/rsdglib/modelConstr/parseData.py";
+  const string rapidScript =
+      "/home/liuliu/Research/rapidlib-linux/modelConstr/source/rapid.py";
   double predictedCost = 0.0;
   double realCost = 0.0;
 
@@ -85,6 +87,7 @@ public:
   bool LOGGER = false;
   bool update = false;
   long freq;
+  string xml_path;
 
   // result
   double maxMV;
@@ -102,6 +105,7 @@ public:
   rsdgService *getService(string name);
   void regService(string, string, void *(*)(void *), bool,
                   pair<rsdgPara *, int>);
+  void finalizeRSDG(vector<int> &preference);
   void regService(string, string, void *(*)(void *), bool);
   void regContService(string, string, void *(*)(void *), rsdgPara *);
   void setupSolverFreq(int);

@@ -411,6 +411,12 @@ void rsdgMission::reconfig_training() {
   }
 }
 
+void rsdgMission::finalizeRSDG(vector<int> &preference) {
+  // use user-provided preference to finalize RSDG MV weights
+  string cmd = "python " + rapidScript + " -m finalize -xml " + xml_path;
+  system(cmd.c_str());
+}
+
 void rsdgMission::updateRSDG() {
   // execute the python scrip
   string cmd =
@@ -596,7 +602,10 @@ int rsdgMission::getBudget() { return budget; }
 
 int rsdgMission::getNumThreads() { return numThreads; }
 
-void rsdgMission::generateProb(string input) { graph = rsdgGen(input); }
+void rsdgMission::generateProb(string input) {
+  xml_path = input;
+  graph = rsdgGen(input);
+}
 
 void rsdgMission::setOutput(string name) { outfileName = name; }
 
