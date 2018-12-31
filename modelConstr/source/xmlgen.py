@@ -3,12 +3,14 @@ from xml.dom import minidom
 from Classes import *
 from lxml import etree
 
+
 def isMultiple(str):
     try:
         col = str.split(',')
-        return len(col)>1
+        return len(col) > 1
     except ValueError:
         return False
+
 
 def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
     knob_table = rsdg.knob_table
@@ -16,32 +18,33 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
     knobmv_table = mv_rsdg.knob_table
     visited_service = set()
     for services in xml.findall("service"):
-        knobname = services.find("servicelayer").find("basicnode").find("nodename").text
+        knobname = services.find("servicelayer").find("basicnode").find(
+            "nodename").text
         node = services.find("servicelayer").find("basicnode")
-        if model=="piecewise":
+        if model == "piecewise":
             contpiece = etree.SubElement(node, "contpiece")
             # fill in the cont cost of each segment
             seglist = knob_table[knobname]
             seglist_mv = knobmv_table[knobname]
             for seg in seglist:
                 segxml = etree.SubElement(contpiece, "seg")
-                etree.SubElement(segxml,"min").text = str(seg.min)
+                etree.SubElement(segxml, "min").text = str(seg.min)
                 etree.SubElement(segxml, "max").text = str(seg.max)
                 etree.SubElement(segxml, "costL").text = str(seg.a)
                 etree.SubElement(segxml, "costC").text = str(seg.b)
-            #find the corresponding mv
+                # find the corresponding mv
                 for segmv in seglist_mv:
-                    if segmv.min==seg.min:
+                    if segmv.min == seg.min:
                         etree.SubElement(segxml, "mvL").text = str(segmv.a)
                         etree.SubElement(segxml, "mvC").text = str(segmv.b)
                         break
-        elif model=="quad" or model == "linear":
-            contcost = etree.SubElement(node,"contcost")
-            [o2,o1,c] = knob_table[knobname]
-            etree.SubElement(contcost,"o2").text = str(o2)
+        elif model == "quad" or model == "linear":
+            contcost = etree.SubElement(node, "contcost")
+            [o2, o1, c] = knob_table[knobname]
+            etree.SubElement(contcost, "o2").text = str(o2)
             etree.SubElement(contcost, "o1").text = str(o1)
             etree.SubElement(contcost, "c").text = str(c)
-            contmv = etree.SubElement(node,"contmv")
+            contmv = etree.SubElement(node, "contmv")
             [o2, o1, c] = knobmv_table[knobname]
             etree.SubElement(contmv, "o2").text = str(o2)
             etree.SubElement(contmv, "o1").text = str(o1)
@@ -53,31 +56,35 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
         if knobname not in coeff_table:
             continue
         for sink_coeff in coeff_table[knobname]:
-            print knobname, sink_coeff
-            print visited_service
-            if(sink_coeff in visited_service):
+            print
+            knobname, sink_coeff
+            print
+            visited_service
+            if (sink_coeff in visited_service):
                 continue
-            if model=="piecewise":
+            if model == "piecewise":
                 contwith = etree.SubElement(node, "contpiecewith")
-                #sink = etree.SubElement(contwith,"knob")
-                sink = etree.SubElement(contwith,"knob")
+                # sink = etree.SubElement(contwith,"knob")
+                sink = etree.SubElement(contwith, "knob")
                 etree.SubElement(sink, "name").text = sink_coeff
-                costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
-                #mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
-                etree.SubElement(sink,"costa").text = str(costa)
+                costa, costb, costc = coeff_table[knobname][
+                    sink_coeff].retrieveCoeffs()
+                # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
+                etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
                 etree.SubElement(sink, "costc").text = str(costc)
-                #etree.SubElement(sink, "mva").text = str(mva)
-                #etree.SubElement(sink, "mvb").text = str(mvb)
-                #etree.SubElement(sink, "mvc").text = str(mvc)
+                # etree.SubElement(sink, "mva").text = str(mva)
+                # etree.SubElement(sink, "mvb").text = str(mvb)
+                # etree.SubElement(sink, "mvc").text = str(mvc)
                 etree.SubElement(sink, "mva").text = str(0.0)
                 etree.SubElement(sink, "mvb").text = str(0.0)
                 etree.SubElement(sink, "mvc").text = str(0.0)
-            elif model=="quad":
-                contwith = etree.SubElement(node,"contwith")
+            elif model == "quad":
+                contwith = etree.SubElement(node, "contwith")
                 sink = etree.SubElement(contwith, "knob")
-                etree.SubElement(sink,"name").text = sink_coeff
-                costa, costb, costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
+                etree.SubElement(sink, "name").text = sink_coeff
+                costa, costb, costc = coeff_table[knobname][
+                    sink_coeff].retrieveCoeffs()
                 # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
                 etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
@@ -161,8 +168,8 @@ def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
                     nodename = node.find("nodename").text
                     if not nodename == sink:
                         continue
-                    #for contwiths in node.findall("contwith"):
-                        #mvcoeff = contwiths.find("mvcoeff")
+                    # for contwiths in node.findall("contwith"):
+                    # mvcoeff = contwiths.find("mvcoeff")
 
     # create all contand and contor
     for and_edge in and_list:

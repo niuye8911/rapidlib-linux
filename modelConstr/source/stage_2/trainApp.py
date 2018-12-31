@@ -1,5 +1,7 @@
 import os
+
 from Classes import AppMethods
+
 
 def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf,
             numOfFixedEnv):
@@ -18,18 +20,22 @@ def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf,
                      sys_path, perf_path)
     return cost_path, mv_path
 
-def genFactWithRSDG(appname, config_table, cost_rsdg, mv_rsdgs, appMethod, preferences):
-    print cost_rsdg.coeffTable
+
+def genFactWithRSDG(appname, config_table, cost_rsdg, mv_rsdgs, appMethod,
+                    preferences):
+    print
+    cost_rsdg.coeffTable
     # generate the fact file using existing rsdg
     cost_path = "outputs/" + appname + "-cost-gen" + ".fact"
     mv_path = "outputs/" + appname + "-mv-gen" + ".fact"
-    costFile = open(cost_path,'w')
-    mvFile = open(mv_path,'w')
+    costFile = open(cost_path, 'w')
+    mvFile = open(mv_path, 'w')
     configurations = config_table.configurations
     for configuration in configurations:
         cost = cost_rsdg.calCost(configuration)
-        AppMethods.writeConfigMeasurementToFile(costFile,configuration,cost)
+        AppMethods.writeConfigMeasurementToFile(costFile, configuration, cost)
         mvs = map(lambda x: x.calCost(configuration), mv_rsdgs)
         combined_mv = appMethod.computeQoSWeight(preferences, mvs)
-        AppMethods.writeConfigMeasurementToFile(mvFile, configuration, combined_mv)
+        AppMethods.writeConfigMeasurementToFile(mvFile, configuration,
+                                                combined_mv)
     return cost_path, mv_path

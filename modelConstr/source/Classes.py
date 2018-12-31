@@ -584,7 +584,7 @@ class quadRSDG:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[
-                            configs[i].knob.set_name]:
+                        configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -613,7 +613,7 @@ class pieceRSDG:
             if START_COEFF:
                 # this is the coeff lines
                 [knob_a, knob_b] = line.split()[0].split(':')[0].split('_')
-                [a,b,c] = line.split()[0].split(':')[1].split('/')
+                [a, b, c] = line.split()[0].split(':')[1].split('/')
                 self.addInterCoeff(knob_a, knob_b, float(a), 'a')
                 self.addInterCoeff(knob_a, knob_b, float(b), 'b')
                 self.addInterCoeff(knob_a, knob_b, float(c), 'c')
@@ -625,8 +625,8 @@ class pieceRSDG:
                 # add the knob
                 self.addKnob(knob_name)
                 for seg in segs:
-                    self.addSeg(knob_name,seg)
-                segs=[]
+                    self.addSeg(knob_name, seg)
+                segs = []
                 continue
 
                 # add the seg
@@ -644,7 +644,6 @@ class pieceRSDG:
                 seg.setConstCoeff(float(b))
                 seg.setID(seg_name.split('_')[1])
                 segs.append(seg)
-
 
     def __init__(self):
         self.knob_table = {}
@@ -683,7 +682,7 @@ class pieceRSDG:
         elif abc == "c":
             self.coeffTable[a][b].addConstCoeff(val)
 
-    def printRSDG(self, COST=True, id =0):
+    def printRSDG(self, COST=True, id=0):
         """ print the RSDG to a file
         The output path is ./outputs/[cost/mv].rsdg
         :param COST: if True, print the Cost rsdg, else the MV rsdg
@@ -692,7 +691,7 @@ class pieceRSDG:
         if COST:
             outfilename = "./outputs/cost.rsdg"
         else:
-            outfilename = "./outputs/mv"+str(id)+".rsdg"
+            outfilename = "./outputs/mv" + str(id) + ".rsdg"
         rsdg = open(outfilename, 'w')
         # print the segments
         for knob in self.knob_table:
@@ -738,7 +737,7 @@ class pieceRSDG:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[
-                            configs[i].knob.set_name]:
+                        configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -850,12 +849,14 @@ class AppMethods():
                                               withSys,
                                               configuration.printSelf('-'))
             # write the cost to file
-            AppMethods.writeConfigMeasurementToFile(costFact, configuration, cost)
+            AppMethods.writeConfigMeasurementToFile(costFact, configuration,
+                                                    cost)
             # measure the "mv"
             if withMV:
                 mv = self.getQoS()
                 # write the mv to file
-                AppMethods.writeConfigMeasurementToFile(mvFact, configuration, mv)
+                AppMethods.writeConfigMeasurementToFile(mvFact, configuration,
+                                                        mv)
             if withSys:
                 # write metric value to table
                 self.recordSysUsage(configuration, metric)

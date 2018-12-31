@@ -99,11 +99,14 @@ def getContRSDGandCheckRate(paras, factfile, quad):
                         for dep in relation_map[svc_name].items():
                             dep_name = dep[0]
                             inter_val = dep[1]
-                            curPredict += svc_val * inter_val * value_map[dep_name]
+                            curPredict += svc_val * inter_val * value_map[
+                                dep_name]
                 measurement = float(col[i])
                 abs_err = abs((measurement - curPredict) / measurement)
                 totErr += abs_err
-                report.write(str(curPredict) + "," + str(measurement) + "," + str(1.0 - abs_err) + "\n")
+                report.write(
+                    str(curPredict) + "," + str(measurement) + "," + str(
+                        1.0 - abs_err) + "\n")
                 curService = ""
                 curPredict = 0.0
                 break
@@ -152,7 +155,8 @@ def readContFactAndGenConstraint(fact, quad):
                 # in case there's only 1 quad-constraints
                 # if quadconstraint != "":
                 #    constraint += " - "
-                constraint += " -" + str(cost) + " err" + str(num + 1) + " = 0\n"
+                constraint += " -" + str(cost) + " err" + str(
+                    num + 1) + " = 0\n"
                 constraints.append(constraint)
                 # clear the constraint
                 constraint = ""
@@ -161,17 +165,20 @@ def readContFactAndGenConstraint(fact, quad):
                 continue
             cur = col[i]
             # print("cur="+cur)
-            if not (cur.replace(".", "", 1).isdigit()):  # this is a service name
+            if not (
+            cur.replace(".", "", 1).isdigit()):  # this is a service name
                 name = cur
             else:
                 value = float(cur)
                 # add the inter-service relationship to the quad constraint
                 for service in services:
                     inter_para = value * services[service]
-                    quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
+                    quadconstraint += str(
+                        inter_para) + " " + name + "_" + service + " + "
                     if quad:
                         paras.add(name + "_" + service)
-                services[name] = value  # record the current value for this service
+                services[
+                    name] = value  # record the current value for this service
                 # write the 2-order constraint
                 o2para = name + "_2"
                 o1para = name + "_1"
@@ -222,7 +229,8 @@ def readContFactAndGenModConstraint(fact):
                         val = services[cur_service]
                         val_inter = services[inter_service]
                         # print(val,val_inter,2*val*val_inter)
-                        quad_cons = str(val * val) + " " + quadterm + " ^ 2 + " + str(
+                        quad_cons = str(
+                            val * val) + " " + quadterm + " ^ 2 + " + str(
                             val_inter * val_inter) + " " + quadterm_t + " ^ 2 - " + str(
                             2 * val_inter * val) + " " + quadterm + " * " + quadterm_t + " + "
                         quadconstraint += quad_cons
@@ -233,7 +241,8 @@ def readContFactAndGenModConstraint(fact):
                 # append the quadconstraint to constraint
                 constraint += quadconstraint
                 # greater_constraint = constraint + " >= "+str(cost-0.1)+"\n"
-                smaller_constraint = constraint + " <= " + str(cost + 0.1) + "\n"
+                smaller_constraint = constraint + " <= " + str(
+                    cost + 0.1) + "\n"
                 # constraints.append(greater_constraint)
                 constraints.append(smaller_constraint)
                 # clear the constraint
@@ -252,7 +261,8 @@ def readContFactAndGenModConstraint(fact):
                 # for service in services:
                 #     inter_para = value * services[service]
                 #     quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
-                services[name] = value  # record the current value for this service
+                services[
+                    name] = value  # record the current value for this service
                 # write the 2-order constraint
                 # o2para = name+"_2"
                 o1para = name + "_1"

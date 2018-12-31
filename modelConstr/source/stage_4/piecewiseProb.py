@@ -11,7 +11,7 @@ def populatePieceWiseRSDG(observed, partitions):
     segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(
         observed, partitions)
     costrsdg, cost_path = solveAndPopulateRSDG(segments, seg_values, segconst,
-                                    inter_coeff)
+                                               inter_coeff)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     # generate multiple RSDG
@@ -24,13 +24,16 @@ def populatePieceWiseRSDG(observed, partitions):
         segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = \
             generatePieceWiseContProblem(mvprofile, partitions, False)
 
-        mvrsdg, mv_path = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False, id)
-        system("mv ./debug/max.sol ./debug/maxmv"+str(id)+".sol")
-        system("mv ./debug/fitting.lp ./debug/fittingmv"+str(id)+".lp")
+        mvrsdg, mv_path = solveAndPopulateRSDG(segments_mv, seg_values_mv,
+                                               segconst_mv, inter_coeff_mv,
+                                               False, id)
+        system("mv ./debug/max.sol ./debug/maxmv" + str(id) + ".sol")
+        system("mv ./debug/fitting.lp ./debug/fittingmv" + str(id) + ".lp")
         mvrsdgs.append(mvrsdg)
         mv_paths.append(mv_path)
-        id+=1
+        id += 1
     return costrsdg, mvrsdgs, cost_path, mv_paths
+
 
 # generate a cont problem
 def generatePieceWiseContProblem(observed, partitions, COST=True):
@@ -275,7 +278,7 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds,
 
 
 def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
-                         COST=True, id = 0):
+                         COST=True, id=0):
     system(
         "gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
     result = open("./debug/max.sol", 'r')

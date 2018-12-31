@@ -5,7 +5,8 @@ from Classes import *
 
 # stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
-    print "RAPID-C / STAGE-1.1 : generating... training set in file ./trainingset"
+    print
+    "RAPID-C / STAGE-1.1 : generating... training set in file ./trainingset"
     config_file = open(cfg_file, 'r')  # input file
     # parsing the file
     appname, knobs, and_constriants, or_constraints = processFile(config_file)
@@ -61,9 +62,13 @@ def processFile(cfg_file):
             sink_min = col[3]
             sink_max = col[4]
             if type == "or":
-                or_constraints.add(Constraint(type, source, sink, source_min, source_max, sink_min, sink_max))
+                or_constraints.add(
+                    Constraint(type, source, sink, source_min, source_max,
+                               sink_min, sink_max))
             else:
-                and_constriants.add(Constraint(type, source, sink, source_min, source_max, sink_min, sink_max))
+                and_constriants.add(
+                    Constraint(type, source, sink, source_min, source_max,
+                               sink_min, sink_max))
     return appname, knobs, and_constriants, or_constraints
 
 
@@ -146,11 +151,14 @@ def validate(configs, knobs, and_constraints, or_constraints):
         set_min = knob.min
         set_max = knob.max
         if not (config_map.has_key(set_name)):
-            print "configuration does not have such setting name:" + set_name
+            print
+            "configuration does not have such setting name:" + set_name
             return False
         set_val = int(config_map[set_name])
         if set_val < set_min or set_val > set_max:
-            print "configuration exeeds range" + str(set_val) + ":" + str(set_min) + "->" + str(set_max)
+            print
+            "configuration exeeds range" + str(set_val) + ":" + str(
+                set_min) + "->" + str(set_max)
             return False
     # iterate through and_constraints
     for and_cons in and_constraints:
@@ -164,7 +172,8 @@ def validate(configs, knobs, and_constraints, or_constraints):
         # now check
         if not (config_map.has_key(sink) and config_map.has_key(source)):
             # this is assume to be a valid setting
-            print "cannot find sink or source in config+map"
+            print
+            "cannot find sink or source in config+map"
             return True
         sink_val = config_map[sink]
         source_val = config_map[source]

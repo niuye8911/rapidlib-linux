@@ -1,7 +1,7 @@
 import imp
 import json
-import os
 import optparse
+import os
 import sys
 
 import Classes
@@ -75,18 +75,23 @@ def main(argv):
             genTrainingSet(desc)
         appname = appname[:-1]
         xml = xmlgen.genxml(appname, "", "", True, desc, True)
-        factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile, cost_rsdg, mv_rsdgs, appMethod, preferences)
+        factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile,
+                                               cost_rsdg, mv_rsdgs, appMethod,
+                                               preferences)
         # ######################STAGE-3########################
         # third stage: Modeling, use the specific modeling method to construct
         # the RSDG
         readFact(factfile, knobs, groundTruth_profile)
         readFact(mvfactfile, knobs, groundTruth_profile, False)
-        groundTruth_profile.printProfile("./outputs/" + appname + 'gen'+".profile")
-        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(groundTruth_profile, knob_samples,
-                                            THRESHOLD, knobs, True, model)
-        finalized_xml = completeXML(appname, xml, cost_rsdg, mv_rsdgs[0], model, True)
+        groundTruth_profile.printProfile(
+            "./outputs/" + appname + 'gen' + ".profile")
+        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
+            groundTruth_profile, knob_samples,
+            THRESHOLD, knobs, True, model)
+        finalized_xml = completeXML(appname, xml, cost_rsdg, mv_rsdgs[0],
+                                    model, True)
         # append the xml path to the file
-        config['finalized_rsdg']=os.path.abspath(finalized_xml)
+        config['finalized_rsdg'] = os.path.abspath(finalized_xml)
         config_file = open(run_config_path, 'w')
         json.dump(config, config_file, indent=2, sort_keys=True)
         config_file.close()
@@ -133,30 +138,34 @@ def main(argv):
         readFact(mvfactfile, knobs, groundTruth_profile, False)
         groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
         # construct the cost rsdg iteratively given a threshold
-        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(groundTruth_profile, knob_samples,
-                                            THRESHOLD, knobs, True, model)
+        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
+            groundTruth_profile, knob_samples,
+            THRESHOLD, knobs, True, model)
         if PLOT:
             draw("outputs/modelValid.csv")
 
         # ######################STAGE-4########################
         # forth stage, generate the final RSDG in XML format
-        default_xml_path = completeXML(appname, xml, cost_rsdg, mv_rsdgs[-1], model)
+        default_xml_path = completeXML(appname, xml, cost_rsdg, mv_rsdgs[-1],
+                                       model)
 
         # cleaning
         os.system("rm *.log *.sol")
 
         # write the generated RSDG back to desc file
-        with open('./'+appname+"_run.config", 'w') as runFile:
+        with open('./' + appname + "_run.config", 'w') as runFile:
             run_config = {}
             run_config['cost_rsdg'] = os.path.abspath(cost_path)
-            run_config['mv_rsdgs'] = map(lambda x: os.path.abspath(x), mv_paths[0:-1])
-            run_config['mv_default_rsdg'] = os.path.abspath( mv_paths[-1])
+            run_config['mv_rsdgs'] = map(lambda x: os.path.abspath(x),
+                                         mv_paths[0:-1])
+            run_config['mv_default_rsdg'] = os.path.abspath(mv_paths[-1])
             run_config['defaultXML'] = os.path.abspath(default_xml_path)
             run_config['appMet'] = os.path.abspath(methods_path)
             run_config['rapidScript'] = os.path.abspath('./rapid.py')
             run_config['seglvl'] = seglvl
             run_config['desc'] = os.path.abspath(desc)
-            run_config['preferences'] = list(map(lambda x: 1.0, mv_paths[0:-1]))
+            run_config['preferences'] = list(
+                map(lambda x: 1.0, mv_paths[0:-1]))
             json.dump(run_config, runFile, indent=2, sort_keys=True)
             runFile.close()
 

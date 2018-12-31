@@ -17,7 +17,7 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model, seglvl=0):
     maxT = 3
     if model == "quad":
         maxT = 3
-    if seglvl==0:
+    if seglvl == 0:
         while error >= threshold:
             if seglvl >= maxT:
                 print
@@ -26,12 +26,14 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model, seglvl=0):
             seglvl += 1
             partitions = partition(seglvl, knob_samples)
             observed_profile = retrieve(partitions, gt, knobs)
-            costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile, partitions, model)
+            costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile,
+                                                            partitions, model)
             error = compare(costrsdg, gt, False, model)
     else:
         partitions = partition(seglvl, knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile, partitions, model)
+        costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile,
+                                                        partitions, model)
         error = compare(costrsdg, gt, False, model)
     if PRINT:
         compare(costrsdg, gt, True, model)

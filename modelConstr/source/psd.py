@@ -1,13 +1,15 @@
-from numpy import linalg as la
 import numpy
+from numpy import linalg as la
 
-def nearestPDcorr(corr_a,corr_b,corr_c):
+
+def nearestPDcorr(corr_a, corr_b, corr_c):
     A = numpy.matrix([[corr_a, corr_c / 2.0], [corr_c / 2.0, corr_b]])
-    A =  nearestPD(A)
+    A = nearestPD(A)
     a = float(A.item(0))
-    c = float(A.item(1)) + float(A.item(2))*0.99
+    c = float(A.item(1)) + float(A.item(2)) * 0.99
     b = float(A.item(3))
     return a, b, c
+
 
 def nearestPD(A):
     """Find the nearest positive-definite matrix to input
@@ -47,10 +49,11 @@ def nearestPD(A):
     k = 1
     while not isPD(A3):
         mineig = numpy.min(numpy.real(la.eigvals(A3)))
-        A3 += I * (-mineig * k**2 + spacing)
+        A3 += I * (-mineig * k ** 2 + spacing)
         k += 1
 
     return A3
+
 
 def isPD(B):
     """Returns true when input is positive-definite, via Cholesky"""

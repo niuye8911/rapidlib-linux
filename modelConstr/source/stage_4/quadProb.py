@@ -7,12 +7,14 @@ from psd import *
 def populateQuadRSDG(observed, quad):
     # get the segments
     paras, quadpara = genQuadContProblem(observed, quad, True)  # Ture = cost
-    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+    system(
+        "gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
     costrsdg = getContRSDG(paras, quadpara, quad, True)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     paras, quadpara = genQuadContProblem(observed, quad, False)  # Ture = quad
-    system("gurobi_cl BarHomogeneous=1 OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+    system(
+        "gurobi_cl BarHomogeneous=1 OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
     mvrsdg = getContRSDG(paras, quadpara, quad, False)
     system("mv ./debug/max.sol ./debug/maxmv.sol")
     system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
@@ -23,7 +25,8 @@ def populateQuadRSDG(observed, quad):
 # observed is a file
 def genQuadContProblem(observed, quad, COST):
     prob = open("./debug/fitting.lp", 'w')
-    constraints, paras, quadparas, errors = readContFactAndGenConstraint(observed, quad, COST)
+    constraints, paras, quadparas, errors = readContFactAndGenConstraint(
+        observed, quad, COST)
     # write obj, err^2 - 2 err +1
     quadobj = "[ "
     for err in errors:
@@ -92,10 +95,14 @@ def getContRSDG(paras, quadparas, quad, COST):
                 b = coeffs.b
                 c = coeffs.c
                 coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a, b, c)
-                print "before"
-                print a, b, c
-                print "after PSD"
-                print coeffs.a, coeffs.b, coeffs.c
+                print
+                "before"
+                print
+                a, b, c
+                print
+                "after PSD"
+                print
+                coeffs.a, coeffs.b, coeffs.c
     rsdg.printRSDG(COST)
     return rsdg
     # now check the rate
@@ -126,7 +133,8 @@ def compareQuadRSDG(groundTruth, rsdg, quad, PRINT):
             outfile.write("\n")
     if PRINT:
         outfile.close()
-        print error / count
+        print
+        error / count
     return error / count
     #
     # fact = open(factfile, "r")
@@ -199,11 +207,13 @@ def readContFactAndGenConstraint(observed, quad, COST):
             if not knob_name in knobs:
                 knobs.append(knob_name)
             knob_val = config.val
-            costestimate += str(knob_val) + " " + knob_name + "_1 + " + knob_name + "_c + "
+            costestimate += str(
+                knob_val) + " " + knob_name + "_1 + " + knob_name + "_c + "
             paras.add(knob_name + "_1")
             paras.add(knob_name + "_c")
             if quad:
-                costestimate += str(knob_val * knob_val) + " " + knob_name + "_2" + " + "
+                costestimate += str(
+                    knob_val * knob_val) + " " + knob_name + "_2" + " + "
                 paras.add(knob_name + "_2")
         costestimate = costestimate[:-3]
         # generate all inter service terms
@@ -221,9 +231,12 @@ def readContFactAndGenConstraint(observed, quad, COST):
                     corr_a = knoba + "_" + knobb + "_a"
                     corr_b = knoba + "_" + knobb + "_b"
                     corr_c = knoba + "_" + knobb + "_c"
-                    inter_cost += str(knoba_val * knoba_val) + " " + corr_a + " + "
-                    inter_cost += str(knobb_val * knobb_val) + " " + corr_b + " + "
-                    inter_cost += str(knoba_val * knobb_val) + " " + corr_c + " + "
+                    inter_cost += str(
+                        knoba_val * knoba_val) + " " + corr_a + " + "
+                    inter_cost += str(
+                        knobb_val * knobb_val) + " " + corr_b + " + "
+                    inter_cost += str(
+                        knoba_val * knobb_val) + " " + corr_c + " + "
                     quadparas.add(corr_a)
                     quadparas.add(corr_b)
                     quadparas.add(corr_c)
@@ -278,7 +291,8 @@ def readContFactAndGenModConstraint(fact):
                         val = services[cur_service]
                         val_inter = services[inter_service]
                         # print(val,val_inter,2*val*val_inter)
-                        quad_cons = str(val * val) + " " + quadterm + " ^ 2 + " + str(
+                        quad_cons = str(
+                            val * val) + " " + quadterm + " ^ 2 + " + str(
                             val_inter * val_inter) + " " + quadterm_t + " ^ 2 - " + str(
                             2 * val_inter * val) + " " + quadterm + " * " + quadterm_t + " + "
                         quadconstraint += quad_cons
@@ -289,7 +303,8 @@ def readContFactAndGenModConstraint(fact):
                 # append the quadconstraint to constraint
                 constraint += quadconstraint
                 # greater_constraint = constraint + " >= "+str(cost-0.1)+"\n"
-                smaller_constraint = constraint + " <= " + str(cost + 0.1) + "\n"
+                smaller_constraint = constraint + " <= " + str(
+                    cost + 0.1) + "\n"
                 # constraints.append(greater_constraint)
                 constraints.append(smaller_constraint)
                 # clear the constraint
@@ -308,7 +323,8 @@ def readContFactAndGenModConstraint(fact):
                 # for service in services:
                 #     inter_para = value * services[service]
                 #     quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
-                services[name] = value  # record the current value for this service
+                services[
+                    name] = value  # record the current value for this service
                 # write the 2-order constraint
                 # o2para = name+"_2"
                 o1para = name + "_1"
