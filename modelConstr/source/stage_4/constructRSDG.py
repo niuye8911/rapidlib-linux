@@ -7,31 +7,37 @@ from stage_1.training import *
 
 # contains functions to compute the representative list of a RSDG, given the
 # fact profile
-def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model):
+def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model, seglvl=0):
     # gT is a dictionary where entry is the config and value is hte cost
     # profile_configs is the structured configuration
     # segmentation level
-    seglvl = 0
+
     # initial error rate set to 100%
     error = 1.0
     maxT = 3
     if model == "quad":
         maxT = 3
-    while error >= threshold:
-        if seglvl >= maxT:
-            print
-            "Reached Highest Segmentation Granularity"
-            break
-        seglvl += 1
+    if seglvl==0:
+        while error >= threshold:
+            if seglvl >= maxT:
+                print
+                "Reached Highest Segmentation Granularity"
+                break
+            seglvl += 1
+            partitions = partition(seglvl, knob_samples)
+            observed_profile = retrieve(partitions, gt, knobs)
+            costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile, partitions, model)
+            error = compare(costrsdg, gt, False, model)
+    else:
         partitions = partition(seglvl, knob_samples)
         observed_profile = retrieve(partitions, gt, knobs)
-        costrsdg, mvrsdgs = populate(observed_profile, partitions, model)
+        costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile, partitions, model)
         error = compare(costrsdg, gt, False, model)
     if PRINT:
         compare(costrsdg, gt, True, model)
         print
         "Granulatiry = " + str(seglvl)
-    return costrsdg, mvrsdgs
+    return costrsdg, mvrsdgs, costpath, mvpaths, seglvl
 
 
 # given a partion level, return a list of configurations

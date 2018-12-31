@@ -10,27 +10,27 @@ def populatePieceWiseRSDG(observed, partitions):
     # get the segments
     segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(
         observed, partitions)
-    costrsdg = solveAndPopulateRSDG(segments, seg_values, segconst,
+    costrsdg, cost_path = solveAndPopulateRSDG(segments, seg_values, segconst,
                                     inter_coeff)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     # generate multiple RSDG
     mvprofiles = observed.genMultipleMV()
     mvrsdgs = []
+    mv_paths = []
     id = 0
     for mvprofile in mvprofiles:
         # solve and retrieve the result
         segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = \
             generatePieceWiseContProblem(mvprofile, partitions, False)
 
-        mvrsdg = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv,
-                                      inter_coeff_mv, False, id)
+        mvrsdg, mv_path = solveAndPopulateRSDG(segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False, id)
         system("mv ./debug/max.sol ./debug/maxmv"+str(id)+".sol")
         system("mv ./debug/fitting.lp ./debug/fittingmv"+str(id)+".lp")
         mvrsdgs.append(mvrsdg)
+        mv_paths.append(mv_path)
         id+=1
-    return costrsdg, mvrsdgs
-
+    return costrsdg, mvrsdgs, cost_path, mv_paths
 
 # generate a cont problem
 def generatePieceWiseContProblem(observed, partitions, COST=True):
@@ -340,8 +340,8 @@ def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
                 "after PSD"
                 print
                 coeffs.a, coeffs.b, coeffs.c
-    rsdg.printRSDG(COST,id)
-    return rsdg
+    file_path = rsdg.printRSDG(COST, id)
+    return rsdg, file_path
 
 
 def modelValid(rsdg, groundTruth, PRINT):

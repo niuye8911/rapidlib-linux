@@ -602,6 +602,50 @@ class pieceRSDG:
     """A RSDG calculated based on piece-wise linear regression model
     """
 
+    def fromFile(self, rsdgFile):
+        """ Generate a RSDG object from a file
+        """
+        file = open(rsdgFile, 'r')
+        knob_name = ""
+        segs = []
+        START_COEFF = False
+        for line in file:
+            if START_COEFF:
+                # this is the coeff lines
+                [knob_a, knob_b] = line.split()[0].split(':')[0].split('_')
+                [a,b,c] = line.split()[0].split(':')[1].split('/')
+                self.addInterCoeff(knob_a, knob_b, float(a), 'a')
+                self.addInterCoeff(knob_a, knob_b, float(b), 'b')
+                self.addInterCoeff(knob_a, knob_b, float(c), 'c')
+                continue
+
+            col = line.split()
+            if len(col) == 0:
+                # this is the break line
+                # add the knob
+                self.addKnob(knob_name)
+                for seg in segs:
+                    self.addSeg(knob_name,seg)
+                segs=[]
+                continue
+
+                # add the seg
+            if len(col) == 1:
+                # this is the knob name line
+                knob_name = col[0]
+                if knob_name == "COEFF":
+                    START_COEFF = True
+
+            else:
+                # this is the segment line
+                [min, max, seg_name, a, b] = col
+                seg = Segment(seg_name, knob_name, float(min), float(max))
+                seg.setLinearCoeff(float(a))
+                seg.setConstCoeff(float(b))
+                seg.setID(seg_name.split('_')[1])
+                segs.append(seg)
+
+
     def __init__(self):
         self.knob_table = {}
         self.coeffTable = {}
@@ -670,6 +714,7 @@ class pieceRSDG:
                            str(self.coeffTable[knob][b].b) + "/" +
                            str(self.coeffTable[knob][b].c) + "\n")
         rsdg.close()
+        return outfilename
 
     def calCost(self, configuration):
         """ calculate the estimated cost of a configuration by RSDG
@@ -805,12 +850,12 @@ class AppMethods():
                                               withSys,
                                               configuration.printSelf('-'))
             # write the cost to file
-            self.writeConfigMeasurementToFile(costFact, configuration, cost)
+            AppMethods.writeConfigMeasurementToFile(costFact, configuration, cost)
             # measure the "mv"
             if withMV:
                 mv = self.getQoS()
                 # write the mv to file
-                self.writeConfigMeasurementToFile(mvFact, configuration, mv)
+                AppMethods.writeConfigMeasurementToFile(mvFact, configuration, mv)
             if withSys:
                 # write metric value to table
                 self.recordSysUsage(configuration, metric)
@@ -976,7 +1021,8 @@ class AppMethods():
         command = ["mv", fromfile, tofile]
         os.system(" ".join(command))
 
-    def writeConfigMeasurementToFile(self, filestream, configuration, values):
+    @staticmethod
+    def writeConfigMeasurementToFile(filestream, configuration, values):
         """ write a configuration with its value (could be cost or mv) to a
         opened file stream
         :param filestream: the file stream, need to be opened with 'w'

@@ -10,69 +10,42 @@ def isMultiple(str):
     except ValueError:
         return False
 
-def finalizeXML(xml, appMet):
-    xml = etree.parse(xml)
-    for node in xml.iter():
-        if isMultiple(node.text):
-            node.text = str(appMet.computeQoSWeight([1.0,1.0], map(lambda x: float(x), node.text.split(',')[0:-1])))
-    writeXML("finalized_xml", xml)
-
-def completeXML(appname, xml, rsdg, mv_rsdgs, model):
-    # fill in the XML with piece wise XML
-    # fill in the knob cont Cost:
+def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
     knob_table = rsdg.knob_table
     coeff_table = rsdg.coeffTable
-    knobmv_tables = []
-    for mvrsdg in mv_rsdgs:
-        knobmv_tables.append(mvrsdg.knob_table)
-    # coeffmv_table = mv_rsdgs.coeffTable
+    knobmv_table = mv_rsdg.knob_table
     visited_service = set()
     for services in xml.findall("service"):
-        knobname = services.find("servicelayer").find("basicnode").find(
-            "nodename").text
+        knobname = services.find("servicelayer").find("basicnode").find("nodename").text
         node = services.find("servicelayer").find("basicnode")
-        if model == "piecewise":
+        if model=="piecewise":
             contpiece = etree.SubElement(node, "contpiece")
             # fill in the cont cost of each segment
             seglist = knob_table[knobname]
-            seglist_mvs = []
-            for knobmv_table in knobmv_tables:
-                seglist_mvs.append(knobmv_table[knobname])
+            seglist_mv = knobmv_table[knobname]
             for seg in seglist:
                 segxml = etree.SubElement(contpiece, "seg")
-                etree.SubElement(segxml, "min").text = str(seg.min)
+                etree.SubElement(segxml,"min").text = str(seg.min)
                 etree.SubElement(segxml, "max").text = str(seg.max)
                 etree.SubElement(segxml, "costL").text = str(seg.a)
                 etree.SubElement(segxml, "costC").text = str(seg.b)
-                # find the corresponding mv
-                segmvs = []
-                for seglist_mv in seglist_mvs:
-                    for segmv in seglist_mv:
-                        if segmv.min == seg.min:
-                            segmvs.append(segmv)
-                            break
-                segas = list(map(lambda x: str(x.a), segmvs))
-                segbs = list(map(lambda x: str(x.b), segmvs))
-                etree.SubElement(segxml, "mvL").text = str(','.join(segas))
-                etree.SubElement(segxml, "mvC").text = str(','.join(segbs))
-        elif model == "quad" or model == "linear":
-            contcost = etree.SubElement(node, "contcost")
-            [o2, o1, c] = knob_table[knobname]
-            etree.SubElement(contcost, "o2").text = str(o2)
+            #find the corresponding mv
+                for segmv in seglist_mv:
+                    if segmv.min==seg.min:
+                        etree.SubElement(segxml, "mvL").text = str(segmv.a)
+                        etree.SubElement(segxml, "mvC").text = str(segmv.b)
+                        break
+        elif model=="quad" or model == "linear":
+            contcost = etree.SubElement(node,"contcost")
+            [o2,o1,c] = knob_table[knobname]
+            etree.SubElement(contcost,"o2").text = str(o2)
             etree.SubElement(contcost, "o1").text = str(o1)
             etree.SubElement(contcost, "c").text = str(c)
-            contmv = etree.SubElement(node, "contmv")
-            o2s = []
-            o1s = []
-            cs = []
-            for knobmv_table in knobmv_tables:
-                [o2, o1, c] = knobmv_table[knobname]
-                o2s.append(o2)
-                o1s.append(o1)
-                cs.append(c)
-            etree.SubElement(contmv, "o2").text = str(o2s)
-            etree.SubElement(contmv, "o1").text = str(o1s)
-            etree.SubElement(contmv, "c").text = str(cs)
+            contmv = etree.SubElement(node,"contmv")
+            [o2, o1, c] = knobmv_table[knobname]
+            etree.SubElement(contmv, "o2").text = str(o2)
+            etree.SubElement(contmv, "o1").text = str(o1)
+            etree.SubElement(contmv, "c").text = str(c)
 
         # fill in the cont with
         if coeff_table is None or len(coeff_table) == 0:
@@ -80,35 +53,31 @@ def completeXML(appname, xml, rsdg, mv_rsdgs, model):
         if knobname not in coeff_table:
             continue
         for sink_coeff in coeff_table[knobname]:
-            print
-            knobname, sink_coeff
-            print
-            visited_service
-            if (sink_coeff in visited_service):
+            print knobname, sink_coeff
+            print visited_service
+            if(sink_coeff in visited_service):
                 continue
-            if model == "piecewise":
+            if model=="piecewise":
                 contwith = etree.SubElement(node, "contpiecewith")
-                # sink = etree.SubElement(contwith,"knob")
-                sink = etree.SubElement(contwith, "knob")
+                #sink = etree.SubElement(contwith,"knob")
+                sink = etree.SubElement(contwith,"knob")
                 etree.SubElement(sink, "name").text = sink_coeff
-                costa, costb, costc = coeff_table[knobname][
-                    sink_coeff].retrieveCoeffs()
-                # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
-                etree.SubElement(sink, "costa").text = str(costa)
+                costa,costb,costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
+                #mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
+                etree.SubElement(sink,"costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
                 etree.SubElement(sink, "costc").text = str(costc)
-                # etree.SubElement(sink, "mva").text = str(mva)
-                # etree.SubElement(sink, "mvb").text = str(mvb)
-                # etree.SubElement(sink, "mvc").text = str(mvc)
+                #etree.SubElement(sink, "mva").text = str(mva)
+                #etree.SubElement(sink, "mvb").text = str(mvb)
+                #etree.SubElement(sink, "mvc").text = str(mvc)
                 etree.SubElement(sink, "mva").text = str(0.0)
                 etree.SubElement(sink, "mvb").text = str(0.0)
                 etree.SubElement(sink, "mvc").text = str(0.0)
-            elif model == "quad":
-                contwith = etree.SubElement(node, "contwith")
+            elif model=="quad":
+                contwith = etree.SubElement(node,"contwith")
                 sink = etree.SubElement(contwith, "knob")
-                etree.SubElement(sink, "name").text = sink_coeff
-                costa, costb, costc = coeff_table[knobname][
-                    sink_coeff].retrieveCoeffs()
+                etree.SubElement(sink,"name").text = sink_coeff
+                costa, costb, costc = coeff_table[knobname][sink_coeff].retrieveCoeffs()
                 # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
                 etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
@@ -117,10 +86,10 @@ def completeXML(appname, xml, rsdg, mv_rsdgs, model):
                 etree.SubElement(sink, "mvb").text = str(0.0)
                 etree.SubElement(sink, "mvc").text = str(0.0)
         visited_service.add(knobname)
-    writeXML(appname, xml)
+    return writeXML(appname, xml, finalized)
 
 
-def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile):
+def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
     print
     "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map, relationmap = readcontrsdg(rsdgfile)
@@ -221,16 +190,20 @@ def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile):
             etree.SubElement(contand, "name").text = and_edge.source
             etree.SubElement(contand, "thenrangemin").text = and_edge.sourcemin
             etree.SubElement(contand, "thenrangemax").text = and_edge.sourcemax
-    writeXML(appname, xml)
+    writeXML(appname, xml, finalized)
     return xml
 
 
-def writeXML(appname, xml):
+def writeXML(appname, xml, finalized):
     xmlfile = prettify(xml)
-    name = appname + ".xml"
+    if finalized:
+        name = appname + ".xml"
+    else:
+        name = appname + "-default.xml"
     outputfile = open("./outputs/" + name, 'w')
     outputfile.write(xmlfile)
     outputfile.close()
+    return "./outputs/" + name
 
 
 def readcontdep(depfile):
