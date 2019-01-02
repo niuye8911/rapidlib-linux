@@ -59,7 +59,7 @@ void rsdgMission::regService(string sName, string bName, void *(*func)(void *),
 
 void rsdgMission::regContService(string sName, string bName,
                                  void *(*func)(void *), rsdgPara *para) {
-  regService(sName, bName, func, false);
+  regService(sName, bName, func, true);
   // register the value for parameter
   contParaList[bName] = para;
   CONT = true;

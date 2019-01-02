@@ -43,6 +43,11 @@ void regContService(void *mission, char *service_name, char *node_name,
   targetMission->regContService(service, node, func, para_cpp);
 }
 
+void setDebug(void *mission) {
+  rsdgMission *targetMission = (rsdgMission *)mission;
+  targetMission->setDebug();
+}
+
 // regService
 void regService(void *mission, char *service_name, char *node_name,
                 void *(*func)(void *), int single, void *para, int para_value) {

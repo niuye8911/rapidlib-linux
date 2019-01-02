@@ -6,7 +6,7 @@ from Classes import *  # import the parent class and other classes from the file
 
 
 class appMethods(AppMethods):
-    database_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/corel/"
+    database_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/corelnative/"
     table = "lsh"
     query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/ferret/run/queries"
 
@@ -71,13 +71,13 @@ class appMethods(AppMethods):
 
     def computeQoSWeight(self, preferences, values):
         # preferences is the preferecne and values contains the raw mv weight
-        coverage = values[1]
-        relavance = values[0]
-        coverage_pref = preferences[1]
-        relavance_pref = preferences[0]
-        ranking_res = abs(
-            relavance_pref * relavance - coverage_pref * coverage)
-        return 100.0 - ranking_res
+        ranking = values[1]
+        coverage = values[0]
+        ranking_pref = preferences[1]
+        coverage_pref = preferences[0]
+        maxError = (2  *coverage_pref-ranking_pref)*50*51 # 50 images in real run
+        ranking_res = (1.0 + (ranking_pref* ranking + 2*coverage_pref * coverage)/float(maxError)) * 100.0
+        return ranking_res
 
     def rank(self, img, imglist):
         if img in imglist:
@@ -126,14 +126,14 @@ class appMethods(AppMethods):
         T = set()
         totAcuracy = 0.0
         totCoverage = 0.0
-        totRelavance = 0.0
-        totimg = 0
+        totRanking = 0.0
+        totimg = 0.0
         for query_image in truthmap:
-            totimg += 1
+            totimg += 1.0
             truth_res = truthmap[query_image]
             mission_res = missionmap[query_image]
             # compute the worst case senario, where Z = empty
-            maxError = -1.0 * (len(truth_res) + 1) * len(truth_res)
+            maxError = len(truth_res)*(len(truth_res)+1)
             # setup S and T
             S.update(truth_res)
             T.update(mission_res)
@@ -143,17 +143,21 @@ class appMethods(AppMethods):
                 T.remove(s)
                 S.remove(s)
             # now that Z, S, and T are set, compute the ranking function
-            coverage = abs((self.compute1(truth_res, S) + self.compute1(
-                mission_res, T)) / float(maxError))
-            relavance = abs(
-                self.compute2(truth_res, mission_res, Z) / float(maxError))
-            ranking_res = abs(relavance - coverage)
-            totAcuracy += 1.0 - ranking_res
-            totRelavance += relavance
+            # two Sub QoS
+            coverage = -1 * (len(truth_res)-len(Z)) * (len(truth_res)+1)
+            ranking = -1 *(self.compute2(truth_res, mission_res, Z) - self.compute1(truth_res, S) - self.compute1(
+                mission_res, T))
+            ranking_res = (1.0+ (2 * coverage + ranking)/float(maxError)) * 100.0
+
+            totAcuracy += ranking_res
+            totRanking += ranking
             totCoverage += coverage
             S.clear()
             T.clear()
             Z.clear()
-        return [totCoverage * 100.0 / float(totimg),
-                totRelavance * 100.0 / float(totimg),
-                totAcuracy * 100.0 / float(totimg)]
+            print [totCoverage / float(totimg),
+                    totRanking / float(totimg),
+                    totAcuracy / float(totimg)]
+        return [totCoverage / float(totimg),
+                totRanking / float(totimg),
+                totAcuracy / float(totimg)]

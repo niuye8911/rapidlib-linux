@@ -68,9 +68,11 @@ void rsdgService::updateNode(void *(*f)(void *), string name) {
       return;
     }
     if (sThread != 0) {
+      // if (pthread_kill(sThread, 0) == 0) {
       pthread_cancel(sThread);
       setStatus(false);
       pthread_join(sThread, NULL);
+      //  }
     }
     pthread_create(&sThread, NULL, f, NULL);
 

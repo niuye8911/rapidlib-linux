@@ -47,7 +47,7 @@ THRESHOLD = 0.05
 
 
 def main(argv):
-    global groundTruth_profile, knob_samples, knobs, mode, methods_path
+    global groundTruth_profile, knob_samples, knobs, mode, methods_path, desc
     # parse the argument
     parser = declareParser()
     options, args = parser.parse_args()

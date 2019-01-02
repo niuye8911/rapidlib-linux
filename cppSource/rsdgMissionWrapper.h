@@ -27,6 +27,7 @@ void readMVProfile(void *);
 void readCostProfile(void *);
 void setOfflineSearch(void *);
 void readContTrainingSet(void *);
+void setDebug(void *);
 #ifdef __cplusplus
 }
 #endif

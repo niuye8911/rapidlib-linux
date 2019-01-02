@@ -239,8 +239,11 @@ def genBounds(seg_indicators, seg_values, segconst, knob_values, errors):
     for seg_indicator in seg_indicators:
         bound = seg_indicator + " <= 1"
         integerBounds.add(bound)
-    for seg_value in seg_values:
+    for seg_value in segconst:
         floatBound = seg_value + " free"
+        floatBounds.add(floatBound)
+    for seg_value in seg_values:
+        floatBound = seg_value + " >= 0.001"
         floatBounds.add(floatBound)
     # for seg_value in segconst:
     #    floatBound = "-99999 <= " + seg_value + " <= 99999"
