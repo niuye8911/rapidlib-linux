@@ -43,7 +43,8 @@ def draw(datafile):
     # kde = stats.gaussian_kde(data)
     # length = len(data)
     # xx = np.linspace(min,max,length)
-    # pl.hist(data,bins=50,normed=1)      #use this to draw histogram of your data
+    # pl.hist(data,bins=50,normed=1)      #use this to draw histogram of your
+    # data
     # results, edges = np.histogram(data, bins = 40, range=[-1,1], normed=True)
     # binWidth = edges[1] - edges[0]
     # pl.bar(edges[:-1], results * binWidth, binWidth)

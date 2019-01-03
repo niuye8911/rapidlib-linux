@@ -1,6 +1,5 @@
 """QOS loss checker for all apps"""
 import numpy
-from Classes import *
 
 knob_ferret_itr = numpy.linspace(1, 25, num=25)
 knob_ferret_hash = numpy.linspace(2, 8, num=4)
@@ -37,7 +36,8 @@ def checkFerretWrapper(fact, observed=""):
     report = open("finalReport", 'w')
     if (observed == ""):
         for i in range(0, len(
-                knob_ferret_hash)):  # run the application for each configuratino
+                knob_ferret_hash)):  # run the application for each
+            # configuratino
             for j in range(0, len(knob_ferret_probe)):
                 for k in range(0, len(knob_ferret_itr)):
                     cur_name = name + str(int(knob_ferret_hash[i]))
@@ -103,7 +103,8 @@ def checkFerret(fact, observed, REPORT, report=""):
             S.remove(s)
         # now that Z, S, and T are set, compute the ranking function
         ranking_res = compute2(truth_res, mission_res, Z) - compute1(truth_res,
-                                                                     S) - compute1(
+                                                                     S) - \
+                      compute1(
             mission_res, T)
         ranking_res = abs(float(ranking_res) / float(maxError))
         # normalize the error

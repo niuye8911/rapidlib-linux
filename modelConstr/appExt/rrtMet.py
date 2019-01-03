@@ -4,7 +4,10 @@ This is an example file for prepraing Bodytrack for RAPID(C)
 
 import math
 
-from Classes import *  # import the parent class and other classes from the file Classes.py
+from Classes import *  # import the parent class and other classes from the
+
+
+# file Classes.py
 
 
 class appMethods(AppMethods):
@@ -20,13 +23,16 @@ class appMethods(AppMethods):
             for config in configs:
                 name = config.knob.set_name
                 if name == "obstacleDistance":
-                    obstacleDistance = 6 - config.val  # retrieve the setting for each knob
+                    obstacleDistance = 6 - config.val  # retrieve the setting
+                    # for each knob
                 elif name == "trials":
                     trials = config.val  # retrieve the setting for each knob
                 elif name == "goalBias":
-                    goalBias = 60 - config.val  # retrieve the setting for each knob
+                    goalBias = 60 - config.val  # retrieve the setting for
+                    # each knob
                 elif name == "goalTolerance":
-                    goalTolerance = 11 - config.val  # retrieve the setting for each knob
+                    goalTolerance = 11 - config.val  # retrieve the setting
+                    # for each knob
                 elif name == "stepSize":
                     stepSize = config.val  # retrieve the setting for each knob
 
@@ -52,13 +58,16 @@ class appMethods(AppMethods):
             for config in configs:
                 name = config.knob.set_name
                 if name == "obstacleDistance":
-                    obstacleDistance = 6 - config.val  # retrieve the setting for each knob
+                    obstacleDistance = 6 - config.val  # retrieve the setting
+                    # for each knob
                 elif name == "trials":
                     trials = config.val  # retrieve the setting for each knob
                 elif name == "goalBias":
-                    goalBias = 60 - config.val  # retrieve the setting for each knob
+                    goalBias = 60 - config.val  # retrieve the setting for
+                    # each knob
                 elif name == "goalTolerance":
-                    goalTolerance = 11 - config.val  # retrieve the setting for each knob
+                    goalTolerance = 11 - config.val  # retrieve the setting
+                    # for each knob
                 elif name == "stepSize":
                     stepSize = config.val  # retrieve the setting for each knob
 
@@ -77,10 +86,12 @@ class appMethods(AppMethods):
     # helper function to evaluate the QoS
     def getQoS(self):
         """
-        In our example, after each run of the application, this function will be called to compare the current output
+        In our example, after each run of the application, this function will
+        be called to compare the current output
         with the groundtruth output.
 
-        Two files both contains multiple rows where each row represents the calculated mean price for a swaption. We
+        Two files both contains multiple rows where each row represents the
+        calculated mean price for a swaption. We
         extract the mean price and calculate the distortion
         :return: a double value describing the QoS ( 0.0 ~ 100.0 )
         """
@@ -89,5 +100,6 @@ class appMethods(AppMethods):
         pthDist = float(f.readline())
         obDist = float(f.readline())
         closeness = float(f.readline())
-        quality = abs(stLine / pthDist - obDist / pthDist) * 1 / math.sqrt(closeness + 1);
+        quality = abs(stLine / pthDist - obDist / pthDist) * 1 / math.sqrt(
+            closeness + 1);
         return quality

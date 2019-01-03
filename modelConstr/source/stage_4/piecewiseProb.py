@@ -1,6 +1,5 @@
 from os import system
 
-from Classes import *
 from contigous import *
 from psd import *
 from stage_1.training import *
@@ -159,8 +158,10 @@ def genConstraints(segments, observed, COST=True):
                         fall_within_segs[knob_name] = []
                     fall_within_segs[knob_name].append(seg)
                     # generate the seg Constraints
-                    # posSegConstraint = seg.printID() + " = 1 -> " + seg.printVar() + " = " + knob_name
-                    # negSegConstraint = seg.printID() + " = 0 -> " + seg.printVar() + " = 0"
+                    # posSegConstraint = seg.printID() + " = 1 -> " +
+                    # seg.printVar() + " = " + knob_name
+                    # negSegConstraint = seg.printID() + " = 0 -> " +
+                    # seg.printVar() + " = 0"
                     # seg_sum += seg.printID() + " + "
                     # segConstraints.add(posSegConstraint)
                     # segConstraints.add(negSegConstraint)
@@ -174,7 +175,8 @@ def genConstraints(segments, observed, COST=True):
                 for flatted_seg in flatted_seg_list:
                     knob_val = configuration.getSetting(flatted_seg.knob_name)
                     costEstimate += str(
-                        knob_val) + " " + flatted_seg.printVar() + " + " + flatted_seg.printConst() + " + "
+                        knob_val) + " " + flatted_seg.printVar() + " + " + \
+                                    flatted_seg.printConst() + " + "
                 costEstimate = costEstimate[:-3]
                 costEstimates.append(costEstimate)
             # generate inter-service
@@ -192,7 +194,8 @@ def genConstraints(segments, observed, COST=True):
                         corr_a = s1 + "_" + s2 + "_a"
                         corr_b = s1 + "_" + s2 + "_b"
                         corr_c = s1 + "_" + s2 + "_c"
-                        # inter_cost+=str(s1_val * s1_val) + " " + s1+"_"+s2 + " + "
+                        # inter_cost+=str(s1_val * s1_val) + " " + s1+"_"+s2
+                        # + " + "
                         inter_cost += str(
                             s1_val * s1_val) + " " + corr_a + " + "
                         inter_cost += str(
@@ -216,7 +219,8 @@ def genConstraints(segments, observed, COST=True):
                 costConstraints.add(constraint)
                 # add the PSD constraints
                 if not inter_cost == "":
-                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
+                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a\
+                                  + " * " + corr_b + " ] <= 0"
                     costConstraints.add(constraint2)
     return costConstraints, segConstraints, errors, inter_coeff
 
@@ -283,7 +287,8 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds,
 def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
                          COST=True, id=0):
     system(
-        "gurobi_cl OutputFlag=0 LogToFile=gurobi.log ResultFile=./debug/max.sol ./debug/fitting.lp")
+        "gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
+        "ResultFile=./debug/max.sol ./debug/fitting.lp")
     result = open("./debug/max.sol", 'r')
     rsdg = pieceRSDG()
     # setup the knob table

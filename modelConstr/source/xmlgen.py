@@ -1,6 +1,5 @@
 from xml.dom import minidom
 
-from Classes import *
 from lxml import etree
 
 
@@ -69,7 +68,8 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
                 etree.SubElement(sink, "name").text = sink_coeff
                 costa, costb, costc = coeff_table[knobname][
                     sink_coeff].retrieveCoeffs()
-                # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
+                # mva, mvb, mvc = coeffmv_table[knobname][
+                # sink_coeff].retrieveABC()
                 etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
                 etree.SubElement(sink, "costc").text = str(costc)
@@ -85,7 +85,8 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
                 etree.SubElement(sink, "name").text = sink_coeff
                 costa, costb, costc = coeff_table[knobname][
                     sink_coeff].retrieveCoeffs()
-                # mva, mvb, mvc = coeffmv_table[knobname][sink_coeff].retrieveABC()
+                # mva, mvb, mvc = coeffmv_table[knobname][
+                # sink_coeff].retrieveABC()
                 etree.SubElement(sink, "costa").text = str(costa)
                 etree.SubElement(sink, "costb").text = str(costb)
                 etree.SubElement(sink, "costc").text = str(costc)

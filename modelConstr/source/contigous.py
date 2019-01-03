@@ -144,7 +144,8 @@ def readContFactAndGenConstraint(fact, quad):
             if i == length - 1:
                 # the last column which is the cost
                 cost = float(col[i])
-                # at this point, "services" contains all the services being used in current observation
+                # at this point, "services" contains all the services being
+                # used in current observation
                 # clean up the last "+"
                 length = len(quadconstraint)
                 quadconstraint = quadconstraint[:length - 2]
@@ -166,7 +167,8 @@ def readContFactAndGenConstraint(fact, quad):
             cur = col[i]
             # print("cur="+cur)
             if not (
-            cur.replace(".", "", 1).isdigit()):  # this is a service name
+                    cur.replace(".", "",
+                                1).isdigit()):  # this is a service name
                 name = cur
             else:
                 value = float(cur)
@@ -195,7 +197,8 @@ def readContFactAndGenConstraint(fact, quad):
     return constraints, num, paras
 
 
-# A function that generates cost / qual function in a way that Gurobi understands
+# A function that generates cost / qual function in a way that Gurobi
+# understands
 def readContFactAndGenModConstraint(fact):
     services = {}
     constraints = []  # list of constraints
@@ -217,7 +220,8 @@ def readContFactAndGenModConstraint(fact):
                 # construct the quadconstraint that has PSD property
                 # first construct the Svc ^ 2
                 # for service in involved_services:
-                #    quadconstraint += str(services[service] * services[service]) + " " + service+"_o2 " + " + "
+                #    quadconstraint += str(services[service] * services[
+                #    service]) + " " + service+"_o2 " + " + "
                 # then construct the inter relation
                 quadconstraint += " [ "
                 for i in range(0, len(involved_services) - 1):
@@ -231,8 +235,11 @@ def readContFactAndGenModConstraint(fact):
                         # print(val,val_inter,2*val*val_inter)
                         quad_cons = str(
                             val * val) + " " + quadterm + " ^ 2 + " + str(
-                            val_inter * val_inter) + " " + quadterm_t + " ^ 2 - " + str(
-                            2 * val_inter * val) + " " + quadterm + " * " + quadterm_t + " + "
+                            val_inter * val_inter) + " " + quadterm_t + " ^ 2 " \
+                                                                        "- " \
+                                    + str(
+                            2 * val_inter * val) + " " + quadterm + " * " + \
+                                    quadterm_t + " + "
                         quadconstraint += quad_cons
                 # clean the quad constraint
                 length = len(quadconstraint)
@@ -260,7 +267,8 @@ def readContFactAndGenModConstraint(fact):
                 # add the inter-service relationship to the quad constraint
                 # for service in services:
                 #     inter_para = value * services[service]
-                #     quadconstraint += str(inter_para) + " " + name + "_" + service + " + "
+                #     quadconstraint += str(inter_para) + " " + name + "_" +
+                #     service + " + "
                 services[
                     name] = value  # record the current value for this service
                 # write the 2-order constraint

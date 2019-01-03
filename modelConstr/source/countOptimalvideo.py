@@ -73,7 +73,8 @@ def count(budget_max, budget_min, config_list, knobs):
             cur_loss_if_not_custom.append(
                 (custom_qos - default_custom_qos) / default_custom_qos)
             # if optimal_config['config_name']!= default_config['config_name']:
-            #    print priorities,optimal_config['config_name'],custom_qos, default_config['config_name'],default_custom_qos
+            #    print priorities,optimal_config['config_name'],custom_qos,
+            #    default_config['config_name'],default_custom_qos
         # print optimals
         loss_if_not_custom.append({'max': numpy.max(cur_loss_if_not_custom),
                                    'mean': numpy.mean(cur_loss_if_not_custom),
@@ -114,7 +115,8 @@ def qos(config_map, priorities):
 
 def parseCSV(knobs):
     with open(
-            "/home/liuliu/Research/rapidlib-linux/modelConstr/data/videoPort/data.csv") as nav_csv:
+            "/home/liuliu/Research/rapidlib-linux/modelConstr/data/videoPort"
+            "/data.csv") as nav_csv:
         csv_reader = csv.reader(nav_csv, delimiter=",")
         config_list = []
         for row in csv_reader:

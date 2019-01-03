@@ -1,7 +1,4 @@
-import os
-import subprocess
 import sys
-import time
 
 from Classes import *
 from qos_checker import *
@@ -16,13 +13,17 @@ bin_bodytrack = "bodytrack"
 bin_ferret = "ferret"
 
 # input path
-body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack/inputs/sequenceB_4"
-swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/swaptions/src"
-ferret_input = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs/apps/ferret/run/"
+body_input = "/home/liuliu/Research/input/parsec-3.0/pkgs/apps/bodytrack" \
+             "/inputs/sequenceB_4"
+swap_output = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs" \
+              "/apps/swaptions/src"
+ferret_input = "/home/liuliu/Research/parsec3.0-rapid-source/parsec-3.0/pkgs" \
+               "/apps/ferret/run/"
 
 
 # Run the application with developer-provided methods
-# The expected behavior of this application should be writing Cost and QoS metric to corresponding files
+# The expected behavior of this application should be writing Cost and QoS
+# metric to corresponding files
 def run(appName, config_table):
     config_table = config_table.configurations
     if not os.path.exists("./training_outputs"):
@@ -87,7 +88,8 @@ def run(appName, config_table):
         print
         "GENERATING GROUND TRUTH for SWAPTIONS"
         command = [bin_swaptions,
-                   # make sure the bin_swaptions is updated when doing the walk-through
+                   # make sure the bin_swaptions is updated when doing the
+                   # walk-through
                    "-ns",
                    "10",
                    "-sm",
@@ -102,7 +104,8 @@ def run(appName, config_table):
 
         # generate the facts
         for configuration in config_table:
-            configs = configuration.retrieve_configs()  # extract the configurations
+            configs = configuration.retrieve_configs()  # extract the
+            # configurations
             for config in configs:
                 name = config.knob.set_name
                 if name == "num":
@@ -122,7 +125,8 @@ def run(appName, config_table):
             os.system(" ".join(command))
             time2 = time.time()
             elapsedTime = (
-                                      time2 - time1) * 1000 / 10  # divided by 10 because in each run, 10 jobs(swaption) are done
+                                  time2 - time1) * 1000 / 10  # divided by 10
+            # because in each run, 10 jobs(swaption) are done
             # write the cost to file
             costFact.write('num,{0},{1}\n'.format(int(num), elapsedTime))
             # mv the generated output to another location

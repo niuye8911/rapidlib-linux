@@ -193,7 +193,8 @@ def beautifyAndWriteOut(empty_profile, outfile):
         # config_list = configuration.retrieve_configs()
         # tmp_output = ""
         # for i in range(len(config_list)):
-        #    tmp_output+=config_list[i].knob.set_name + "," + str(config_list[i].val)
+        #    tmp_output+=config_list[i].knob.set_name + "," + str(
+        #    config_list[i].val)
         #    if not (i == len(config_list)-1):
         #        tmp_output+=","
         output_buffer.add(configuration_string)
