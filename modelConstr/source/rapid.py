@@ -78,9 +78,6 @@ def main(argv):
         factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile,
                                                cost_rsdg, mv_rsdgs, appMethod,
                                                preferences)
-        # ######################STAGE-3########################
-        # third stage: Modeling, use the specific modeling method to construct
-        # the RSDG
         readFact(factfile, knobs, groundTruth_profile)
         readFact(mvfactfile, knobs, groundTruth_profile, False)
         groundTruth_profile.printProfile(

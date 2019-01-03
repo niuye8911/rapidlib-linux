@@ -80,11 +80,13 @@ class appMethods(AppMethods):
         recall = float(values[1])
         precision_pref = float(preferences[0])
         recall_pref = float(preferences[1])
-        normalization = (
-                                    precision_pref + recall_pref) / \
-                        precision_pref * recall_pref
-        return 100.0 * precision_pref * precision * recall_pref * recall / (
-                    precision * precision_pref + recall_pref * recall)
+        normalization = (precision_pref + recall_pref) / \
+                        (precision_pref * recall_pref)
+        print
+        normalization, preferences, values
+        return 100.0 * normalization * precision_pref * precision * \
+               recall_pref * recall / (
+                       precision * precision_pref + recall_pref * recall)
 
     # helper function to evaluate the QoS
     def getQoS(self):

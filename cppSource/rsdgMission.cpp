@@ -273,13 +273,14 @@ void rsdgMission::applyResult() {
 
 void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
   if (basic == "") { // turn this service off
-    pthread_t curThread = s->getThread();
+    /*pthread_t curThread = s->getThread();
     if (pthread_kill(curThread, 0) == 0) {
       pthread_cancel(curThread);
       s->setStatus(false);
       pthread_join(curThread, NULL);
     }
-    return;
+    return;*/
+    value = 0.0;
   }
   void *(*f)(void *) = runnableList[runnableID[basic]];
   if (paraList.find(basic) != paraList.end()) {
@@ -777,9 +778,9 @@ vector<string> rsdgMission::localSolve() {
     char *pch, *pch_obj, *pch_energy;
     char *node;
     // getting the VARs
-    pch = strstr(line, " 0\n");
-    if (pch != NULL)
-      continue; // current line represents a value that's not chosen
+    // pch = strstr(line, " 0\n");
+    // if (pch != NULL)
+    //  continue; // current line represents a value that's not chosen
 
     pch_energy = strstr(line, "energy ");
     if (lpsolve)

@@ -12,7 +12,7 @@ grond_truth_path = "/home/liuliu/Research/mara_bench/face-detect/pics" \
 obj_path = '/home/liuliu/Research/mara_bench/face-detect/facedetect'
 
 
-def getQoS():
+def getQoS(report):
     # run the evaluation routine
     evaluate_cmd = [
         evaluation_obj_path,
@@ -38,11 +38,10 @@ def getQoS():
         recall = float(col[0])
         precision = float(col[1])
         break
-    print
-    precision, recall
+    report.write(str(precision) + "," + str(recall) + "\n")
 
 
-def run(preferences):
+def run(preferences, report):
     # generate the xml
     cmd = ['python',
            config['rapidScript'],
@@ -65,15 +64,15 @@ def run(preferences):
                 '-xml',
                 './outputs/facedetect.xml',
                 '-b',
-                '130',
+                '38',
                 '-u',
                 '29'
                 ]
     print(' '.join(face_cmd))
-    os.system(' '.join(face_cmd))
+    # os.system(' '.join(face_cmd))
 
     # check the result
-    getQoS()
+    #getQoS(report)
     # move the xml
     mv_cmd = ['mv',
               './outputs/facedetect.xml',
@@ -82,13 +81,15 @@ def run(preferences):
     os.system(" ".join(mv_cmd))
 
 
+
 with open('./facedetect_run.config', 'r') as config_json:
     config = json.load(config_json)
-
+report = open("./report.txt", 'w')
 for preferences in range(1, 11):
     # relavance from 1 to 10
-    config['preferences'][0] = float(1.0 + float(preferences))
+    config['preferences'][1] = float(1.0 + float(preferences))
     configfile = open('./facedetect_run.config', 'w')
     json.dump(config, configfile, indent=2, sort_keys=True)
     configfile.close()
-    run(config['preferences'])
+    run(config['preferences'], report)
+report.close()
