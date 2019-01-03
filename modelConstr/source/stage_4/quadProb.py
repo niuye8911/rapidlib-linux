@@ -301,6 +301,7 @@ def readContFactAndGenModConstraint(fact):
                         quad_cons = str(
                             val * val) + " " + quadterm + " ^ 2 + " + str(
                             val_inter * val_inter) + " " + quadterm_t + " ^ 2 " \
+                                                                        "" \
                                                                         "- " \
                                     + str(
                             2 * val_inter * val) + " " + quadterm + " * " + \

@@ -1,4 +1,4 @@
 facedetect
 pyramidNum pyramid 5 25
-sensetivityNum sensetivity 0 2
+selectivityNum selectivity 0 2
 eyesNum eyes 0 2

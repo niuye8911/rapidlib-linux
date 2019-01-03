@@ -219,7 +219,7 @@ def genConstraints(segments, observed, COST=True):
                 costConstraints.add(constraint)
                 # add the PSD constraints
                 if not inter_cost == "":
-                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a\
+                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a \
                                   + " * " + corr_b + " ] <= 0"
                     costConstraints.add(constraint2)
     return costConstraints, segConstraints, errors, inter_coeff

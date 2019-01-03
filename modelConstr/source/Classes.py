@@ -976,7 +976,7 @@ class AppMethods():
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
-        print (" ".join(command))
+        print(" ".join(command))
         os.system(" ".join(command))
         time2 = time.time()
         avg_time = (time2 - time1) * 1000.0 / work_units

@@ -105,7 +105,7 @@ def checkFerret(fact, observed, REPORT, report=""):
         ranking_res = compute2(truth_res, mission_res, Z) - compute1(truth_res,
                                                                      S) - \
                       compute1(
-            mission_res, T)
+                          mission_res, T)
         ranking_res = abs(float(ranking_res) / float(maxError))
         # normalize the error
         if REPORT:

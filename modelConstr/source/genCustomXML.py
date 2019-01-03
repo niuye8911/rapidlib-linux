@@ -79,12 +79,12 @@ def getQoS(missionfile):
         # now that Z, S, and T are set, compute the ranking function
         # two Sub QoS
         coverage = -2 * (len(truth_res) - len(Z)) * (
-                    len(truth_res) + 1) / float(maxError)
+                len(truth_res) + 1) / float(maxError)
         ranking = -1 * (
-                    compute2(truth_res, mission_res, Z) - compute1(truth_res,
-                                                                   S) -
-                    compute1(
-                mission_res, T)) / float(maxError)
+                compute2(truth_res, mission_res, Z) - compute1(truth_res,
+                                                               S) -
+                compute1(
+                    mission_res, T)) / float(maxError)
         ranking_res = (1.0 + coverage + ranking) * 100.0
 
         # convert coverage to Z
