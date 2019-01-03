@@ -844,6 +844,7 @@ class AppMethods():
             )  # extract the configurations
             # assembly the command
             command = self.getCommand(configs)
+
             # measure the "cost"
             cost, metric = self.getCostAndSys(command, self.training_units,
                                               withSys,
@@ -975,6 +976,7 @@ class AppMethods():
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
+        print (" ".join(command))
         os.system(" ".join(command))
         time2 = time.time()
         avg_time = (time2 - time1) * 1000.0 / work_units
