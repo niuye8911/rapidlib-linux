@@ -32,6 +32,7 @@ class Metric:
 
 
 class SlowDown:
+
     def __init__(self, configuration):
         self.configuration = configuration
         self.slowdown_table = dict()
@@ -66,6 +67,7 @@ class SlowDown:
 
 
 class SysUsageTable:
+
     def __init__(self):
         self.table = dict()
         self.metrics = []
@@ -92,6 +94,7 @@ class SysUsageTable:
 
 
 class SysArgs:
+
     def __init__(self):
         self.env = {}
         self.env["cpu_num"] = [1, 2, 3, 4, 5, 6, 7]
@@ -218,7 +221,7 @@ class Configuration:
         # return result
 
 
-###################problem generation#########################
+# ##################problem generation#########################
 
 
 class Constraint:
@@ -304,7 +307,7 @@ class Segment:
         self.b = b
 
 
-###################parsing classes#############################
+# ##################parsing classes#############################
 
 
 class Profile:
@@ -449,6 +452,7 @@ class Profile:
     def genRandomSubset(self, n):
         profile = Profile()
         partitions = {}
+        n = max(n, len(self.configurations)) # if not 20, then use the overall
         randomConfigs = random.sample(self.configurations, n)
         for config in randomConfigs:
             profile.addCostEntry(config, self.getCost(config))
@@ -464,9 +468,6 @@ class Profile:
             profile.addMVEntry(config, self.getMV(config))
         for knob in partitions.keys():
             partitions[knob].sort()
-            print "ranomd Partition"
-            print partitions[knob]
-
         return profile, partitions
 
 
@@ -595,7 +596,8 @@ class quadRSDG:
             knob_name = config.knob.set_name
             knob_val = config.val
             coeffs = self.knob_table[knob_name]
-            totalcost += coeffs[0] * knob_val * knob_val + coeffs[1] * knob_val + coeffs[2]
+            totalcost += coeffs[0] * knob_val * knob_val + coeffs[1] * \
+                knob_val + coeffs[2]
 
         # calculate inter cost
         configs = []
@@ -858,6 +860,8 @@ class AppMethods():
             for i in range(0, numOfFixedEnv):  # run 3 different environment
                 env_commands.append(env.getRandomEnv())
 
+        training_time_record = {}
+
         # iterate through configurations
         for configuration in configurations:
             # the purpose of each iteration is to fill in the two values below
@@ -869,9 +873,10 @@ class AppMethods():
             command = self.getCommand(configs)
 
             # measure the "cost"
-            cost, metric = self.getCostAndSys(command, self.training_units,
-                                              withSys,
-                                              configuration.printSelf('-'))
+            total_time, cost, metric = self.getCostAndSys(
+                command, self.training_units, withSys,
+                configuration.printSelf('-'))
+            training_time_record[configuration.printSelf('-')] = total_time
             # write the cost to file
             AppMethods.writeConfigMeasurementToFile(costFact, configuration,
                                                     cost)
@@ -879,8 +884,8 @@ class AppMethods():
             if withMV:
                 mv = self.getQoS()
                 # write the mv to file
-                AppMethods.writeConfigMeasurementToFile(
-                    mvFact, configuration, mv)
+                AppMethods.writeConfigMeasurementToFile(mvFact, configuration,
+                                                        mv)
             if withSys:
                 # write metric value to table
                 self.recordSysUsage(configuration, metric)
@@ -906,6 +911,8 @@ class AppMethods():
             mvFact.close()
         if withPerf:
             slowdownProfile.close()
+
+        return training_time_record
 
     # Implement this function
     def runGT(self):
@@ -933,9 +940,9 @@ class AppMethods():
             # start the env
             env_creater = subprocess.Popen(
                 " ".join(env_command), shell=True, preexec_fn=os.setsid)
-            cost, metric = self.getCostAndSys(app_command,
-                                              self.training_units, True,
-                                              configuration.printSelf('-'))
+            cost, metric, total_time = self.getCostAndSys(
+                app_command, self.training_units, True,
+                configuration.printSelf('-'))
             # end the env
             os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
             # write the measurement to file
@@ -970,7 +977,7 @@ class AppMethods():
         """
         return self.mv_path
 
-    ### some utilities might be useful
+    # some utilities might be useful
 
     def getCostAndSys(self,
                       command,
@@ -1002,6 +1009,7 @@ class AppMethods():
         print(" ".join(command))
         os.system(" ".join(command))
         time2 = time.time()
+        total_time = time2 - time1
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
@@ -1010,7 +1018,7 @@ class AppMethods():
                 # back up the csv_file
                 os.system("mv tmp.csv ./debug/" + configuration + ".csv")
 
-        return avg_time, metric_value
+        return total_time, avg_time, metric_value
 
     def parseTmpCSV(self):
         metric_value = Metric()

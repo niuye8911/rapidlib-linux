@@ -85,7 +85,7 @@ def main(argv):
             "./outputs/" + appname + 'gen' + ".profile")
         cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
             groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
-            lvl)
+            None, lvl)
         finalized_xml = completeXML(appname, xml, cost_rsdg, mv_rsdgs[0],
                                     model, True)
         # append the xml path to the file
@@ -125,9 +125,9 @@ def main(argv):
         # load user-supplied methods
         module = imp.load_source("", methods_path)
         appMethods = module.appMethods(appname, obj_path)
-        factfile, mvfactfile = genFact(appname, groundTruth_profile,
-                                       appMethods, withQoS, withSys, withPerf,
-                                       NUM_OF_FIXED_ENV)
+        factfile, mvfactfile, time_record = genFact(
+            appname, groundTruth_profile, appMethods, withQoS, withSys,
+            withPerf, NUM_OF_FIXED_ENV)
 
         # ######################STAGE-3########################
         # third stage: Modeling, use the specific modeling method to construct
@@ -138,7 +138,8 @@ def main(argv):
         groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
         # construct the cost rsdg iteratively given a threshold
         cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
-            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
+            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
+            time_record)
         if PLOT:
             draw("outputs/modelValid.csv")
 
@@ -225,7 +226,8 @@ def declareParser():
 
 
 def parseCMD(options):
-    global app_config, observed, fact, KF, remote, model, rs, stage, mode, PLOT, config_file, run_config_path
+    global app_config, observed, fact, KF, remote, model, rs, stage, mode, \
+        PLOT, config_file, run_config_path
     observed = options.observed
     fact = options.fact
     model = options.model

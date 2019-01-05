@@ -78,9 +78,8 @@ class appMethods(AppMethods):
         coverage = values[0]
         ranking_pref = preferences[1]
         coverage_pref = preferences[0]
-        maxError = (
-                               2 * coverage_pref - ranking_pref) * 50 * 51  #
-        50 images in real run
+        maxError = (2 * coverage_pref - ranking_pref) * 50 * 51
+        # 50 images in real run
         ranking_res = (1.0 + (
                     ranking_pref * ranking + 2 * coverage_pref * coverage) /
                        float(

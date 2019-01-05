@@ -1,11 +1,19 @@
 from piecewiseProb import *
 from quadProb import *
 from stage_1.training import *
+import json
 
 
 # contains functions to compute the representative list of a RSDG, given the
 # fact profile
-def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model, seglvl=0):
+def constructRSDG(gt,
+                  knob_samples,
+                  threshold,
+                  knobs,
+                  PRINT,
+                  model,
+                  training_time_record=None,
+                  seglvl=0):
     # gT is a dictionary where entry is the config and value is hte cost
     # profile_configs is the structured configuration
     # segmentation level
@@ -42,6 +50,33 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model, seglvl=0):
             error = compare(costrsdg, gt, False, model)
     if PRINT:
         compare(costrsdg, gt, True, model)
+    if training_time_record is not None:
+        print "training time record"
+        print training_time_record
+        # need to compare the training time
+        training_time = {}
+        # the total time:
+        total_time = 0.0
+        for config in training_time_record.keys():
+            total_time += training_time_record[config]
+        training_time['KDG'] = total_time
+        # the rand20 time:
+        total_time = 0.0
+        rand20list = map(lambda x: x.printSelf('-'),
+                         gt.genRandomSubset(20)[0].configurations)
+        for config in rand20list:
+            total_time += training_time_record[config]
+        training_time['rand20'] = total_time
+        # the piecewise:
+        for i in range(1, 4):
+            total_time = 0.0
+            partitions = partition(i, knob_samples)
+            configlist = retrieve(partitions, gt, knobs).configurations
+            for config in configlist:
+                total_time += training_time_record[config.printSelf('-')]
+            training_time['PIECE-' + str(i)] = total_time
+        with open('time_compare.txt', 'w') as file:
+            file.write(json.dumps(training_time, indent=2, sort_keys=True))
     return costrsdg, mvrsdgs, costpath, mvpaths, seglvl
 
 

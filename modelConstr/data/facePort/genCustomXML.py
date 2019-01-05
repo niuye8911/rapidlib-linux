@@ -64,15 +64,17 @@ def run(preferences, report):
                 '-xml',
                 './outputs/facedetect.xml',
                 '-b',
-                '38',
+                '150',
                 '-u',
-                '29'
+                '86'
                 ]
     print(' '.join(face_cmd))
-    # os.system(' '.join(face_cmd))
-
+    os.system(' '.join(face_cmd))
+    # move the result file
+    output_cmd = ['mv', './outputs/result.txt', output_name]
+    os.system(" ".join(output_cmd))
     # check the result
-    #getQoS(report)
+    getQoS(report)
     # move the xml
     mv_cmd = ['mv',
               './outputs/facedetect.xml',
@@ -85,9 +87,10 @@ def run(preferences, report):
 with open('./facedetect_run.config', 'r') as config_json:
     config = json.load(config_json)
 report = open("./report.txt", 'w')
-for preferences in range(1, 11):
+for preferences in range(1, 12):
     # relavance from 1 to 10
-    config['preferences'][1] = float(1.0 + float(preferences))
+    config['preferences'][1] = 0.5+0.5*float(preferences)
+    config['preferences'][0] = 1.0
     configfile = open('./facedetect_run.config', 'w')
     json.dump(config, configfile, indent=2, sort_keys=True)
     configfile.close()
