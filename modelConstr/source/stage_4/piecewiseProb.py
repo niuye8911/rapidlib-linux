@@ -6,6 +6,7 @@ from stage_1.training import *
 
 
 def populatePieceWiseRSDG(observed, partitions):
+    print partitions
     # get the segments
     segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(
         observed, partitions)
@@ -20,12 +21,11 @@ def populatePieceWiseRSDG(observed, partitions):
     id = 0
     for mvprofile in mvprofiles:
         # solve and retrieve the result
-        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = \
-            generatePieceWiseContProblem(mvprofile, partitions, False)
+        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(
+            mvprofile, partitions, False)
 
-        mvrsdg, mv_path = solveAndPopulateRSDG(segments_mv, seg_values_mv,
-                                               segconst_mv, inter_coeff_mv,
-                                               False, id)
+        mvrsdg, mv_path = solveAndPopulateRSDG(
+            segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False, id)
         system("mv ./debug/max.sol ./debug/maxmv" + str(id) + ".sol")
         system("mv ./debug/fitting.lp ./debug/fittingmv" + str(id) + ".lp")
         mvrsdgs.append(mvrsdg)
@@ -50,7 +50,7 @@ def generatePieceWiseContProblem(observed, partitions, COST=True):
     obj = errorFunction(errors)
     # get the bounds
     intBounds, floatBounds = genBounds(seg_indicators, seg_values, segconst,
-                                       knob_values, errors)
+                                       knob_values, errors, COST)
     # beatutifyProblem
     beautifyProblem(obj, costConstraints, segConstraints, intBounds,
                     floatBounds, seg_indicators)
@@ -69,11 +69,19 @@ def getSegments(samples):
         for i in range(1, len(points)):
             segname = name
             max = points[i]
+            if max == min + 1:  # adjacent points, treated as single value
+                max = min
             seg = Segment(segname, name, min, max)
             seg.setID(id)
             segments[name].append(seg)
             id += 1
             min = points[i]
+            # check if the last item is adjacent to the second last
+            if i == len(points) - 1 and i > 0 and points[i] == points[i
+                                                                      - 1] + 1:
+                seg = Segment(segname, name, points[i], points[i])
+                seg.setID(id)
+                segments[name].append(seg)
     return segments
 
 
@@ -125,9 +133,8 @@ def costFunction(segments, observed):
                 knob_name = config.knob.set_name
                 knob_val = config.val
                 for seg in segments[knob_name]:
-                    costFunction += str(
-                        knob_val) + " " + seg.printVar() + " + " + str(
-                        knob_val) + " + " + seg.printID() + " + "
+                    costFunction += str(knob_val) + " " + seg.printVar(
+                    ) + " + " + str(knob_val) + " + " + seg.printID() + " + "
             costFunction = costFunction[:-3]
     return costFunction
 
@@ -174,9 +181,8 @@ def genConstraints(segments, observed, COST=True):
                 costEstimate = ""
                 for flatted_seg in flatted_seg_list:
                     knob_val = configuration.getSetting(flatted_seg.knob_name)
-                    costEstimate += str(
-                        knob_val) + " " + flatted_seg.printVar() + " + " + \
-                                    flatted_seg.printConst() + " + "
+                    costEstimate += str(knob_val) + " " + flatted_seg.printVar(
+                    ) + " + " + flatted_seg.printConst() + " + "
                 costEstimate = costEstimate[:-3]
                 costEstimates.append(costEstimate)
             # generate inter-service
@@ -219,8 +225,7 @@ def genConstraints(segments, observed, COST=True):
                 costConstraints.add(constraint)
                 # add the PSD constraints
                 if not inter_cost == "":
-                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a \
-                                  + " * " + corr_b + " ] <= 0"
+                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
                     costConstraints.add(constraint2)
     return costConstraints, segConstraints, errors, inter_coeff
 
@@ -236,18 +241,22 @@ def getFlattedSeg(fall_within_segs):
     return flatted
 
 
-def genBounds(seg_indicators, seg_values, segconst, knob_values, errors):
+def genBounds(seg_indicators, seg_values, segconst, knob_values, errors, COST):
     integerBounds = set()
     floatBounds = set()
     # segIDs
     for seg_indicator in seg_indicators:
         bound = seg_indicator + " <= 1"
         integerBounds.add(bound)
+
+    for seg_value in seg_values:
+        if COST:
+            floatBound = seg_value + " >= 0"
+        else:
+            floatBound = seg_value + " free"
+        floatBounds.add(floatBound)
     for seg_value in segconst:
         floatBound = seg_value + " free"
-        floatBounds.add(floatBound)
-    for seg_value in seg_values:
-        floatBound = seg_value + " >= 0.001"
         floatBounds.add(floatBound)
     # for seg_value in segconst:
     #    floatBound = "-99999 <= " + seg_value + " <= 99999"
@@ -284,11 +293,14 @@ def beautifyProblem(obj, costConstraints, segConstraints, intBounds,
     probfile.close()
 
 
-def solveAndPopulateRSDG(segments, seg_values, segconst, inter_coeff,
-                         COST=True, id=0):
-    system(
-        "gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
-        "ResultFile=./debug/max.sol ./debug/fitting.lp")
+def solveAndPopulateRSDG(segments,
+                         seg_values,
+                         segconst,
+                         inter_coeff,
+                         COST=True,
+                         id=0):
+    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
+           "ResultFile=./debug/max.sol ./debug/fitting.lp")
     result = open("./debug/max.sol", 'r')
     rsdg = pieceRSDG()
     # setup the knob table
@@ -380,6 +392,5 @@ def modelValid(rsdg, groundTruth, PRINT):
             outfile.write("\n")
     if PRINT:
         outfile.close()
-        print
-        error / count
+        print(error / count)
     return error / count

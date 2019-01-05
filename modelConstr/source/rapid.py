@@ -64,6 +64,7 @@ def main(argv):
             mv_rsdgs = []
             preferences = config['preferences']
             desc = config['desc']
+            lvl = config['seglvl']
             for rsdg_path in config['mv_rsdgs']:
                 rsdg = Classes.pieceRSDG()
                 rsdg.fromFile(rsdg_path)
@@ -71,8 +72,8 @@ def main(argv):
         module = imp.load_source("", methods_path)
         appMethod = module.appMethods("", obj_path)
 
-        appname, knobs, groundTruth_profile, knob_samples = \
-            genTrainingSet(desc)
+        appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
+            desc)
         appname = appname[:-1]
         xml = xmlgen.genxml(appname, "", "", True, desc, True)
         factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile,
@@ -83,8 +84,8 @@ def main(argv):
         groundTruth_profile.printProfile(
             "./outputs/" + appname + 'gen' + ".profile")
         cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
-            groundTruth_profile, knob_samples,
-            THRESHOLD, knobs, True, model)
+            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
+            lvl)
         finalized_xml = completeXML(appname, xml, cost_rsdg, mv_rsdgs[0],
                                     model, True)
         # append the xml path to the file
@@ -109,8 +110,8 @@ def main(argv):
             print
             "required a description of program with option --desc"
             return
-        appname, knobs, groundTruth_profile, knob_samples = \
-            genTrainingSet(desc)
+        appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
+            desc)
         appname = appname[:-1]
 
         # generate XML files
@@ -132,12 +133,12 @@ def main(argv):
         # third stage: Modeling, use the specific modeling method to construct
         # the RSDG
         readFact(factfile, knobs, groundTruth_profile)
-        readFact(mvfactfile, knobs, groundTruth_profile, False)
+        if withQoS:
+            readFact(mvfactfile, knobs, groundTruth_profile, False)
         groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
         # construct the cost rsdg iteratively given a threshold
         cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
-            groundTruth_profile, knob_samples,
-            THRESHOLD, knobs, True, model)
+            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model)
         if PLOT:
             draw("outputs/modelValid.csv")
 
@@ -224,8 +225,7 @@ def declareParser():
 
 
 def parseCMD(options):
-    global app_config, observed, fact, KF, remote, model, rs, stage, mode, \
-        PLOT, config_file, run_config_path
+    global app_config, observed, fact, KF, remote, model, rs, stage, mode, PLOT, config_file, run_config_path
     observed = options.observed
     fact = options.fact
     model = options.model

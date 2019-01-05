@@ -13,30 +13,35 @@ def constructRSDG(gt, knob_samples, threshold, knobs, PRINT, model, seglvl=0):
     # initial error rate set to 100%
     error = 1.0
     maxT = 3
-    if model == "quad":
-        maxT = 3
-    if seglvl == 0:
-        while error >= threshold:
-            if seglvl >= maxT:
-                print
-                "Reached Highest Segmentation Granularity"
-                break
-            seglvl += 1
+    if model == "rand20":
+        # ramdom generate 20 configurations
+        rand20list, partitions = gt.genRandomSubset(20)
+        costrsdg, mvrsdgs, costpath, mvpaths = populate(
+            rand20list, partitions, model)
+        error = compare(costrsdg, gt, False, model)
+    elif model == "quad" or model == "piecewise":
+        if model == "quad":
+            maxT = 3
+        if seglvl == 0:
+            while error >= threshold:
+                if seglvl >= maxT:
+                    print
+                    "Reached Highest Segmentation Granularity"
+                    break
+                seglvl += 1
+                partitions = partition(seglvl, knob_samples)
+                observed_profile = retrieve(partitions, gt, knobs)
+                costrsdg, mvrsdgs, costpath, mvpaths = populate(
+                    observed_profile, partitions, model)
+                error = compare(costrsdg, gt, False, model)
+        else:
             partitions = partition(seglvl, knob_samples)
             observed_profile = retrieve(partitions, gt, knobs)
-            costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile,
-                                                            partitions, model)
+            costrsdg, mvrsdgs, costpath, mvpaths = populate(
+                observed_profile, partitions, model)
             error = compare(costrsdg, gt, False, model)
-    else:
-        partitions = partition(seglvl, knob_samples)
-        observed_profile = retrieve(partitions, gt, knobs)
-        costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile,
-                                                        partitions, model)
-        error = compare(costrsdg, gt, False, model)
     if PRINT:
         compare(costrsdg, gt, True, model)
-        print
-        "Granulatiry = " + str(seglvl)
     return costrsdg, mvrsdgs, costpath, mvpaths, seglvl
 
 
@@ -51,7 +56,7 @@ def partition(seglvl, knob_samples):
         max = length - 1
         min = 0
         # determine the step size
-        num_of_partitions = 2 ** (seglvl - 1)
+        num_of_partitions = 2**(seglvl - 1)
         step = length / num_of_partitions - 1
         if step < 1:
             step = 1
@@ -93,7 +98,7 @@ def retrieve(partitions, gt, knobs):
 # given an observed profile, generate the continuous problem and populate the
 # rsdg
 def populate(observed, partitions, model):
-    if model == "piecewise":
+    if model == "piecewise" or model == 'rand20':
         return populatePieceWiseRSDG(observed, partitions)
     elif model == "quad":
         return populateQuadRSDG(observed, True)
@@ -102,7 +107,7 @@ def populate(observed, partitions, model):
 
 
 def compare(rsdg, groundTruth, PRINT, model):
-    if model == "piecewise":
+    if model == "piecewise" or model == 'rand20':
         return modelValid(rsdg, groundTruth, PRINT)
     elif model == "quad":
         return compareQuadRSDG(groundTruth, rsdg, True, PRINT)
