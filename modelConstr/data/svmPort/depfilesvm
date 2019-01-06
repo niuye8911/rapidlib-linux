@@ -1,0 +1,4 @@
+svm
+learningRate learning 1 100
+regularization regular 5000 25000
+batchSize batch 100 500

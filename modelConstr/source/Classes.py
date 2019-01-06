@@ -452,7 +452,7 @@ class Profile:
     def genRandomSubset(self, n):
         profile = Profile()
         partitions = {}
-        n = max(n, len(self.configurations)) # if not 20, then use the overall
+        n = min(n, len(self.configurations)) # if not 20, then use the overall
         randomConfigs = random.sample(self.configurations, n)
         for config in randomConfigs:
             profile.addCostEntry(config, self.getCost(config))
