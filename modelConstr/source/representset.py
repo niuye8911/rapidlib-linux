@@ -1,6 +1,5 @@
 from LP_Util.lp_util import *
 from contigous import *
-from Classes import Profile
 from stage_4.constructRSDG import *
 from util import *
 
@@ -8,7 +7,7 @@ from util import *
 def genContRS(gt, targetMean):
     '''generate the representative set for continuous apps
     '''
-    print ("generating RS")
+    print("generating RS")
     observed_profile = Profile()
     configurations = gt.configurations
     curMean = 1.1
@@ -30,6 +29,7 @@ def genContRS(gt, targetMean):
     while curMean > targetMean:
         selected = None
         curMinErr = 1.1
+        print(curMean)
         for config in configurations:
             if observed_profile.hasEntry(config):
                 continue
@@ -100,7 +100,7 @@ def genRS(fact, set, targetMax, targetMean):
         print
         "Mean:" + str(curMeanErr) + "\tMax:" + str(
             curMaxErr) + "\tselected:" + str(smallest) + "/" + str(
-                biggestinsmallest)
+            biggestinsmallest)
         print
         "maxConfig:" + str(maxId)
         represented_set.append(configs[smallest])

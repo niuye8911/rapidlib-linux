@@ -3,6 +3,23 @@ import os
 from Classes import AppMethods
 
 
+def recoverTimeRecord(appname, units):
+    time_record = {}
+    with open("./outputs/" + appname + "-cost.fact") as costfile:
+        for line in costfile:
+            col = line.split()
+            unit_cost = col[-1]
+            configs = []
+            config_part = col[0:-1]
+            for i in range(0, len(config_part) - 1, 2):
+                name = config_part[i]
+                val = config_part[i + 1]
+                configs.append(name + "-" + val)
+            config = "-".join(sorted(configs))
+            time_record[config] = float(unit_cost) * units
+    return time_record
+
+
 def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf,
             numOfFixedEnv):
     cost_path = "outputs/" + appname + "-cost" + ".fact"
@@ -12,7 +29,10 @@ def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf,
     # if the training has been done, just exit
 
     if os.path.exists(cost_path):
-        return cost_path, mv_path, None
+        # construct the time_record
+        print("already trained")
+        time_record = recoverTimeRecord(appname, appMethods.training_units)
+        return cost_path, mv_path, time_record
     # run(appname,config_table)
     if withQoS:
         appMethods.runGT()

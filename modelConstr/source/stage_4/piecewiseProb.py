@@ -20,7 +20,8 @@ def populatePieceWiseRSDG(observed, partitions):
     id = 0
     for mvprofile in mvprofiles:
         # solve and retrieve the result
-        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = generatePieceWiseContProblem(
+        segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv = \
+            generatePieceWiseContProblem(
             mvprofile, partitions, False)
 
         mvrsdg, mv_path = solveAndPopulateRSDG(
@@ -224,7 +225,8 @@ def genConstraints(segments, observed, COST=True):
                 costConstraints.add(constraint)
                 # add the PSD constraints
                 if not inter_cost == "":
-                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a + " * " + corr_b + " ] <= 0"
+                    constraint2 = " [ " + corr_c + " ^ 2 - " + " 4 " + corr_a\
+                                  + " * " + corr_b + " ] <= 0"
                     costConstraints.add(constraint2)
     return costConstraints, segConstraints, errors, inter_coeff
 

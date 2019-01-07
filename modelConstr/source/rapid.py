@@ -5,6 +5,7 @@ import os
 import sys
 
 import Classes
+import representset
 import xmlgen
 from Parsing_Util.readFact import readFact
 from plot import draw
@@ -12,7 +13,6 @@ from stage_1.training import genTrainingSet
 from stage_2.trainApp import genFact, genFactWithRSDG
 from stage_4.constructRSDG import constructRSDG
 from xmlgen import completeXML
-import representset
 
 configs = []
 service_levels = {}
@@ -42,15 +42,16 @@ withSys = False
 withQoS = True
 withPerf = False
 calRS = False
+qosRun = False
 
 NUM_OF_FIXED_ENV = -1
 
 THRESHOLD = 0.05
-RS_THRESHOLD = 0.05
+RS_THRESHOLD = 0.04
 
 
 def main(argv):
-    global groundTruth_profile, knob_samples, knobs, mode, methods_path, desc,\
+    global groundTruth_profile, knob_samples, knobs, mode, methods_path, desc, \
         calRS
     # parse the argument
     parser = declareParser()
@@ -139,25 +140,25 @@ def main(argv):
             readFact(mvfactfile, knobs, groundTruth_profile, False)
         groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
         # construct the cost rsdg iteratively given a threshold
-        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl,training_time = constructRSDG(
+        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time = \
+            constructRSDG(
             groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
             time_record)
 
         # Generate the representative set
         if calRS:
             rs, mean = representset.genContRS(groundTruth_profile, RS_THRESHOLD)
-            with open (appname+".rs",'w') as result:
+            with open(appname + ".rs", 'w') as result:
                 for config in rs:
-                    result.write(config.printSelf(",")+"\n")
+                    result.write(config.printSelf(",") + "\n")
                 result.write(str(mean))
             # calculate training time for RS
             if time_record is not None:
                 total_time = 0.0
                 for config in rs:
-                    total_time += time_record[config]
+                    total_time += time_record[config.printSelf("-")]
                 training_time['RS'] = total_time
             # TODO: record the RS rsdg
-
 
         # write training time to file
         if time_record is not None:
@@ -193,6 +194,14 @@ def main(argv):
 
         if (stage == 4):
             return
+
+        if qosRun:
+            mvs = appMethods.qosRun()
+            with open("./qos_report_" + appname + "_" + model + ".txt",
+                      'w') as report:
+                for mv in mvs:
+                    report.write(mv)
+                    report.write("\n")
 
     # ######SOME EXTRA MODES#############
 
@@ -272,7 +281,8 @@ def parseCMD(options):
 
 
 def parseConfig(config_file):
-    global desc, methods_path, obj_path, withSys, withQoS, withPerf, calRS
+    global desc, methods_path, obj_path, withSys, withQoS, withPerf, calRS, \
+        qosRun
     with open(config_file) as config_json:
         config = json.load(config_json)
         desc = config['appDep']
@@ -286,6 +296,8 @@ def parseConfig(config_file):
             withPerf = config['withPerf'] == 1
         if 'RS' in config:
             calRS = config['RS'] == 1
+        if 'qosRun' in config:
+            qosRun = config['qosRun'] == 1
     return config
 
 

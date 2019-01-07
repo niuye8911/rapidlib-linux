@@ -1,7 +1,6 @@
 from piecewiseProb import *
 from quadProb import *
 from stage_1.training import *
-import json
 
 
 # contains functions to compute the representative list of a RSDG, given the
@@ -48,7 +47,7 @@ def constructRSDG(gt,
                 observed_profile, partitions, model)
     if PRINT:
         error = compare(costrsdg, gt, True, model)
-        print ("error = " + str(error))
+        print("error = " + str(error))
     if training_time_record is not None:
         # need to compare the training time
         training_time = {}
@@ -88,7 +87,7 @@ def partition(seglvl, knob_samples):
         max = length - 1
         min = 0
         # determine the step size
-        num_of_partitions = 2**(seglvl - 1)
+        num_of_partitions = 2 ** (seglvl - 1)
         step = length / num_of_partitions - 1
         if step < 1:
             step = 1
