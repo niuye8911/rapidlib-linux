@@ -3,13 +3,22 @@ This is an example file for prepraing Bodytrack for RAPID(C)
 """
 
 from Classes import *  # import the parent class and other classes from the
+
+
 # file Classes.py
 
 
 class appMethods(AppMethods):
     input_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps" \
                  "/bodytrack/run/sequenceB_261/"
-    training_units = 20
+
+    def __init__(self, name, obj_path):
+        """ Initialization with app name
+        :param name:
+        """
+        AppMethods.__init__(self, name, obj_path)
+        self.training_units = 20
+        self.fullrun_units = 1000
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -33,7 +42,7 @@ class appMethods(AppMethods):
         self.moveFile(output_path, self.gt_path)
 
     # helper function to assembly the command
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         particle = 4000
         layer = 5
         if not configs == None:

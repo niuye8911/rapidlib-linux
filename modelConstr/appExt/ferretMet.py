@@ -3,6 +3,8 @@ This is an example file for prepraing Bodytrack for RAPID(C)
 """
 
 from Classes import *  # import the parent class and other classes from the
+
+
 # file Classes.py
 
 
@@ -12,6 +14,8 @@ class appMethods(AppMethods):
     table = "lsh"
     query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps" \
                  "/ferret/run/queries"
+    fullrun_query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs" \
+                         "/apps/ferret/run/queriesnative"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
@@ -19,6 +23,9 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 20
+        self.fullrun_units = 1000
+        self.max_cost = 182
+        self.min_cost = 91
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -40,12 +47,23 @@ class appMethods(AppMethods):
                           probe) + "_" + str(itr) + ".txt")
 
     def afterGTRun(self):
-        self.gt_path = "./training_outputs/grountTruth.txt"
+        self.gt_path = "./training_outputs/groundTruth.txt"
         output_path = "output.txt"
         self.moveFile(output_path, self.gt_path)
 
+    def getFullRunCommand(self, budget):
+        return [self.obj_path,
+                self.database_path,
+                self.table,
+                self.fullrun_query_path,
+                "50", "20", "1", "output.txt",
+                "-rsdg", "-cont",
+                "-b", str(budget),
+                "-xml", "./outputs/" + self.appName + "-default.xml",
+                "-u", '300']
+
     # helper function to assembly the command
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         itr = 25
         hash = 8
         probe = 20
@@ -58,9 +76,13 @@ class appMethods(AppMethods):
                     probe = config.val  # retrieve the setting for each knob
                 elif name == "itr":
                     itr = config.val  # retrieve the setting for each knob
+        if qosRun:
+            query_path = self.fullrun_query_path
+        else:
+            query_path = self.query_path
         return [self.obj_path,
                 self.database_path,
-                self.table, self.query_path,
+                self.table, query_path,
                 "50",
                 "20",
                 "1",
@@ -81,9 +103,9 @@ class appMethods(AppMethods):
         maxError = (2 * coverage_pref - ranking_pref) * 50 * 51
         # 50 images in real run
         ranking_res = (1.0 + (
-                    ranking_pref * ranking + 2 * coverage_pref * coverage) /
+                ranking_pref * ranking + 2 * coverage_pref * coverage) /
                        float(
-            maxError)) * 100.0
+                           maxError)) * 100.0
         return ranking_res
 
     def rank(self, img, imglist):

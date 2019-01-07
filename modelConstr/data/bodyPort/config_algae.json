@@ -3,5 +3,5 @@
   "appPath": "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/bodytrack/inst/amd64-linux.gcc-serial/bin/bodytrack",
   "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/bodytrackMet.py",
   "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort/depfilebodytrack_nolimit",
-  "RS": 1
+  "RS": 1 
 }

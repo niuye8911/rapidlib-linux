@@ -2,18 +2,19 @@
 This is an example file for prepraing Bodytrack for RAPID(C)
 """
 
-from Classes import AppMethods  # import the parent class and other classes
 import os
+
+from Classes import AppMethods  # import the parent class and other classes
 
 
 class appMethods(AppMethods):
-    image_index_path = "/home/liuliu/Research/mara_bench/face-detect/pics"\
-        "/pic_index/training.txt"
+    image_index_path = "/home/liuliu/Research/mara_bench/face-detect/pics" \
+                       "/pic_index/training.txt"
     pic_path = "/home/liuliu/Research/mara_bench/face-detect/pics/"
     evaluation_obj_path = "/home/liuliu/Research/mara_bench/face-detect" \
-        "/evaluation/evaluate"
-    grond_truth_path = "/home/liuliu/Research/mara_bench/face-detect/pics"\
-        "/pic_index/training_result.txt"
+                          "/evaluation/evaluate"
+    grond_truth_path = "/home/liuliu/Research/mara_bench/face-detect/pics" \
+                       "/pic_index/training_result.txt"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
@@ -48,7 +49,7 @@ class appMethods(AppMethods):
         self.moveFile(output_path, self.gt_path)
 
     # helper function to assembly the command
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         pyramid = 25
         selectivity = 2
         eyes = 2
@@ -78,7 +79,7 @@ class appMethods(AppMethods):
         beta = recall_pref / precision_pref
         normalization = 1 + beta * beta
         weighted_score = 100.0 * normalization * precision * recall / (
-            beta * beta * precision + recall)
+                beta * beta * precision + recall)
         # default_score = 100.0 * 2 * precision * recall / (precision+recall)
         return weighted_score
 

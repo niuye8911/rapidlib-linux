@@ -210,7 +210,7 @@ class Configuration:
 
     def __eq__(self, other):
         if isinstance(other, Configuration):
-            return other.printSelf()==self.printSelf()
+            return other.printSelf() == self.printSelf()
         else:
             return False
 
@@ -224,6 +224,7 @@ class Configuration:
         """
         items = map((lambda x: x.knob.set_name + delimiter + str(x.val)),
                     self.knob_settings)
+        items.sort()
         return delimiter.join(sorted(items))
         # for config in self.knob_settings:
         #    result += " " + config.knob.set_name + " " + str(config.val)
@@ -355,7 +356,7 @@ class Profile:
         self.numOfMVs = len(mvs)
         return
 
-    def addEntry(self,configuration, cost, mvs):
+    def addEntry(self, configuration, cost, mvs):
         self.addCostEntry(configuration, cost)
         self.addMVEntry(configuration, mvs)
         return
@@ -624,7 +625,7 @@ class quadRSDG:
             knob_val = config.val
             coeffs = self.knob_table[knob_name]
             totalcost += coeffs[0] * knob_val * knob_val + coeffs[1] * \
-                knob_val + coeffs[2]
+                         knob_val + coeffs[2]
 
         # calculate inter cost
         configs = []
@@ -636,7 +637,7 @@ class quadRSDG:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[configs[
-                            i].knob.set_name]:
+                        i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -644,8 +645,8 @@ class quadRSDG:
                         a, b, c = coeff_inter.retrieveCoeffs()
                         totalcost += float(knoba_val) * float(
                             knoba_val) * a + float(knobb_val) * float(
-                                knobb_val) * b + float(knobb_val) * float(
-                                    knoba_val) * c
+                            knobb_val) * b + float(knobb_val) * float(
+                            knoba_val) * c
 
         return totalcost
 
@@ -789,7 +790,7 @@ class pieceRSDG:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
                     if configs[j].knob.set_name in self.coeffTable[configs[
-                            i].knob.set_name]:
+                        i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -797,8 +798,8 @@ class pieceRSDG:
                         a, b, c = coeff_inter.retrieveCoeffs()
                         totalcost += float(knoba_val) * float(
                             knoba_val) * a + float(knobb_val) * float(
-                                knobb_val) * b + float(knobb_val) * float(
-                                    knoba_val) * c
+                            knobb_val) * b + float(knobb_val) * float(
+                            knoba_val) * c
         return totalcost
 
     def findSeg(self, knob_name, knob_val):
@@ -837,17 +838,42 @@ class AppMethods():
         self.obj_path = obj_path
         self.sys_usage_table = SysUsageTable()
         self.training_units = 1
+        self.fullrun_units = 1
 
     def setTrainingUnits(self, unit):
         self.training_units = unit
 
     # Implement this function
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         """ Assembly the CMD line for running the app
         :param configs: a concrete configuration with knob settings
                         Default setting would assemble command for GT
         """
+        return ""
+
+    def getFullRunCommand(self, budget):
         pass
+
+    def qosRun(self):
+        print("running QOS run")
+        self.runGT(True)  # first generate the groundtruth
+        step_size = (self.max_cost - self.min_cost) / 10.0
+        mvs = []
+        for percentage in range(1, 10):
+            budget = (self.min_cost + float(
+                percentage) * step_size) * self.fullrun_units / 1000.0
+            cmd = self.getFullRunCommand(budget)
+            print
+            cmd
+            os.system(" ".join(cmd))
+            # check the QoS
+            mv = self.getQoS()
+            if type(mv) is list:
+                mv = mv[-1]  # use the default qos metric
+            mvs.append(mv)
+            print
+            "mv:" + str(mv)
+        return mvs
 
     # Implement this function
     def train(self, config_table, numOfFixedEnv, costFact, mvFact, sysFact,
@@ -942,7 +968,7 @@ class AppMethods():
         return training_time_record
 
     # Implement this function
-    def runGT(self):
+    def runGT(self, qosRun=False):
         """ Perform a default run of non-approxiamte version of the
         application to generate groundtruth result for
         QoS checking later in the future. The output can be application
@@ -950,7 +976,7 @@ class AppMethods():
         result to a file.
         """
         print("GENERATING GROUND TRUTH for " + self.appName)
-        command = self.getCommand()
+        command = self.getCommand(None, qosRun)
         os.system(" ".join(command))
         self.afterGTRun()
 

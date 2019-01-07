@@ -25,16 +25,21 @@ class appMethods(AppMethods):
         learningRate = 100 * 1e-7
         regular = 25000
         batch = 500
+        if configs is None:
+            # no ground truth
+            pass
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-7
                 elif name == "regular":
-                    regular = config.val  # retrieve the setting for each
+                    regular = config.val * 5000  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = config.val  # retrieve the setting for each knob
+                    batch = 64 * pow(2,
+                                     config.val - 1)  # retrieve the setting
+                    # for each knob
 
         # backup the generated output to another location
         self.moveFile("./model_svm.p",
@@ -44,7 +49,7 @@ class appMethods(AppMethods):
                           int(batch)) + ".txt")
 
     # helper function to assembly the command
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         learningRate = 100 * 1e-7
         regular = 25000
         batch = 500
@@ -54,10 +59,12 @@ class appMethods(AppMethods):
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-7
                 elif name == "regular":
-                    regular = config.val  # retrieve the setting for each
+                    regular = config.val * 5000  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = config.val  # retrieve the setting for each knob
+                    batch = 64 * pow(2,
+                                     config.val - 1)  # retrieve the setting
+                    # for each knob
         return [self.obj_path,
                 "--lr",
                 str(learningRate),
@@ -82,6 +89,4 @@ class appMethods(AppMethods):
         svm.W = pickle.load(open("./model_svm.p", "rb"))
         y_test_pred = svm.predict(X_test)
         test_accuracy = np.mean(y_test == y_test_pred)
-        print
-        test_accuracy
         return test_accuracy

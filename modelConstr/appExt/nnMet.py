@@ -7,8 +7,8 @@ from cs231n.data_utils import load_CIFAR10
 
 
 class appMethods(AppMethods):
-    data_path = "/home/liuliu/Research/mara_bench/machine_learning/cs231n"\
-        "/datasets/cifar-10-batches-py"
+    data_path = "/home/liuliu/Research/mara_bench/machine_learning/cs231n" \
+                "/datasets/cifar-10-batches-py"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
@@ -30,7 +30,9 @@ class appMethods(AppMethods):
                     regular = config.val * 100  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = 64 * pow(2,config.val-1)  # retrieve the setting for each knob
+                    batch = 64 * pow(2,
+                                     config.val - 1)  # retrieve the setting
+                    # for each knob
 
         # backup the generated output to another location
         self.moveFile("./model_nn_w1.p", "./training_outputs/output_nn_w1_" +
@@ -47,7 +49,7 @@ class appMethods(AppMethods):
                       str(int(regular)) + "_" + str(int(batch)) + ".p")
 
     # helper function to assembly the command
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         learningRate = 100 * 1e-7
         regular = 25000
         batch = 500
@@ -60,7 +62,8 @@ class appMethods(AppMethods):
                     regular = config.val * 100  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = config.val * 64  # retrieve the setting for each knob
+                    batch = config.val * 64  # retrieve the setting for each
+                    # knob
         return [
             self.obj_path, "--lr",
             str(learningRate), "--reg",
@@ -123,5 +126,6 @@ class appMethods(AppMethods):
 
         test_accuracy = (net.predict(X_test) == y_test).mean()
 
-        print test_accuracy
+        print
+        test_accuracy
         return test_accuracy
