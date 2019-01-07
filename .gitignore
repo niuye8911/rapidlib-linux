@@ -16,6 +16,8 @@
 **/*.profile
 **/*.scssc
 **/*.yml
+*.rs
+**/licenseInfo
 modelConstr/source/outputs/*
 docs/.editorconfig
 docs/.github/*
