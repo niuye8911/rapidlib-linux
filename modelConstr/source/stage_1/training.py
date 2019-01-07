@@ -5,8 +5,6 @@ from Classes import *
 
 # stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
-    print
-    "RAPID-C / STAGE-1.1 : generating... training set in file ./trainingset"
     config_file = open(cfg_file, 'r')  # input file
     # parsing the file
     appname, knobs, and_constriants, or_constraints = processFile(config_file)

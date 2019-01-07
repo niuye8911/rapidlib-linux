@@ -55,10 +55,6 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
         if knobname not in coeff_table:
             continue
         for sink_coeff in coeff_table[knobname]:
-            print
-            knobname, sink_coeff
-            print
-            visited_service
             if (sink_coeff in visited_service):
                 continue
             if model == "piecewise":
@@ -98,8 +94,7 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
 
 
 def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
-    print
-    "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
+    print "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map, relationmap = readcontrsdg(rsdgfile)
     rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
     and_list, or_list, range_map = readcontdep(depfile)
@@ -247,8 +242,7 @@ def readcontdep(depfile):
 
 def readcontrsdg(rsdgfile):
     if rsdgfile == "":
-        print
-        "[WARNING] RSDG not provided, generating strucutral info only"
+        print "[WARNING] RSDG not provided, generating strucutral info only"
         return [None, None]
     rsdg = open(rsdgfile, 'r')
     rsdg_map = {}

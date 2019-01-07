@@ -26,7 +26,6 @@ def constructRSDG(gt,
         rand20list, partitions = gt.genRandomSubset(20)
         costrsdg, mvrsdgs, costpath, mvpaths = populate(
             rand20list, partitions, model)
-        error = compare(costrsdg, gt, False, model)
     elif model == "quad" or model == "piecewise":
         if model == "quad":
             maxT = 3
@@ -47,12 +46,10 @@ def constructRSDG(gt,
             observed_profile = retrieve(partitions, gt, knobs)
             costrsdg, mvrsdgs, costpath, mvpaths = populate(
                 observed_profile, partitions, model)
-            error = compare(costrsdg, gt, False, model)
     if PRINT:
-        compare(costrsdg, gt, True, model)
+        error = compare(costrsdg, gt, True, model)
+        print ("error = " + str(error))
     if training_time_record is not None:
-        print "training time record"
-        print training_time_record
         # need to compare the training time
         training_time = {}
         # the total time:
@@ -75,9 +72,9 @@ def constructRSDG(gt,
             for config in configlist:
                 total_time += training_time_record[config.printSelf('-')]
             training_time['PIECE-' + str(i)] = total_time
-        with open('time_compare.txt', 'w') as file:
-            file.write(json.dumps(training_time, indent=2, sort_keys=True))
-    return costrsdg, mvrsdgs, costpath, mvpaths, seglvl
+        return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, training_time
+
+    return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, None
 
 
 # given a partion level, return a list of configurations

@@ -6,7 +6,6 @@ from stage_1.training import *
 
 
 def populatePieceWiseRSDG(observed, partitions):
-    print partitions
     # get the segments
     segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(
         observed, partitions)
@@ -300,7 +299,7 @@ def solveAndPopulateRSDG(segments,
                          COST=True,
                          id=0):
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
-           "ResultFile=./debug/max.sol ./debug/fitting.lp")
+           "ResultFile=./debug/max.sol ./debug/fitting.lp > licenseinfo")
     result = open("./debug/max.sol", 'r')
     rsdg = pieceRSDG()
     # setup the knob table
@@ -355,14 +354,6 @@ def solveAndPopulateRSDG(segments,
                 b = coeffs.b
                 c = coeffs.c
                 coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a, b, c)
-                print
-                "before"
-                print
-                a, b, c
-                print
-                "after PSD"
-                print
-                coeffs.a, coeffs.b, coeffs.c
     file_path = rsdg.printRSDG(COST, id)
     return rsdg, file_path
 
@@ -392,5 +383,4 @@ def modelValid(rsdg, groundTruth, PRINT):
             outfile.write("\n")
     if PRINT:
         outfile.close()
-        print(error / count)
     return error / count

@@ -208,6 +208,15 @@ class Configuration:
             if knob_name == c.knob.set_name:
                 return c.val
 
+    def __eq__(self, other):
+        if isinstance(other, Configuration):
+            return other.printSelf()==self.printSelf()
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.printSelf())
+
     def printSelf(self, delimiter=' '):
         """ print the configuration to a readable string, separated by
         white-space
@@ -322,6 +331,12 @@ class Profile:
         self.mvprofile_table = {}
         self.numOfMVs = 1
 
+    def removeConfig(self, configuration):
+        hash_id = self.hashConfig(configuration)
+        del self.profile_table[hash_id]
+        del self.mvprofile_table[hash_id]
+        self.configurations.remove(configuration)
+
     def addCostEntry(self, configuration, cost):
         """ Record the cost for a configuration
         :param configuration: the configuration
@@ -338,6 +353,11 @@ class Profile:
         """
         self.mvprofile_table[self.hashConfig(configuration)] = mvs
         self.numOfMVs = len(mvs)
+        return
+
+    def addEntry(self,configuration, cost, mvs):
+        self.addCostEntry(configuration, cost)
+        self.addMVEntry(configuration, mvs)
         return
 
     def updateEntry(self, configuration, val, COST=True):
@@ -451,24 +471,31 @@ class Profile:
 
     def genRandomSubset(self, n):
         profile = Profile()
-        partitions = {}
-        n = min(n, len(self.configurations)) # if not 20, then use the overall
+        n = min(n, len(self.configurations))  # if not 20, then use the overall
         randomConfigs = random.sample(self.configurations, n)
         for config in randomConfigs:
             profile.addCostEntry(config, self.getCost(config))
-            # generate the partitions
+            profile.addMVEntry(config, self.getMV(config))
+        partitions = Profile.getPartitions(randomConfigs)
+        return profile, partitions
+
+    @staticmethod
+    def getPartitions(configurations):
+        partitions = {}
+        for config in configurations:
             settings = config.retrieve_configs()
             for c in settings:
+                knob_min = c.knob.min
+                knob_max = c.knob.max
                 name = c.knob.set_name
                 val = c.val
                 if name not in partitions:
-                    partitions[name] = []
+                    partitions[name] = [knob_min, knob_max]
                 if val not in partitions[name]:
                     partitions[name].append(val)
-            profile.addMVEntry(config, self.getMV(config))
         for knob in partitions.keys():
             partitions[knob].sort()
-        return profile, partitions
+        return partitions
 
 
 class InterCoeff:
@@ -995,7 +1022,6 @@ class AppMethods():
         :param withSys: whether to check system usage or not
         :return: the average execution time for each work unit
         """
-        print(command)
         time1 = time.time()
         metric_value = {}
         if withSys:
@@ -1006,7 +1032,6 @@ class AppMethods():
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
-        print(" ".join(command))
         os.system(" ".join(command))
         time2 = time.time()
         total_time = time2 - time1

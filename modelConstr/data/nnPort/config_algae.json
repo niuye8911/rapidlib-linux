@@ -1,0 +1,10 @@
+{
+  "appName": "nn",
+  "appPath": "/home/liuliu/Research/mara_bench/machine_learning/rapid_nn",
+  "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/nnMet.py",
+  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/nnPort/depfilenn",
+  "withQoS": 1,
+  "withSys": 0,
+  "withPerf": 0,
+  "RS": 0 
+}
