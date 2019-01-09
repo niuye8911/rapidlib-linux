@@ -23,3 +23,4 @@
 modelConstr/source/outputs/*
 docs/.editorconfig
 docs/.github/*
+modelConstr/source/outputs/trainingset
