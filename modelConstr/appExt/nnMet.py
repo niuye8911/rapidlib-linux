@@ -16,6 +16,9 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 1
+        self.fullrun_units = 10
+        self.max_cost = 3050
+        self.min_cost = 2335
 
     def cleanUpAfterEachRun(self, configs=None):
         learningRate = 100 * 1e-7
@@ -47,6 +50,13 @@ class appMethods(AppMethods):
         self.moveFile("./model_nn_b2.p", "./training_outputs/output_nn_b2_" +
                       str(float(learningRate) * 1e7) + "_" +
                       str(int(regular)) + "_" + str(int(batch)) + ".p")
+
+    def getFullRunCommand(self, budget):
+        return [self.obj_path,
+                "--rsdg", "-cont",
+                "-b", str(budget),
+                "-xml", "./outputs/" + self.appName + "-default.xml",
+                "-u", '1']
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):

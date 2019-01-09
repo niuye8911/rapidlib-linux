@@ -20,11 +20,15 @@ class appMethods(AppMethods):
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 20
+        self.training_units = 10
+        self.fullrun_units = 100
+        self.max_cost = 2800
+        self.min_cost = 280
+        self.gt_path = "./training_outputs/grountTruth.txt"
 
     def cleanUpAfterEachRun(self, configs=None):
         num = 1000000
-        if not configs == None:
+        if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "num":
@@ -35,18 +39,27 @@ class appMethods(AppMethods):
 
     def afterGTRun(self):
         # generate the ground truth
-        self.gt_path = "./training_outputs/grountTruth.txt"
         self.moveFile("./output.txt", self.gt_path)
 
+    def getFullRunCommand(self, budget):
+        return [self.obj_path, "-ns", str(self.fullrun_units), "-sm", "100",
+                "-rsdg", "-cont", "-b", str(budget),
+                "-xml", "./outputs/" + self.appName + "-default.xml",
+                "-u", '10']
+
     # helper function to assembly the command
-    def getCommand(self, configs=None):
+    def getCommand(self, configs=None, qosRun=False):
         num = 1000000
-        if not configs == None:
+        if qosRun:
+            units = self.fullrun_units
+        else:
+            units = self.training_units
+        if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "num":
                     num = config.val  # retrieve the setting for each knob
-        return [self.obj_path, "-ns", str(self.training_units), "-sm", str(num)]
+        return [self.obj_path, "-ns", str(units), "-sm", str(num)]
 
     # helper function to evaluate the QoS
     def getQoS(self):

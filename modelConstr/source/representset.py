@@ -29,7 +29,6 @@ def genContRS(gt, targetMean):
     while curMean > targetMean:
         selected = None
         curMinErr = 1.1
-        print(curMean)
         for config in configurations:
             if observed_profile.hasEntry(config):
                 continue

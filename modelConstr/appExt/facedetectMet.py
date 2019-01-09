@@ -10,11 +10,14 @@ from Classes import AppMethods  # import the parent class and other classes
 class appMethods(AppMethods):
     image_index_path = "/home/liuliu/Research/mara_bench/face-detect/pics" \
                        "/pic_index/training.txt"
+    image_index_full_path = "/home/liuliu/Research/mara_bench/face-detect" \
+                            "/pics" \
+                            "/pic_index/full.txt"
     pic_path = "/home/liuliu/Research/mara_bench/face-detect/pics/"
     evaluation_obj_path = "/home/liuliu/Research/mara_bench/face-detect" \
                           "/evaluation/evaluate"
     grond_truth_path = "/home/liuliu/Research/mara_bench/face-detect/pics" \
-                       "/pic_index/training_result.txt"
+                       "/pic_index/full_result.txt"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
@@ -22,6 +25,11 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 290
+        self.fullrun_units = 861
+        self.max_cost = 182
+        self.min_cost = 10
+        self.gt_path = "/home/liuliu/Research/mara_bench/face-detect/pics" \
+                       "/pic_index/training_result.txt"
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -47,6 +55,13 @@ class appMethods(AppMethods):
         self.gt_path = "./training_outputs/grountTruth.txt"
         output_path = "./result.txt"
         self.moveFile(output_path, self.gt_path)
+
+    def getFullRunCommand(self, budget):
+        return [self.obj_path, "-index", self.image_index_full_path,
+                "-rsdg", "-cont",
+                "-b", str(budget),
+                "-xml", "./outputs/" + self.appName + "-default.xml",
+                "-u", '86']
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
@@ -89,7 +104,7 @@ class appMethods(AppMethods):
         evaluate_cmd = [
             self.evaluation_obj_path, '-a', self.grond_truth_path, '-d',
             './result.txt', '-f', '0', '-i', self.pic_path, '-l',
-            self.image_index_path, '-z', '.jpg'
+            self.image_index_full_path, '-z', '.jpg'
         ]
         os.system(" ".join(evaluate_cmd))
         # get the precision and recall

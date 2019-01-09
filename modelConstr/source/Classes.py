@@ -863,8 +863,7 @@ class AppMethods():
             budget = (self.min_cost + float(
                 percentage) * step_size) * self.fullrun_units / 1000.0
             cmd = self.getFullRunCommand(budget)
-            print
-            cmd
+            print(cmd)
             os.system(" ".join(cmd))
             # check the QoS
             mv = self.getQoS()

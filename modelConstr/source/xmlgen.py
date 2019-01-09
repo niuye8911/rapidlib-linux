@@ -20,7 +20,7 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
         knobname = services.find("servicelayer").find("basicnode").find(
             "nodename").text
         node = services.find("servicelayer").find("basicnode")
-        if model == "piecewise":
+        if model == "piecewise" or model == "rand20":
             contpiece = etree.SubElement(node, "contpiece")
             # fill in the cont cost of each segment
             seglist = knob_table[knobname]
@@ -57,7 +57,7 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
         for sink_coeff in coeff_table[knobname]:
             if (sink_coeff in visited_service):
                 continue
-            if model == "piecewise":
+            if model == "piecewise" or model == "rand20":
                 contwith = etree.SubElement(node, "contpiecewith")
                 # sink = etree.SubElement(contwith,"knob")
                 sink = etree.SubElement(contwith, "knob")
@@ -94,7 +94,8 @@ def completeXML(appname, xml, rsdg, mv_rsdg, model, finalized=False):
 
 
 def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
-    print "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
+    print
+    "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map, relationmap = readcontrsdg(rsdgfile)
     rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
     and_list, or_list, range_map = readcontdep(depfile)
@@ -242,7 +243,8 @@ def readcontdep(depfile):
 
 def readcontrsdg(rsdgfile):
     if rsdgfile == "":
-        print "[WARNING] RSDG not provided, generating strucutral info only"
+        print
+        "[WARNING] RSDG not provided, generating strucutral info only"
         return [None, None]
     rsdg = open(rsdgfile, 'r')
     rsdg_map = {}

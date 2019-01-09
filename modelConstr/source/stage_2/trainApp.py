@@ -43,8 +43,6 @@ def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf,
 
 def genFactWithRSDG(appname, config_table, cost_rsdg, mv_rsdgs, appMethod,
                     preferences):
-    print
-    cost_rsdg.coeffTable
     # generate the fact file using existing rsdg
     cost_path = "outputs/" + appname + "-cost-gen" + ".fact"
     mv_path = "outputs/" + appname + "-mv-gen" + ".fact"

@@ -6,6 +6,6 @@
   "withQoS": 1,
   "withSys": 0,
   "withPerf": 0,
-  "RS": 1, 
-  "qosRun": 0 
+  "RS": 1,
+  "qosRun": 1 
 }

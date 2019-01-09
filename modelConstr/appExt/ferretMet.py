@@ -133,6 +133,7 @@ class appMethods(AppMethods):
         missionmap = {}
         truth_res = []
         mission_res = []
+        # check if both file contains the same number of lines
         for line in mission:
             col = line.split('\t')
             name = col[0].split("/")[-1]
@@ -147,7 +148,11 @@ class appMethods(AppMethods):
             truthmap[name] = []
             for i in range(1, len(col)):  # 50 results
                 truthmap[name].append(col[i].split(':')[0])
-
+        if len(missionmap) != len(truthmap):
+            # mission failed in between
+            print
+            len(missionmap), len(truthmap)
+            return [0.0, 0.0, 0.0]
         # now that 2 maps are set, compare each item
         # setup the Z / S/ and T
         Z = set()

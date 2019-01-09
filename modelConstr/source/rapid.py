@@ -8,6 +8,7 @@ import Classes
 import representset
 import xmlgen
 from Parsing_Util.readFact import readFact
+from optimality import findOptimal
 from plot import draw
 from stage_1.training import genTrainingSet
 from stage_2.trainApp import genFact, genFactWithRSDG
@@ -100,6 +101,88 @@ def main(argv):
         config_file.close()
         return
 
+    if (mode == "optimality"):
+        # parse the run_config
+        with open(run_config_path) as config_json:
+            config = json.load(config_json)
+            methods_path = config['appMet']
+            cost_rsdg = Classes.pieceRSDG()
+            cost_rsdg.fromFile(config['cost_rsdg'])
+            mv_rsdgs = []
+            preferences = config['preferences']
+            desc = config['desc']
+            lvl = config['seglvl']
+            for rsdg_path in config['mv_rsdgs']:
+                rsdg = Classes.pieceRSDG()
+                rsdg.fromFile(rsdg_path)
+                mv_rsdgs.append(rsdg)
+        module = imp.load_source("", methods_path)
+        appMethod = module.appMethods("", obj_path)
+
+        appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
+            desc)
+        appname = appname[:-1]
+        xml = xmlgen.genxml(appname, "", "", True, desc, True)
+        max_cost = appMethod.max_cost
+        min_cost = appMethod.min_cost
+        step_size = (max_cost - min_cost) / 20.0
+        default_optimals = []
+        # first get all the pareto-optimal points in default settings
+        for pref in preferences:
+            pref = 1.0
+        factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile,
+                                               cost_rsdg, mv_rsdgs, appMethod,
+                                               preferences)
+        readFact(factfile, knobs, groundTruth_profile)
+        readFact(mvfactfile, knobs, groundTruth_profile, False)
+        for percentage in range(1, 20):
+            budget = (min_cost + float(percentage) * step_size)
+            default_optimals.append(findOptimal(groundTruth_profile, budget)[0])
+        # now iterate through all possible preferences
+        mv_under_budget = {}
+        id = 0
+        for submetric in preferences:
+            for pref in range(1, 10, 1):
+                # setup new preferences
+                new_pref = []
+                for i in range(0, len(preferences)):
+                    if i == id:
+                        new_pref.append(1.0 + float(pref))
+                    else:
+                        new_pref.append(1.0)
+                factfile, mvfactfile = genFactWithRSDG(appname,
+                                                       groundTruth_profile,
+                                                       cost_rsdg, mv_rsdgs,
+                                                       appMethod,
+                                                       new_pref)
+                readFact(factfile, knobs, groundTruth_profile)
+                readFact(mvfactfile, knobs, groundTruth_profile, False)
+                # calculate the new optimal configs
+                mv_loss = []
+                for percentage in range(1, 20):
+                    budget = (min_cost + float(percentage) * step_size)
+                    real_optimal = findOptimal(groundTruth_profile, budget)[1]
+                    default_optimal = \
+                        groundTruth_profile.getMV(
+                            default_optimals[percentage - 1])[
+                            -1]
+                    mv_loss.append(default_optimal / real_optimal)
+                # get the preference in string
+                pref_string = "-".join(map(lambda x: str(x), new_pref))
+                mv_under_budget[pref_string] = mv_loss
+            id += 1
+        # report only the worst case
+        worst_cases = []
+        for cur_budget in range(0, 19):
+            cur_worst = 100
+            for item, values in mv_under_budget.items():
+                if values[cur_budget] < cur_worst:
+                    cur_worst = values[cur_budget]
+            worst_cases.append(cur_worst)
+        print
+        worst_cases
+        return
+
     # make the output dirs
     if not os.path.exists("./outputs"):
         os.system("mkdir outputs")
@@ -142,8 +225,9 @@ def main(argv):
         # construct the cost rsdg iteratively given a threshold
         cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time = \
             constructRSDG(
-            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
-            time_record)
+                groundTruth_profile, knob_samples, THRESHOLD, knobs, True,
+                model,
+                time_record)
 
         # Generate the representative set
         if calRS:
@@ -200,7 +284,7 @@ def main(argv):
             with open("./qos_report_" + appname + "_" + model + ".txt",
                       'w') as report:
                 for mv in mvs:
-                    report.write(mv)
+                    report.write(str(mv))
                     report.write("\n")
 
     # ######SOME EXTRA MODES#############
