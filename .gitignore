@@ -16,10 +16,11 @@
 **/*.profile
 **/*.scssc
 **/*.yml
-*.rs
+**/*.rs
 **/*.rs
 **/licenseInfo
 **/*.config
+**/*.json
 modelConstr/source/outputs/*
 docs/.editorconfig
 docs/.github/*
