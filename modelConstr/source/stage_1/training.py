@@ -50,6 +50,8 @@ def processFile(cfg_file):
             setting = col[1]
             setting_min = col[2]
             setting_max = col[3]
+            print
+            knob_name
             knobs.add(Knob(knob_name, setting, setting_min, setting_max))
         elif len(col) == 7:  # it's a edge
             type = col[0]

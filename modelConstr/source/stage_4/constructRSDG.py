@@ -65,7 +65,8 @@ def constructRSDG(gt,
             rand20list = map(lambda x: x.printSelf('-'),
                              gt.genRandomSubset(20)[0].configurations)
             for config in rand20list:
-                total_time += training_time_record[config]
+                total_time += training_time_record[
+                    config] if config in training_time_record else 0.0
             times.append(total_time)
         training_time['rand20'] = sum(times) / float(len(times))
         # the piecewise:
@@ -73,7 +74,9 @@ def constructRSDG(gt,
         partitions = partition(seglvl, knob_samples)
         configlist = retrieve(partitions, gt, knobs).configurations
         for config in configlist:
-            total_time += training_time_record[config.printSelf('-')]
+            config_name = config.printSelf('-')
+            total_time += training_time_record[
+                config_name] if config_name in training_time_record else 0.0
         training_time['PIECEWISE'] = total_time
         return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, training_time, \
                trainingsize

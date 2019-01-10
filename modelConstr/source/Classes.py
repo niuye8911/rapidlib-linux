@@ -431,7 +431,9 @@ class Profile:
         :return: the MV
         """
         entry = self.hashConfig(configuration)
-        return self.mvprofile_table[entry]
+        if entry in self.mvprofile_table:
+            return self.mvprofile_table[entry]
+        return [0.0]
 
     def hasEntry(self, configuration):
         """ Check if a configuration is recorded

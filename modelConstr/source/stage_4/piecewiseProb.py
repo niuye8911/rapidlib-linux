@@ -370,7 +370,10 @@ def modelValid(rsdg, groundTruth, PRINT):
         count += 1
         rsdgCost = rsdg.calCost(configuration)
         measurement = groundTruth.getCost(configuration)
-        error += abs(measurement - rsdgCost) / measurement
+        if measurement == 0:
+            error += 0
+        else:
+            error += abs(measurement - rsdgCost) / measurement
         if PRINT:
             for config in configuration.retrieve_configs():
                 outfile.write(config.knob.set_name)
@@ -381,7 +384,10 @@ def modelValid(rsdg, groundTruth, PRINT):
             outfile.write(",")
             outfile.write(str(rsdgCost))
             outfile.write(",")
-            outfile.write(str((measurement - rsdgCost) / measurement))
+            if measurement == 0:
+                outfile.write("0.0")
+            else:
+                outfile.write(str((measurement - rsdgCost) / measurement))
             outfile.write("\n")
     if PRINT:
         outfile.close()
