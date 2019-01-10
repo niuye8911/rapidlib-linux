@@ -1,5 +1,4 @@
-batch,917,learning,600,regular,277
-batch,490,learning,600,regular,277
-batch,64,learning,500,regular,188
-batch,917,learning,500,regular,100
-0.0383149761075
+batch,5,learning,67,regular,4
+batch,1,learning,1,regular,1
+batch,1,learning,78,regular,4
+0.0198905781573
