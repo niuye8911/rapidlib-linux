@@ -1,6 +1,0 @@
-{
-  "appName": "rrt",
-  "appPath": "/home/liuliu/Research/mara_bench/rrt-simulator/bin/rrt-test",
-  "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/rrtMet.py",
-  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/rrtPort/depfilerrt"
-}
