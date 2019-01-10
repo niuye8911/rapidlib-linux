@@ -44,16 +44,18 @@ withQoS = True
 withPerf = False
 calRS = False
 qosRun = False
+validate = False
+validate_rs_path = ""
 
 NUM_OF_FIXED_ENV = -1
 
 THRESHOLD = 0.05
-RS_THRESHOLD = 0.04
+RS_THRESHOLD = 0.05
 
 
 def main(argv):
     global groundTruth_profile, knob_samples, knobs, mode, methods_path, desc, \
-        calRS
+        calRS, validate, validate_rs_path
     # parse the argument
     parser = declareParser()
     options, args = parser.parse_args()
@@ -200,6 +202,7 @@ def main(argv):
             return
         appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
             desc)
+        fulltraining_size = len(groundTruth_profile.configurations)
         appname = appname[:-1]
         # generate XML files
         xml = xmlgen.genxml(appname, "", "", True, desc)
@@ -222,16 +225,25 @@ def main(argv):
         if withQoS:
             readFact(mvfactfile, knobs, groundTruth_profile, False)
         groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
+        # if it's just model validation
+        if validate:
+            rs_configs = representset.getConfigurationsFromFile(
+                validate_rs_path, knobs)
+            representset.validateRS(groundTruth_profile, rs_configs)
+            return
         # construct the cost rsdg iteratively given a threshold
-        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time = \
+        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time, \
+        rsp_size = \
             constructRSDG(
                 groundTruth_profile, knob_samples, THRESHOLD, knobs, True,
                 model,
                 time_record)
 
         # Generate the representative set
+        rss_size = 0
         if calRS:
             rs, mean = representset.genContRS(groundTruth_profile, RS_THRESHOLD)
+            rss_size = len(rs)
             with open(appname + ".rs", 'w') as result:
                 for config in rs:
                     result.write(config.printSelf(",") + "\n")
@@ -242,7 +254,6 @@ def main(argv):
                 for config in rs:
                     total_time += time_record[config.printSelf("-")]
                 training_time['RS'] = total_time
-            # TODO: record the RS rsdg
 
         # write training time to file
         if time_record is not None:
@@ -250,6 +261,11 @@ def main(argv):
                 file.write(json.dumps(training_time, indent=2, sort_keys=True))
         if PLOT:
             draw("outputs/modelValid.csv")
+
+        with open('./training_size.txt', 'w') as ts:
+            ts.write("full:" + str(fulltraining_size) + "\n")
+            ts.write("rsp:" + str(rsp_size) + "\n")
+            ts.write("rss:" + str(rss_size) + "\n")
 
         # ######################STAGE-4########################
         # forth stage, generate the final RSDG in XML format
@@ -366,7 +382,7 @@ def parseCMD(options):
 
 def parseConfig(config_file):
     global desc, methods_path, obj_path, withSys, withQoS, withPerf, calRS, \
-        qosRun
+        qosRun, validate, validate_rs_path
     with open(config_file) as config_json:
         config = json.load(config_json)
         desc = config['appDep']
@@ -382,6 +398,9 @@ def parseConfig(config_file):
             calRS = config['RS'] == 1
         if 'qosRun' in config:
             qosRun = config['qosRun'] == 1
+        if 'validate_rs_path' in config:
+            validate = config['validate_rs_path'] != ""
+            validate_rs_path = config['validate_rs_path']
     return config
 
 

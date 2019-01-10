@@ -19,7 +19,7 @@ def constructRSDG(gt,
 
     # initial error rate set to 100%
     error = 1.0
-    maxT = 3
+    maxT = 10
     if model == "rand20":
         # ramdom generate 20 configurations
         rand20list, partitions = gt.genRandomSubset(20)
@@ -40,6 +40,7 @@ def constructRSDG(gt,
                 costrsdg, mvrsdgs, costpath, mvpaths = populate(
                     observed_profile, partitions, model)
                 error = compare(costrsdg, gt, False, model)
+            trainingsize = len(observed_profile.configurations)
         else:
             partitions = partition(seglvl, knob_samples)
             observed_profile = retrieve(partitions, gt, knobs)
@@ -57,23 +58,27 @@ def constructRSDG(gt,
             total_time += training_time_record[config]
         training_time['KDG'] = total_time
         # the rand20 time:
-        total_time = 0.0
-        rand20list = map(lambda x: x.printSelf('-'),
-                         gt.genRandomSubset(20)[0].configurations)
-        for config in rand20list:
-            total_time += training_time_record[config]
-        training_time['rand20'] = total_time
-        # the piecewise:
-        for i in range(1, 4):
+        # repeat 10 times
+        times = []
+        for exp in range(0, 10):
             total_time = 0.0
-            partitions = partition(i, knob_samples)
-            configlist = retrieve(partitions, gt, knobs).configurations
-            for config in configlist:
-                total_time += training_time_record[config.printSelf('-')]
-            training_time['PIECE-' + str(i)] = total_time
-        return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, training_time
+            rand20list = map(lambda x: x.printSelf('-'),
+                             gt.genRandomSubset(20)[0].configurations)
+            for config in rand20list:
+                total_time += training_time_record[config]
+            times.append(total_time)
+        training_time['rand20'] = sum(times) / float(len(times))
+        # the piecewise:
+        total_time = 0.0
+        partitions = partition(seglvl, knob_samples)
+        configlist = retrieve(partitions, gt, knobs).configurations
+        for config in configlist:
+            total_time += training_time_record[config.printSelf('-')]
+        training_time['PIECEWISE'] = total_time
+        return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, training_time, \
+               trainingsize
 
-    return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, None
+    return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, None, trainingsize
 
 
 # given a partion level, return a list of configurations
@@ -87,15 +92,30 @@ def partition(seglvl, knob_samples):
         max = length - 1
         min = 0
         # determine the step size
-        num_of_partitions = 2 ** (seglvl - 1)
-        step = length / num_of_partitions - 1
-        if step < 1:
-            step = 1
-        for i in range(min, max + 1, step):
-            partitions[knob].append(val_range[i])
-        # extend the last one to the end
-        length = len(partitions[knob])
-        partitions[knob][length - 1] = val_range[max]
+        # num_of_partitions = 2 ** (seglvl - 1)
+        # step = length / num_of_partitions -1
+        # print length,num_of_partitions,step
+        # if step < 1:
+        #        step = 1
+        #        for i in range(min, max + 1, step):
+        #            print i
+        ids = [min, max]
+        for i in range(1, seglvl):
+            new_ids = []
+            for j in range(0, len(ids)):
+                if j == len(ids) - 1:
+                    new_ids.append(ids[j])
+                    break
+                new_ids.append(ids[j])
+                half = (ids[j + 1] + ids[j]) / 2
+                if half == ids[j]:
+                    continue
+                new_ids.append(half)
+            ids = new_ids
+        for id in ids:
+            partitions[knob].append(val_range[id])
+    print
+    partitions
     return partitions
 
 

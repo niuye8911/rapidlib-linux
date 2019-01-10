@@ -49,6 +49,43 @@ def genContRS(gt, targetMean):
     return observed_profile.configurations, curMean
 
 
+def getConfigurationsFromFile(validate_rs_path, knobs):
+    configurations = []
+    with open(validate_rs_path, 'r') as rs:
+        for line in rs:
+            col = line.split(',')
+            knob_name = ""
+            knob_val = 0.0
+            configuration = Configuration()
+            if len(col) == 1:
+                # last line
+                continue
+            for i in range(len(col)):
+                col[i] = col[i].split()[0]
+                if col[i].isdigit():
+                    knob_val = int(col[i])
+                    configuration.addConfig(
+                        [Config(knobs.getKnob(knob_name), knob_val)])
+                else:
+                    knob_name = col[i]
+            configurations.append(configuration)
+    return configurations
+
+
+def validateRS(gt, rs_configurations):
+    observed_profile = Profile()
+    # generate the observed profile
+    for configuration in rs_configurations:
+        observed_profile.addEntry(configuration, gt.getCost(configuration),
+                                  gt.getMV(configuration))
+    partitions = Profile.getPartitions(observed_profile.configurations)
+    costrsdg, mvrsdgs, costpath, mvpaths = populate(observed_profile,
+                                                    partitions, "piecewise")
+    error = compare(costrsdg, gt, True, "piecewise")
+    print
+    "Validation: " + str(error)
+
+
 # fact : fact file mode : whether is to get a set of a list
 def genRS(fact, set, targetMax, targetMean):
     global configs, service_levels
