@@ -77,7 +77,6 @@ void rsdgService::updateNode(void *(*f)(void *), string name) {
     pthread_create(&sThread, NULL, f, NULL);
 
     curNode = name;
-    logDebug("created thread");
   }
 }
 

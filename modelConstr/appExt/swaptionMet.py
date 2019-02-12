@@ -41,10 +41,11 @@ class appMethods(AppMethods):
         # generate the ground truth
         self.moveFile("./output.txt", self.gt_path)
 
-    def getFullRunCommand(self, budget):
+    def getFullRunCommand(self, budget, xml=''):
+        xml_path = xml if xml!='' else "./outputs/" + self.appName + "-default.xml"
         return [self.obj_path, "-ns", str(self.fullrun_units), "-sm", "100",
                 "-rsdg", "-cont", "-b", str(budget),
-                "-xml", "./outputs/" + self.appName + "-default.xml",
+                "-xml", xml_path,
                 "-u", '10']
 
     # helper function to assembly the command

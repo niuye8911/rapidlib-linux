@@ -32,7 +32,6 @@ class Metric:
 
 
 class SlowDown:
-
     def __init__(self, configuration):
         self.configuration = configuration
         self.slowdown_table = dict()
@@ -67,7 +66,6 @@ class SlowDown:
 
 
 class SysUsageTable:
-
     def __init__(self):
         self.table = dict()
         self.metrics = []
@@ -94,7 +92,6 @@ class SysUsageTable:
 
 
 class SysArgs:
-
     def __init__(self):
         self.env = {}
         self.env["cpu_num"] = [1, 2, 3, 4, 5, 6, 7]
@@ -608,10 +605,10 @@ class quadRSDG:
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
                 rsdg.write("\t")
-                rsdg.write(
-                    knob + "_" + b + ":" + str(self.coeffTable[knob][b].a) +
-                    "/" + str(self.coeffTable[knob][b].b) + "/" + str(
-                        self.coeffTable[knob][b].c) + "\n")
+                rsdg.write(knob + "_" + b + ":" +
+                           str(self.coeffTable[knob][b].a) + "/" +
+                           str(self.coeffTable[knob][b].b) + "/" +
+                           str(self.coeffTable[knob][b].c) + "\n")
         rsdg.close()
 
     def calCost(self, configuration):
@@ -638,8 +635,8 @@ class quadRSDG:
                 if i == j:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
-                    if configs[j].knob.set_name in self.coeffTable[configs[
-                        i].knob.set_name]:
+                    if configs[j].knob.set_name in self.coeffTable[
+                            configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -647,8 +644,8 @@ class quadRSDG:
                         a, b, c = coeff_inter.retrieveCoeffs()
                         totalcost += float(knoba_val) * float(
                             knoba_val) * a + float(knobb_val) * float(
-                            knobb_val) * b + float(knobb_val) * float(
-                            knoba_val) * c
+                                knobb_val) * b + float(knobb_val) * float(
+                                    knoba_val) * c
 
         return totalcost
 
@@ -755,18 +752,18 @@ class pieceRSDG:
             for seg in seglist:
                 rsdg.write("\t")
                 rsdg.write(str(seg.min) + " " + str(seg.max) + " ")
-                rsdg.write(
-                    seg.printID() + " " + str(seg.a) + " " + str(seg.b) + "\n")
+                rsdg.write(seg.printID() + " " + str(seg.a) + " " +
+                           str(seg.b) + "\n")
             rsdg.write("\n")
         # print the coeff
         rsdg.write("COEFF\n")
         for knob in self.coeffTable:
             for b in self.coeffTable[knob]:
                 rsdg.write("\t")
-                rsdg.write(
-                    knob + "_" + b + ":" + str(self.coeffTable[knob][b].a) +
-                    "/" + str(self.coeffTable[knob][b].b) + "/" + str(
-                        self.coeffTable[knob][b].c) + "\n")
+                rsdg.write(knob + "_" + b + ":" +
+                           str(self.coeffTable[knob][b].a) + "/" +
+                           str(self.coeffTable[knob][b].b) + "/" +
+                           str(self.coeffTable[knob][b].c) + "\n")
         rsdg.close()
         return outfilename
 
@@ -791,8 +788,8 @@ class pieceRSDG:
                 if i == j:
                     continue
                 if configs[i].knob.set_name in self.coeffTable:
-                    if configs[j].knob.set_name in self.coeffTable[configs[
-                        i].knob.set_name]:
+                    if configs[j].knob.set_name in self.coeffTable[
+                            configs[i].knob.set_name]:
                         knoba_val = configs[i].val
                         knobb_val = configs[j].val
                         coeff_entry = self.coeffTable[configs[i].knob.set_name]
@@ -800,8 +797,8 @@ class pieceRSDG:
                         a, b, c = coeff_inter.retrieveCoeffs()
                         totalcost += float(knoba_val) * float(
                             knoba_val) * a + float(knobb_val) * float(
-                            knobb_val) * b + float(knobb_val) * float(
-                            knoba_val) * c
+                                knobb_val) * b + float(knobb_val) * float(
+                                    knoba_val) * c
         return totalcost
 
     def findSeg(self, knob_name, knob_val):
@@ -862,8 +859,8 @@ class AppMethods():
         step_size = (self.max_cost - self.min_cost) / 10.0
         mvs = []
         for percentage in range(1, 10):
-            budget = (self.min_cost + float(
-                percentage) * step_size) * self.fullrun_units / 1000.0
+            budget = (self.min_cost + float(percentage) * step_size
+                      ) * self.fullrun_units / 1000.0
             cmd = self.getFullRunCommand(budget)
             print(cmd)
             os.system(" ".join(cmd))
@@ -938,8 +935,8 @@ class AppMethods():
             if withMV:
                 mv = self.getQoS()
                 # write the mv to file
-                AppMethods.writeConfigMeasurementToFile(mvFact, configuration,
-                                                        mv)
+                AppMethods.writeConfigMeasurementToFile(
+                    mvFact, configuration, mv)
             if withSys:
                 # write metric value to table
                 self.recordSysUsage(configuration, metric)

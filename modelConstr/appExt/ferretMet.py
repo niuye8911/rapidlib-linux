@@ -51,7 +51,8 @@ class appMethods(AppMethods):
         output_path = "output.txt"
         self.moveFile(output_path, self.gt_path)
 
-    def getFullRunCommand(self, budget):
+    def getFullRunCommand(self, budget, xml=''):
+        xml_path = xml if xml!='' else "./outputs/" + self.appName + "-default.xml"
         return [self.obj_path,
                 self.database_path,
                 self.table,
@@ -59,8 +60,8 @@ class appMethods(AppMethods):
                 "50", "20", "1", "output.txt",
                 "-rsdg", "-cont",
                 "-b", str(budget),
-                "-xml", "./outputs/" + self.appName + "-default.xml",
-                "-u", '300']
+                "-xml", xml_path,
+                "-u", '100']
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):

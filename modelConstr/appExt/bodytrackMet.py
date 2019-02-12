@@ -44,7 +44,8 @@ class appMethods(AppMethods):
         output_path = self.input_path + "poses.txt"
         self.moveFile(output_path, self.gt_path)
 
-    def getFullRunCommand(self, budget):
+    def getFullRunCommand(self, budget, xml=''):
+        xml_path = xml if xml!='' else "./outputs/" + self.appName + "-default.xml"
         return [self.obj_path,
                 self.input_path,
                 "4", '241',
@@ -54,7 +55,7 @@ class appMethods(AppMethods):
                 '1',
                 "-rsdg", "-cont",
                 "-b", str(budget),
-                "-xml", "./outputs/" + self.appName + "-default.xml",
+                "-xml", xml_path,
                 "-u", '24']
 
     # helper function to assembly the command

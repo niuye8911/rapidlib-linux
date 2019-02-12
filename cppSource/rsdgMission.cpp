@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <unistd.h>
+#include <math.h>
 #include <vector>
 
 /////rsdgMission////
@@ -290,7 +291,15 @@ void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
       p->intPara = pValue;
     }
   } else if (contParaList.find(basic) != contParaList.end()) {
-    contParaList[basic]->intPara = value;
+    // only change if change is greater than 1%
+    double origin_value = contParaList[basic]->intPara;
+    if (fabs(value-origin_value) / origin_value <= 0.01){
+      logDebug("Insignificant Change Ignored");
+      logfile << basic<< " ignored" <<endl;
+      logfile.flush();
+    }else{
+      contParaList[basic]->intPara = value;
+    }
   }
   s->updateNode(f, basic);
 }
