@@ -47,7 +47,7 @@ qosRun = False
 validate = False
 validate_rs_path = ""
 
-NUM_OF_FIXED_ENV = -1
+NUM_OF_FIXED_ENV = -1  # random environment
 
 THRESHOLD = 0.05
 RS_THRESHOLD = 0.05
@@ -89,8 +89,8 @@ def main(argv):
                                                preferences)
         readFact(factfile, knobs, groundTruth_profile)
         readFact(mvfactfile, knobs, groundTruth_profile, False)
-        groundTruth_profile.printProfile(
-            "./outputs/" + appname + 'gen' + ".profile")
+        groundTruth_profile.printProfile("./outputs/" + appname + 'gen' +
+                                         ".profile")
         cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl = constructRSDG(
             groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
             None, lvl)
@@ -139,7 +139,8 @@ def main(argv):
         readFact(mvfactfile, knobs, groundTruth_profile, False)
         for percentage in range(1, 20):
             budget = (min_cost + float(percentage) * step_size)
-            default_optimals.append(findOptimal(groundTruth_profile, budget)[0])
+            default_optimals.append(
+                findOptimal(groundTruth_profile, budget)[0])
         # now iterate through all possible preferences
         mv_under_budget = {}
         id = 0
@@ -152,11 +153,9 @@ def main(argv):
                         new_pref.append(1.0 + float(pref))
                     else:
                         new_pref.append(1.0)
-                factfile, mvfactfile = genFactWithRSDG(appname,
-                                                       groundTruth_profile,
-                                                       cost_rsdg, mv_rsdgs,
-                                                       appMethod,
-                                                       new_pref)
+                factfile, mvfactfile = genFactWithRSDG(
+                    appname, groundTruth_profile, cost_rsdg, mv_rsdgs,
+                    appMethod, new_pref)
                 readFact(factfile, knobs, groundTruth_profile)
                 readFact(mvfactfile, knobs, groundTruth_profile, False)
                 # calculate the new optimal configs
@@ -242,7 +241,8 @@ def main(argv):
         # Generate the representative set
         rss_size = 0
         if calRS:
-            rs, mean = representset.genContRS(groundTruth_profile, RS_THRESHOLD)
+            rs, mean = representset.genContRS(groundTruth_profile,
+                                              RS_THRESHOLD)
             rss_size = len(rs)
             with open(appname + ".rs", 'w') as result:
                 for config in rs:

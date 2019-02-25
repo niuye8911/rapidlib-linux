@@ -915,6 +915,7 @@ class AppMethods():
 
         # iterate through configurations
         for configuration in configurations:
+
             # the purpose of each iteration is to fill in the two values below
             cost = 0.0
             mv = [0.0]
@@ -984,7 +985,7 @@ class AppMethods():
         slowdownTable = SlowDown(configuration)
         # if running random coverage, create the commands
         if len(env_commands) == 0:
-            for i in range(0, 20):  # run 40 different environment
+            for i in range(0, 30):  # run 30 different environment
                 env_command = env.getRandomEnv()
                 env_commands.append(env_command)
         for env_command in env_commands:
@@ -1056,6 +1057,7 @@ class AppMethods():
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
+        print " ".join(command)
         os.system(" ".join(command))
         time2 = time.time()
         total_time = time2 - time1

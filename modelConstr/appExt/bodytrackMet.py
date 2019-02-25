@@ -4,7 +4,6 @@ This is an example file for prepraing Bodytrack for RAPID(C)
 
 from Classes import *  # import the parent class and other classes from the
 
-
 # file Classes.py
 
 
@@ -17,7 +16,7 @@ class appMethods(AppMethods):
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 20
+        self.training_units = 30
         self.fullrun_units = 241
         self.max_cost = 251
         self.min_cost = 100
@@ -35,9 +34,9 @@ class appMethods(AppMethods):
                 elif name == "layer":
                     layer = config.val  # retrieve the setting for each knob
 
-        self.moveFile(self.input_path + "poses.txt",
-                      "./training_outputs/output_" + str(layer) + "_" + str(
-                          particle) + ".txt")
+        self.moveFile(
+            self.input_path + "poses.txt", "./training_outputs/output_" +
+            str(layer) + "_" + str(particle) + ".txt")
 
     def afterGTRun(self):
         self.gt_path = "./training_outputs/grountTruth.txt"
@@ -45,18 +44,12 @@ class appMethods(AppMethods):
         self.moveFile(output_path, self.gt_path)
 
     def getFullRunCommand(self, budget, xml=''):
-        xml_path = xml if xml!='' else "./outputs/" + self.appName + "-default.xml"
-        return [self.obj_path,
-                self.input_path,
-                "4", '241',
-                '4000',
-                '5',
-                '4',
-                '1',
-                "-rsdg", "-cont",
-                "-b", str(budget),
-                "-xml", xml_path,
-                "-u", '24']
+        xml_path = xml if xml != '' else "./outputs/" + self.appName + "-default.xml"
+        return [
+            self.obj_path, self.input_path, "4", '241', '4000', '5', '4', '1',
+            "-rsdg", "-cont", "-b",
+            str(budget), "-xml", xml_path, "-u", '24'
+        ]
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
@@ -70,16 +63,15 @@ class appMethods(AppMethods):
                 elif name == "layer":
                     layer = config.val  # retrieve the setting for each knob
         if qosRun:
-            units = self.training_units
-        else:
             units = self.fullrun_units
-        return [self.obj_path,
-                self.input_path,
-                "4", str(units),
-                str(particle),
-                str(layer),
-                '4',
-                '1']
+        else:
+            units = self.training_units
+        return [
+            self.obj_path, self.input_path, "4",
+            str(units),
+            str(particle),
+            str(layer), '4', '1'
+        ]
 
     # helper function to evaluate the QoS
     def getQoS(self):
