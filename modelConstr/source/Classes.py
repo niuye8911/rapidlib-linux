@@ -10,7 +10,7 @@ import time
 
 
 class Metric:
-    EXCLUDED_METRIC = {"Date", "Time"}
+    EXCLUDED_METRIC = {"Date", "Time", "Proc Energy (Joules)"}
 
     def __init__(self):
         self.metrics = dict()
@@ -42,11 +42,11 @@ class SlowDown:
         self.metrics[self.get_md5(metric).hexdigest()] = metric
 
     def get_md5(self, metric):
-        return hashlib.md5(metric.printAsCSVLine(';').encode())
+        return hashlib.md5(metric.printAsCSVLine(',').encode())
 
     def get_metric(self, md5string):
         return self.metrics[md5string].printAsCSVLine(
-            ';') if md5string in self.metrics else ''
+            ',') if md5string in self.metrics else ''
 
     def get_slowdown(self, metric):
         md5hex = self.get_md5(metric).hexdigest()
@@ -58,9 +58,9 @@ class SlowDown:
         for metricmd5, slowdown in self.slowdown_table.items():
             # write the config
             filestream.write(self.configuration.printSelf('-'))
-            filestream.write(';')
+            filestream.write(',')
             filestream.write(self.get_metric(metricmd5))
-            filestream.write(';')
+            filestream.write(',')
             filestream.write(str(slowdown))
             filestream.write('\n')
 
@@ -83,6 +83,7 @@ class SysUsageTable:
             # write the header
             if not header_written:
                 filestream.write(metric.printAsHeader(delimiter))
+                filestream.write('\n')
                 header_written = True
             # write the configuration
             filestream.write(configuration + delimiter)
@@ -944,13 +945,13 @@ class AppMethods():
             if withPerf:
                 # examine the execution time slow-down
 
-                # comment the lines below if need random coverage
                 print("START STRESS TRAINING")
                 slowdownTable = self.runStressTest(configuration, cost,
                                                    env_commands)
                 # write the header
                 if not slowdownHeader:
-                    slowdownProfile.write(metric.printAsHeader(';'))
+                    slowdownProfile.write(metric.printAsHeader(','))
+                    slowdownProfile.write('\n')
                     slowdownHeader = True
                 slowdownTable.writeSlowDownTable(slowdownProfile)
                 # withPerf = False  # remove this for full training
@@ -992,7 +993,8 @@ class AppMethods():
             # start the env
             env_creater = subprocess.Popen(
                 " ".join(env_command), shell=True, preexec_fn=os.setsid)
-            cost, metric, total_time = self.getCostAndSys(
+
+            total_time, cost, metric = self.getCostAndSys(
                 app_command, self.training_units, True,
                 configuration.printSelf('-'))
             # end the env
@@ -1057,7 +1059,6 @@ class AppMethods():
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
-        print " ".join(command)
         os.system(" ".join(command))
         time2 = time.time()
         total_time = time2 - time1
@@ -1130,7 +1131,7 @@ class AppMethods():
         self.sys_usage_table.add_entry(configuration.printSelf(), metric)
 
     def printUsageTable(self, filestream):
-        self.sys_usage_table.printAsCSV(filestream, ';')
+        self.sys_usage_table.printAsCSV(filestream, ',')
 
     def cleanUpAfterEachRun(self, configs=None):
         """ This function will be called after every training iteration for a
