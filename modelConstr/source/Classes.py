@@ -7,6 +7,8 @@ import random
 import signal
 import subprocess
 import time
+import socket
+import requests
 
 
 class Metric:
@@ -944,7 +946,6 @@ class AppMethods():
                 self.recordSysUsage(configuration, metric)
             if withPerf:
                 # examine the execution time slow-down
-
                 print("START STRESS TRAINING")
                 slowdownTable = self.runStressTest(configuration, cost,
                                                    env_commands)
@@ -964,8 +965,31 @@ class AppMethods():
             mvFact.close()
         if withPerf:
             slowdownProfile.close()
+            self.uploadToServer(sysFact, perfFact, app_name)
 
         return training_time_record
+
+    # Send the system profile up to the RAPID_M server
+    def uploadToServer(self, sysFact, perfFact, app_name):
+        # get the app system profile text
+        with open(sysFact, 'r') as sysF:
+            sys_data = sysF.read()
+        # get the app performance profile text
+        with open(perfFact, 'r') as perfF:
+            perf_data = perfF.read()
+        # get the machine id
+        hostname = socket.gethostname()
+
+        INIT_ENDPOINT = "http://algaesim.cs.rutgers.edu/server/init.php"
+        INIT_ENDPOINT = INIT_ENDPOINT + "?" + 'machine=' + hostname + '&app=' + app_name
+
+        # set up the post params
+        POST_PARAMS = {'buckets': sys_data, 'p_model': perf_data}
+
+        req = requests.post(url=INIT_ENDPOINT, data=POST_PARAMS)
+
+        response = req.text
+        print("response:" + response)
 
     # Implement this function
     def runGT(self, qosRun=False):
