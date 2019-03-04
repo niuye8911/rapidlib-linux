@@ -22,6 +22,7 @@
 **/*.config
 **/*.json
 modelConstr/source/outputs/*
+modelConstr/source/training_outputs/*
 docs/.editorconfig
 docs/.github/*
 modelConstr/source/outputs/trainingset
