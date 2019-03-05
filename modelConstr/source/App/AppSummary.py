@@ -3,11 +3,13 @@ import os
 import json
 
 
-class RapidApp:
+class AppSummary:
     def __init__(self, name, cfg_file):
         self.APP_NAME = name
         # create the corresponding dir if not exists
         self.OUTPUT_DIR_PREFIX = 'outputs/' + name + '/'
+        self.DEBUG_DIR = 'debug/' + name + '/'
+        self.TRAINING_OUTPUT_DIR = 'training_outputs/' + name + '/'
         if not os.path.exists(self.OUTPUT_DIR_PREFIX):
             os.mkdir(self.OUTPUT_DIR_PREFIX)
         # create the file paths
@@ -76,4 +78,4 @@ class RapidApp:
 
     def printSummary(self):
         with open(self.APP_NAME + "-summary.json", 'w') as output:
-            json.dump(self.__dict__, output)
+            json.dump(self.__dict__, output, indent=2)
