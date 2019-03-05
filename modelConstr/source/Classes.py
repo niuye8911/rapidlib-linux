@@ -965,7 +965,7 @@ class AppMethods():
             mvFact.close()
         if withPerf:
             slowdownProfile.close()
-            self.uploadToServer(sysFact, perfFact, app_name)
+            self.uploadToServer(sysFact, perfFact, self.appName)
 
         return training_time_record
 
