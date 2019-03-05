@@ -7,7 +7,7 @@ from Classes import *
 def genTrainingSet(cfg_file):
     config_file = open(cfg_file, 'r')  # input file
     # parsing the file
-    appname, knobs, and_constriants, or_constraints = processFile(config_file)
+    knobs, and_constriants, or_constraints = processFile(config_file)
     # generate the training
     all_training, knob_samples = genAllTraining(knobs)
     # flat the all_training
@@ -32,19 +32,16 @@ def genTrainingSet(cfg_file):
     knobs_class = Knobs()
     for k in knobs:
         knobs_class.addKnob(k)
-    return appname, knobs_class, flatted_all_training, knob_samples
+    return knobs_class, flatted_all_training, knob_samples
 
 
 # read in a description file
 def processFile(cfg_file):
-    appname = ""
     knobs = set()
     and_constriants = set()
     or_constraints = set()
     for line in cfg_file:
         col = line.split(' ')
-        if len(col) == 1:
-            appname = col[0]
         if len(col) == 4:  # knob definition
             knob_name = col[0]
             setting = col[1]
@@ -69,7 +66,7 @@ def processFile(cfg_file):
                 and_constriants.add(
                     Constraint(type, source, sink, source_min, source_max,
                                sink_min, sink_max))
-    return appname, knobs, and_constriants, or_constraints
+    return knobs, and_constriants, or_constraints
 
 
 # flat a single tuple
@@ -128,7 +125,7 @@ def genAllTraining(knobs):
 # do a cross product of a set of configuration lists
 def crossproduct(final_sets):
     pro = {}
-    inited = False;
+    inited = False
     for i in final_sets:
         if inited:
             pro = itertools.product(pro, i)

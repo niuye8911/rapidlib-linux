@@ -4,8 +4,11 @@ import json
 
 
 class AppSummary:
-    def __init__(self, name, cfg_file):
-        self.APP_NAME = name
+    def __init__(self, cfg_file):
+        with open(cfg_file) as config_json:
+            config = json.load(config_json)
+            self.APP_NAME = config['appName']
+        name = self.APP_NAME
         # create the corresponding dir if not exists
         self.OUTPUT_DIR_PREFIX = 'outputs/' + name + '/'
         self.DEBUG_DIR = 'debug/' + name + '/'
@@ -22,10 +25,14 @@ class AppSummary:
             'SYS_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + "-sys.csv"
         self.FILE_PATHS[
             'PERF_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + "-perf.csv"
+        self.FILE_PATHS[
+            'PERF_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + ".profile"
         # create the training status
         self.STATUS = {}
-        self.STATUS['STANDARD_TRAINED'] = os.path.exists(self.COST_FILE_PATH)
-        self.STATUS['STRESS_TRAINED'] = os.path.exists(self.PERF_FILE_PATH)
+        self.STATUS['STANDARD_TRAINED'] = os.path.exists(
+            self.FILE_PATHS['COST_FILE_PATH'])
+        self.STATUS['STRESS_TRAINED'] = os.path.exists(
+            self.FILE_PATHS['PERF_FILE_PATH'])
         # create the training cfg for current run
         self.TRAINING_CFG = self.readFromCFG(cfg_file)
 
@@ -77,5 +84,5 @@ class AppSummary:
         return self.STRESS_TRAINED
 
     def printSummary(self):
-        with open(self.APP_NAME + "-summary.json", 'w') as output:
+        with open(self.OUTPUT_DIR_PREFIX + "summary.json", 'w') as output:
             json.dump(self.__dict__, output, indent=2)

@@ -7,6 +7,7 @@ import sys
 import Classes
 import representset
 import xmlgen
+from App.AppSummary import AppSummary
 from Parsing_Util.readFact import readFact
 from optimality import findOptimal
 from plot import draw
@@ -15,54 +16,45 @@ from stage_2.trainApp import genFact, genFactWithRSDG
 from stage_4.constructRSDG import constructRSDG
 from xmlgen import completeXML
 
-configs = []
-service_levels = {}
+# CMD line Parmeters
+stage = -1
+model = "piecewise"
+config_file = ""
+
+# Deprecated CMD arguments
 observed = ""
 fact = ""
 KF = ""
 app = ""
-model = "quad"
 rs = "set"
 remote = False
-targetMax = 0.1
-targetMean = 0.05
+
+# Training Objs
+appInfo = None  # an object of class AppSummary
 groundTruth_profile = Classes.Profile()
 knobs = Classes.Knobs()
 knob_samples = {}
-desc = ""
-stage = -1
-methods_path = ""
-run_config_path = ""
-rsdg_paths = ['./outputs/mv1.rsdg']
-obj_path = ""
-config_file = ""
-app_config = None
+
+# Training Options
 PLOT = False
-
-withSys = False
-withQoS = True
-withPerf = False
-calRS = False
-qosRun = False
-validate = False
-validate_rs_path = ""
-
-NUM_OF_FIXED_ENV = -1  # random environment
-
+NUM_OF_FIXED_ENV = -1  # -1:random environment N:N fixed environments
+targetMax = 0.1
+targetMean = 0.05
 THRESHOLD = 0.05
 RS_THRESHOLD = 0.05
 
 
 def main(argv):
-    global groundTruth_profile, knob_samples, knobs, mode, methods_path, desc, \
-        calRS, validate, validate_rs_path
+    global appInfo, config_file, groundTruth_profile, knob_samples, knobs, mode
     # parse the argument
     parser = declareParser()
     options, args = parser.parse_args()
     # insert to global variables
     parseCMD(options)
 
-    if (mode == "finalize"):
+    prepare()
+
+    if (mode == "finalize"):  # TODO:need to update appINFO related
         # parse the run_config
         with open(run_config_path) as config_json:
             config = json.load(config_json)
@@ -80,10 +72,8 @@ def main(argv):
         module = imp.load_source("", methods_path)
         appMethod = module.appMethods("", obj_path)
 
-        appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
-            desc)
-        appname = appname[:-1]
-        xml = xmlgen.genxml(appname, "", "", True, desc, True)
+        knobs, groundTruth_profile, knob_samples = genTrainingSet(appInfo.DESC)
+        xml = xmlgen.genxml(appInfo.APP_NAME, "", "", True, appInfo.DESC, True)
         factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile,
                                                cost_rsdg, mv_rsdgs, appMethod,
                                                preferences)
@@ -184,27 +174,17 @@ def main(argv):
         worst_cases
         return
 
-    # make the output dirs
-    if not os.path.exists("./outputs"):
-        os.system("mkdir outputs")
-    if not os.path.exists("./debug"):
-        os.system("mkdir debug")
-    if not os.path.exists("./training_outputs"):
-        os.system("mkdir training_outputs")
-
     if mode == "standard":
+        # initialize the app summary info
+        appInfo = AppSummary(config_file)
+        appInfo.printSummary()
+
         # ######################STAGE-1########################
         # generate initial training set
-        if desc == "":
-            print
-            "required a description of program with option --desc"
-            return
-        appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
-            desc)
+        knobs, groundTruth_profile, knob_samples = genTrainingSet(appInfo.DESC)
         fulltraining_size = len(groundTruth_profile.configurations)
-        appname = appname[:-1]
         # generate XML files
-        xml = xmlgen.genxml(appname, "", "", True, desc)
+        xml = xmlgen.genxml(appInfo.APP_NAME, "", "", True, appInfo.DESC)
         if (stage == 1):
             return
 
@@ -212,22 +192,20 @@ def main(argv):
         # second stage: Training, the source library will take care of the
         # training, the output is a bodytrack.fact file
         # load user-supplied methods
-        module = imp.load_source("", methods_path)
-        appMethods = module.appMethods(appname, obj_path)
-        factfile, mvfactfile, time_record = genFact(
-            appname, groundTruth_profile, appMethods, withQoS, withSys,
-            withPerf, NUM_OF_FIXED_ENV)
+        time_record = genFact(appInfo, groundTruth_profile, NUM_OF_FIXED_ENV)
         # ######################STAGE-3########################
         # third stage: Modeling, use the specific modeling method to construct
         # the RSDG
-        readFact(factfile, knobs, groundTruth_profile)
+        readFact(appInfo.FILE_PATHS['COST_FILE_PATH'], knobs,
+                 groundTruth_profile)
         if withQoS:
-            readFact(mvfactfile, knobs, groundTruth_profile, False)
-        groundTruth_profile.printProfile("./outputs/" + appname + ".profile")
+            readFact(appInfo.FILE_PATHS['MV_FILE_PATH'], knobs,
+                     groundTruth_profile, False)
+        groundTruth_profile.printProfile(appInfo.FILE_PATHS['PROFILE_PATH'])
         # if it's just model validation
         if validate:
             rs_configs = representset.getConfigurationsFromFile(
-                validate_rs_path, knobs)
+                appInfo.VALIDATE_RS_PATH, knobs)
             representset.validateRS(groundTruth_profile, rs_configs)
             return
         # construct the cost rsdg iteratively given a threshold
@@ -352,7 +330,7 @@ def declareParser():
     parser.add_option('--rsdg', dest="rsdg")
     parser.add_option('--rsdgmv', dest="rsdgmv")
     parser.add_option('--stage', dest='stage')
-    parser.add_option('-C', dest="config")
+    parser.add_option('-C', dest="config", default="")
     parser.add_option('--cfg', dest="run_cfg", default="")
     return parser
 
@@ -371,37 +349,25 @@ def parseCMD(options):
     run_config_path = options.run_cfg
     # read config
     if options.mode == "finalize" and options.run_cfg == "":
-        print(" WARNING: no run config provided for finalization")
+        print(" ERROR: no run config provided for finalization")
+        exit()
+    if options.mode == "standard" and options.config == "":
+        print(" ERROR: missing application config, use -C to provide")
         exit()
     if options.config is not None:
         config_file = options.config
-        app_config = parseConfig(config_file)
     if options.stage is not None:
         stage = int(options.stage)
 
 
-def parseConfig(config_file):
-    global desc, methods_path, obj_path, withSys, withQoS, withPerf, calRS, \
-        qosRun, validate, validate_rs_path
-    with open(config_file) as config_json:
-        config = json.load(config_json)
-        desc = config['appDep']
-        methods_path = config['appMet']
-        obj_path = config['appPath']
-        if 'withSys' in config:
-            withSys = config['withSys'] == 1
-        if 'withQoS' in config:
-            withQoS = config['withQoS'] == 1
-        if 'withPerf' in config:
-            withPerf = config['withPerf'] == 1
-        if 'RS' in config:
-            calRS = config['RS'] == 1
-        if 'qosRun' in config:
-            qosRun = config['qosRun'] == 1
-        if 'validate_rs_path' in config:
-            validate = config['validate_rs_path'] != ""
-            validate_rs_path = config['validate_rs_path']
-    return config
+def prepare():
+    # prepare the output dirs
+    if not os.path.exists("./outputs"):
+        os.system("mkdir outputs")
+    if not os.path.exists("./debug"):
+        os.system("mkdir debug")
+    if not os.path.exists("./training_outputs"):
+        os.system("mkdir training_outputs")
 
 
 if __name__ == '__main__':

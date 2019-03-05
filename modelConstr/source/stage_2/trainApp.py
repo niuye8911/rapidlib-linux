@@ -2,10 +2,10 @@ import os
 
 from Classes import AppMethods
 
-
-def recoverTimeRecord(appname, units):
+''' estimate the total training time from a trained cost profile '''
+def recoverTimeRecord(appInfo, units):
     time_record = {}
-    with open("./outputs/" + appname + "-cost.fact") as costfile:
+    with open(appInfo.FILE_PATHS['COST_FILE_PATH'],'r') as costfile:
         for line in costfile:
             col = line.split()
             unit_cost = col[-1]
@@ -20,25 +20,20 @@ def recoverTimeRecord(appname, units):
     return time_record
 
 
-def genFact(appname, config_table, appMethods, withQoS, withSys, withPerf,
-            numOfFixedEnv):
-    cost_path = "outputs/" + appname + "-cost" + ".fact"
-    mv_path = "outputs/" + appname + "-mv" + ".fact" if withQoS else ''
-    sys_path = "outputs/" + appname + "-sys" + ".csv" if withSys else ''
-    perf_path = "outputs/" + appname + "-perf" + ".csv" if withPerf else ''
-    # if the training has been done, just exit
-
-    if os.path.exists(cost_path):
+''' return the a table containing the training time '''
+def genFact(appInfo, config_table, numOfFixedEnv):
+    module = imp.load_source("", appInfo.METHODS_PATH)
+    appMethods = module.appMethods(appname, appInfo.OBJ_PATH)
+    # if the training has been done, use the trained data
+    if appInfo.isTrained()
         # construct the time_record
-        print("already trained")
-        time_record = recoverTimeRecord(appname, appMethods.training_units)
-        return cost_path, mv_path, time_record
-    # run(appname,config_table)
+        time_record = recoverTimeRecord(appInfo, appMethods.training_units)
+        return time_record
     if withQoS:
         appMethods.runGT()
     training_time_record = appMethods.train(
-        config_table, numOfFixedEnv, cost_path, mv_path, sys_path, perf_path)
-    return cost_path, mv_path, training_time_record
+        config_table, numOfFixedEnv, appInfo)
+    return training_time_record
 
 
 def genFactWithRSDG(appname, config_table, cost_rsdg, mv_rsdgs, appMethod,

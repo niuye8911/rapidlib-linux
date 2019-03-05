@@ -877,34 +877,28 @@ class AppMethods():
         return mvs
 
     # Implement this function
-    def train(self, config_table, numOfFixedEnv, costFact, mvFact, sysFact,
-              perfFact):
+    def train(self, config_table, numOfFixedEnv, appInfo):
         """ Train the application with all configurations in config_table and
         write Cost / Qos in costFact and mvFact.
         :param config_table: A table of class Profile containing all
         configurations to train
         :param numOfFixedEnv: number of environments if running for fixed env
-        :param costFact: the destination of output file for recording costs
-        :param mvFact: the destination of output file for recording MV
-        :param sysFact: the destination of output file for recording system
-        usage
-        :param withMV: whether to check MV or not
-        :param withSys: whether to check system usage or not
-        :param withPerf: whether to record slow-down or not
+        :param appInfo: a obj of Class AppSummary
         """
         # perform a single run for training
         configurations = config_table.configurations  # get the
         # configurations in the table
-        withMV = mvFact is not ""
-        withSys = sysFact is not ""
-        withPerf = perfFact is not ""
-        costFact = open(costFact, 'w')
+        train_conf = appInfo.TRAINING_CFG
+        withMV = train_conf['withQoS']
+        withSys = train_conf['withSYS']
+        withPerf = train_conf['withPerf']
+        costFact = open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'w')
         if withMV:
-            mvFact = open(mvFact, 'w')
+            mvFact = open(appInfo.FILE_PATHS['MV_FILE_PATH'], 'w')
         if withSys:
-            sysFact = open(sysFact, 'w')
+            sysFact = appInfo.FILE_PATHS['SYS_FILE_PATH']
         if withPerf:
-            slowdownProfile = open(perfFact, 'w')
+            slowdownProfile = open(appInfo.FILE_PATHS['PERF_FILE_PATH'], 'w')
             slowdownHeader = False
 
         # comment the lines below if need random coverage
