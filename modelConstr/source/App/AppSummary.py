@@ -26,7 +26,7 @@ class AppSummary:
         self.FILE_PATHS[
             'PERF_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + "-perf.csv"
         self.FILE_PATHS[
-            'PERF_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + ".profile"
+            'PROFILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + ".profile"
         # create the training status
         self.STATUS = {}
         self.STATUS['STANDARD_TRAINED'] = os.path.exists(
@@ -65,23 +65,23 @@ class AppSummary:
             if 'validate_rs_path' in config:
                 config_dict['validate'] = config['validate_rs_path'] != ""
                 self.VALIDATE_RS_PATH = config['validate_rs_path']
-        return config
+        return config_dict
 
     def getFilePointers(self):
         # return pointers to all trained files
         return self.FILE_PATHS
 
     def setTrained(self):
-        self.STANDARD_TRAINED = True
+        self.STATUS['STANDARD_TRAINED'] = True
 
     def setPerfTrained(self):
-        self.STRESS_TRAINED = True
+        self.STATUS['STRESS_TRAINED'] = True
 
     def isTrained(self):
-        return self.STANDARD_TRAINED
+        return self.STATUS['STANDARD_TRAINED']
 
     def isPerfTrained(self):
-        return self.STRESS_TRAINED
+        return self.STATUS['STRESS_TRAINED']
 
     def printSummary(self):
         with open(self.OUTPUT_DIR_PREFIX + "summary.json", 'w') as output:

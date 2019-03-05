@@ -1,4 +1,5 @@
 import os
+import imp
 
 from Classes import AppMethods
 
@@ -23,13 +24,13 @@ def recoverTimeRecord(appInfo, units):
 ''' return the a table containing the training time '''
 def genFact(appInfo, config_table, numOfFixedEnv):
     module = imp.load_source("", appInfo.METHODS_PATH)
-    appMethods = module.appMethods(appname, appInfo.OBJ_PATH)
+    appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
     # if the training has been done, use the trained data
-    if appInfo.isTrained()
+    if appInfo.isTrained():
         # construct the time_record
         time_record = recoverTimeRecord(appInfo, appMethods.training_units)
         return time_record
-    if withQoS:
+    if appInfo.TRAINING_CFG['withQoS']:
         appMethods.runGT()
     training_time_record = appMethods.train(
         config_table, numOfFixedEnv, appInfo)

@@ -16,7 +16,6 @@ def constructRSDG(gt,
     # gT is a dictionary where entry is the config and value is hte cost
     # profile_configs is the structured configuration
     # segmentation level
-
     # initial error rate set to 100%
     error = 1.0
     maxT = 10

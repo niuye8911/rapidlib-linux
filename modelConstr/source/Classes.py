@@ -877,26 +877,27 @@ class AppMethods():
         return mvs
 
     # Implement this function
-    def train(self, config_table, numOfFixedEnv, appInfo):
+    def train(self, config_table, numOfFixedEnv, appInfo, upload=True):
         """ Train the application with all configurations in config_table and
         write Cost / Qos in costFact and mvFact.
         :param config_table: A table of class Profile containing all
         configurations to train
         :param numOfFixedEnv: number of environments if running for fixed env
         :param appInfo: a obj of Class AppSummary
+        :param upload: whether to upload the measuremnet to RAPID_M server
         """
         # perform a single run for training
         configurations = config_table.configurations  # get the
         # configurations in the table
         train_conf = appInfo.TRAINING_CFG
         withMV = train_conf['withQoS']
-        withSys = train_conf['withSYS']
+        withSys = train_conf['withSys']
         withPerf = train_conf['withPerf']
         costFact = open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'w')
         if withMV:
             mvFact = open(appInfo.FILE_PATHS['MV_FILE_PATH'], 'w')
         if withSys:
-            sysFact = appInfo.FILE_PATHS['SYS_FILE_PATH']
+            sysFact = open(appInfo.FILE_PATHS['SYS_FILE_PATH'], 'w')
         if withPerf:
             slowdownProfile = open(appInfo.FILE_PATHS['PERF_FILE_PATH'], 'w')
             slowdownHeader = False
@@ -905,7 +906,7 @@ class AppMethods():
         env = SysArgs()
         env_commands = []
         if numOfFixedEnv != -1:
-            for i in range(0, numOfFixedEnv):  # run 3 different environment
+            for i in range(0, numOfFixedEnv):  # run different environment
                 env_commands.append(env.getRandomEnv())
 
         training_time_record = {}
@@ -959,23 +960,25 @@ class AppMethods():
             mvFact.close()
         if withPerf:
             slowdownProfile.close()
-            self.uploadToServer(sysFact, perfFact, self.appName)
+        if upload:
+            self.uploadToServer(appInfo)
 
         return training_time_record
 
     # Send the system profile up to the RAPID_M server
-    def uploadToServer(self, sysFact, perfFact, app_name):
+    def uploadToServer(self, appInfo):
         # get the app system profile text
-        with open(sysFact, 'r') as sysF:
+        with open(appInfo.FILE_PATHS['SYS_FILE_PATH'], 'r') as sysF:
             sys_data = sysF.read()
         # get the app performance profile text
-        with open(perfFact, 'r') as perfF:
+        with open(appInfo.FILE_PATHS['PERF_FILE_PATH'], 'r') as perfF:
             perf_data = perfF.read()
         # get the machine id
         hostname = socket.gethostname()
 
         INIT_ENDPOINT = "http://algaesim.cs.rutgers.edu/server/init.php"
-        INIT_ENDPOINT = INIT_ENDPOINT + "?" + 'machine=' + hostname + '&app=' + app_name
+        INIT_ENDPOINT = INIT_ENDPOINT + "?" + 'machine=' + hostname + \
+            '&app=' + appInfo.APP_NAME
 
         # set up the post params
         POST_PARAMS = {'buckets': sys_data, 'p_model': perf_data}

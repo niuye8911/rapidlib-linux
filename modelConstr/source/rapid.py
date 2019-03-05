@@ -19,6 +19,7 @@ from xmlgen import completeXML
 # CMD line Parmeters
 stage = -1
 model = "piecewise"
+mode = "standard"
 config_file = ""
 
 # Deprecated CMD arguments
@@ -37,7 +38,7 @@ knob_samples = {}
 
 # Training Options
 PLOT = False
-NUM_OF_FIXED_ENV = -1  # -1:random environment N:N fixed environments
+NUM_OF_FIXED_ENV = 1  # -1:random environment N:N fixed environments
 targetMax = 0.1
 targetMean = 0.05
 THRESHOLD = 0.05
@@ -45,7 +46,8 @@ RS_THRESHOLD = 0.05
 
 
 def main(argv):
-    global appInfo, config_file, groundTruth_profile, knob_samples, knobs, mode
+    global appInfo, config_file, groundTruth_profile, knob_samples, knobs, mode, model
+
     # parse the argument
     parser = declareParser()
     options, args = parser.parse_args()
@@ -198,12 +200,12 @@ def main(argv):
         # the RSDG
         readFact(appInfo.FILE_PATHS['COST_FILE_PATH'], knobs,
                  groundTruth_profile)
-        if withQoS:
+        if appInfo.TRAINING_CFG['withQoS']:
             readFact(appInfo.FILE_PATHS['MV_FILE_PATH'], knobs,
                      groundTruth_profile, False)
         groundTruth_profile.printProfile(appInfo.FILE_PATHS['PROFILE_PATH'])
         # if it's just model validation
-        if validate:
+        if appInfo.TRAINING_CFG['validate']:
             rs_configs = representset.getConfigurationsFromFile(
                 appInfo.VALIDATE_RS_PATH, knobs)
             representset.validateRS(groundTruth_profile, rs_configs)
@@ -218,7 +220,7 @@ def main(argv):
 
         # Generate the representative set
         rss_size = 0
-        if calRS:
+        if appInfo.TRAINING_CFG['calRS']:
             rs, mean = representset.genContRS(groundTruth_profile,
                                               RS_THRESHOLD)
             rss_size = len(rs)
@@ -247,24 +249,24 @@ def main(argv):
 
         # ######################STAGE-4########################
         # forth stage, generate the final RSDG in XML format
-        default_xml_path = completeXML(appname, xml, cost_rsdg, mv_rsdgs[-1],
-                                       model)
+        default_xml_path = completeXML(appInfo.APP_NAME, xml, cost_rsdg,
+                                       mv_rsdgs[-1], model)
 
         # cleaning
         os.system("rm *.log")
 
         # write the generated RSDG back to desc file
-        with open('./' + appname + "_run.config", 'w') as runFile:
+        with open('./' + appInfo.APP_NAME + "_run.config", 'w') as runFile:
             run_config = {}
             run_config['cost_rsdg'] = os.path.abspath(cost_path)
             run_config['mv_rsdgs'] = map(lambda x: os.path.abspath(x),
                                          mv_paths[0:-1])
             run_config['mv_default_rsdg'] = os.path.abspath(mv_paths[-1])
             run_config['defaultXML'] = os.path.abspath(default_xml_path)
-            run_config['appMet'] = os.path.abspath(methods_path)
+            run_config['appMet'] = os.path.abspath(appInfo.METHODS_PATH)
             run_config['rapidScript'] = os.path.abspath('./rapid.py')
             run_config['seglvl'] = seglvl
-            run_config['desc'] = os.path.abspath(desc)
+            run_config['desc'] = os.path.abspath(appInfo.DESC)
             run_config['preferences'] = list(
                 map(lambda x: 1.0, mv_paths[0:-1]))
             json.dump(run_config, runFile, indent=2, sort_keys=True)
@@ -273,10 +275,13 @@ def main(argv):
         if (stage == 4):
             return
 
-        if qosRun:
+        if appInfo.TRAINING_CFG['qosRun']:
+            module = imp.load_source("", appInfo.METHODS_PATH)
+            appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
             mvs = appMethods.qosRun()
-            with open("./qos_report_" + appname + "_" + model + ".txt",
-                      'w') as report:
+            with open(
+                    "./qos_report_" + appInfo.APP_NAME + "_" + model + ".txt",
+                    'w') as report:
                 for mv in mvs:
                     report.write(str(mv))
                     report.write("\n")
@@ -314,17 +319,18 @@ def main(argv):
 
 
 def declareParser():
+    global mode, model
     parser = optparse.OptionParser()
     parser.add_option('-f', dest="fact")
     parser.add_option('-k', dest="KF")
     parser.add_option('--k1', dest="KF1")
     parser.add_option('--k2', dest="KF2")
-    parser.add_option('-m', dest="mode", default="standard")
+    parser.add_option('-m', dest="mode", default=mode)
     parser.add_option('-o', dest="observed")
     parser.add_option('--r1', dest="r1")
     parser.add_option('--r2', dest='r2')
     parser.add_option('-r', dest='remote')
-    parser.add_option('--model', dest="model")
+    parser.add_option('--model', dest="model", default=model)
     parser.add_option("-p", dest="plot")
     parser.add_option('--rs', dest="rs")
     parser.add_option('--rsdg', dest="rsdg")
