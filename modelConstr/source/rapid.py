@@ -183,16 +183,17 @@ def main(argv):
 
         # ######################STAGE-1########################
         # generate initial training set
+
         knobs, groundTruth_profile, knob_samples = genTrainingSet(appInfo.DESC)
         fulltraining_size = len(groundTruth_profile.configurations)
-        # generate XML files
+        # generate the structural RSDG files (XML)
         xml = xmlgen.genxml(appInfo.APP_NAME, "", "", True, appInfo.DESC)
         if (stage == 1):
             return
 
         # ######################STAGE-2########################
-        # second stage: Training, the source library will take care of the
-        # training, the output is a bodytrack.fact file
+        # train the application
+
         # load user-supplied methods
         time_record = genFact(appInfo, groundTruth_profile, NUM_OF_FIXED_ENV)
         # ######################STAGE-3########################

@@ -30,7 +30,7 @@ class Metric:
         return delimiter.join(metricsNames)
 
     def printAsHeader(self, delimiter):
-        return delimiter + delimiter.join(sorted(self.metric_names))
+        return "Configuration"+delimiter + delimiter.join(sorted(self.metric_names))
 
 
 class SlowDown:
@@ -922,47 +922,52 @@ class AppMethods():
             # assembly the command
             command = self.getCommand(configs)
 
-            # measure the "cost"
-            total_time, cost, metric = self.getCostAndSys(
-                command, self.training_units, withSys,
-                configuration.printSelf('-'))
-            training_time_record[configuration.printSelf('-')] = total_time
-            # write the cost to file
-            AppMethods.writeConfigMeasurementToFile(costFact, configuration,
-                                                    cost)
-            # measure the "mv"
-            if withMV:
-                mv = self.getQoS()
-                # write the mv to file
+            if not appInfo.isTrained():
+                # 1) COST Measuremnt
+                total_time, cost, metric = self.getCostAndSys(
+                    command, self.training_units, withSys,
+                    configuration.printSelf('-'))
+                training_time_record[configuration.printSelf('-')] = total_time
+                # write the cost to file
                 AppMethods.writeConfigMeasurementToFile(
-                    mvFact, configuration, mv)
-            if withSys:
-                # write metric value to table
-                self.recordSysUsage(configuration, metric)
-            if withPerf:
-                # examine the execution time slow-down
-                print("START STRESS TRAINING")
-                slowdownTable = self.runStressTest(configuration, cost,
-                                                   env_commands)
-                # write the header
-                if not slowdownHeader:
-                    slowdownProfile.write(metric.printAsHeader(','))
-                    slowdownProfile.write('\n')
-                    slowdownHeader = True
-                slowdownTable.writeSlowDownTable(slowdownProfile)
-                # withPerf = False  # remove this for full training
+                    costFact, configuration, cost)
+                # 2) MV Measurement
+                if withMV:
+                    mv = self.getQoS()
+                    # write the mv to file
+                    AppMethods.writeConfigMeasurementToFile(
+                        mvFact, configuration, mv)
+            if not appInfo.isPerfTrained():
+                # 3) SYS Profile Measurement
+                if withSys:
+                    self.recordSysUsage(configuration, metric)
+                # 4) Performance Measurement
+                if withPerf:
+                    # examine the execution time slow-down
+                    print("START STRESS TRAINING")
+                    slowdownTable = self.runStressTest(configuration, cost,
+                                                       env_commands)
+                    # write the header
+                    if not slowdownHeader:
+                        slowdownProfile.write(metric.printAsHeader(','))
+                        slowdownProfile.write(",SLOWDOWN")
+                        slowdownProfile.write('\n')
+                        slowdownHeader = True
+                    slowdownTable.writeSlowDownTable(slowdownProfile)
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
         costFact.close()
-        if withSys:
-            self.printUsageTable(sysFact)
         if withMV:
             mvFact.close()
+        if withSys:
+            self.printUsageTable(sysFact)
         if withPerf:
             slowdownProfile.close()
         if upload:
             self.uploadToServer(appInfo)
-
+        # udpate the status
+        appInfo.setTrained()
+        appInfo.setPerfTrained()
         return training_time_record
 
     # Send the system profile up to the RAPID_M server
@@ -1032,28 +1037,7 @@ class AppMethods():
         """
         return self.name
 
-    def setPath(self, mv, cost):
-        """ Set the path to mv and cost fact files
-        :param mv: path to mv.fact
-        :param cost: path to cost.fact
-        """
-        self.mv_path = mv
-        self.cost_path = cost
-
-    def getCostPath(self):
-        """ Get the path to cost.fact
-        :return: string
-        """
-        return self.cost_path
-
-    def getMVPath(self):
-        """ Get the path to mv.fact
-        :return: string
-        """
-        return self.mv_path
-
     # some utilities might be useful
-
     def getCostAndSys(self,
                       command,
                       work_units=1,
@@ -1149,7 +1133,7 @@ class AppMethods():
         :param configuration: the configuration
         :param metric: the dict of metric measured
         """
-        self.sys_usage_table.add_entry(configuration.printSelf(), metric)
+        self.sys_usage_table.add_entry(configuration.printSelf('-'), metric)
 
     def printUsageTable(self, filestream):
         self.sys_usage_table.printAsCSV(filestream, ',')

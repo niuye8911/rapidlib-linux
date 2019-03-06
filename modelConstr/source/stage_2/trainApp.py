@@ -1,12 +1,12 @@
-import os
 import imp
 
 from Classes import AppMethods
 
-''' estimate the total training time from a trained cost profile '''
+
 def recoverTimeRecord(appInfo, units):
+    ''' estimate the total training time from a trained cost profile '''
     time_record = {}
-    with open(appInfo.FILE_PATHS['COST_FILE_PATH'],'r') as costfile:
+    with open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'r') as costfile:
         for line in costfile:
             col = line.split()
             unit_cost = col[-1]
@@ -21,8 +21,8 @@ def recoverTimeRecord(appInfo, units):
     return time_record
 
 
-''' return the a table containing the training time '''
 def genFact(appInfo, config_table, numOfFixedEnv):
+    ''' return the a table containing the training time '''
     module = imp.load_source("", appInfo.METHODS_PATH)
     appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
     # if the training has been done, use the trained data
@@ -32,8 +32,8 @@ def genFact(appInfo, config_table, numOfFixedEnv):
         return time_record
     if appInfo.TRAINING_CFG['withQoS']:
         appMethods.runGT()
-    training_time_record = appMethods.train(
-        config_table, numOfFixedEnv, appInfo)
+    training_time_record = appMethods.train(config_table, numOfFixedEnv,
+                                            appInfo)
     return training_time_record
 
 
