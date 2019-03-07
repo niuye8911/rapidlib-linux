@@ -14,6 +14,7 @@ from plot import draw
 from stage_1.training import genTrainingSet
 from stage_2.trainApp import genFact, genFactWithRSDG
 from stage_4.constructRSDG import constructRSDG
+from Machine_Trainer.MachineTrainer import MachineTrainer
 from xmlgen import completeXML
 
 # CMD line Parmeters
@@ -55,6 +56,11 @@ def main(argv):
     parseCMD(options)
 
     prepare()
+
+    if (mode == "machine"):
+        machineTrainer = MachineTrainer()
+        machineTrainer.train()
+        return
 
     if (mode == "finalize"):  # TODO:need to update appINFO related
         # parse the run_config
