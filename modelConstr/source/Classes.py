@@ -14,12 +14,13 @@ import requests
 class Metric:
     EXCLUDED_METRIC = {"Date", "Time", "Proc Energy (Joules)"}
 
-    def __init__(self):
+    def __init__(self, addtl_exclusion={}):
         self.metrics = dict()
         self.metric_names = []
+        self.addtl_exclusion = {}
 
     def add_metric(self, name, value):
-        if name not in self.EXCLUDED_METRIC:
+        if name not in self.EXCLUDED_METRIC and name not in self.addtl_exclusion:
             self.metrics[name] = value
             self.metric_names.append(name)
             self.metric_names = sorted(self.metric_names)
@@ -29,8 +30,11 @@ class Metric:
                            self.metric_names)
         return delimiter.join(metricsNames)
 
-    def printAsHeader(self, delimiter):
-        return "Configuration"+delimiter + delimiter.join(sorted(self.metric_names))
+    def printAsHeader(self, delimiter, leading="Configuration", id=''):
+        if leading == "Configuration":
+            leading = leading + delimiter
+        updated_metrics = map(lambda x: x + id, self.metric_names)
+        return leading + delimiter.join(sorted(updated_metrics))
 
 
 class SlowDown:
@@ -1070,14 +1074,15 @@ class AppMethods():
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
-            metric_value = self.parseTmpCSV()
+            metric_value = AppMethods.parseTmpCSV()
             if configuration != '':
                 # back up the csv_file
                 os.system("mv tmp.csv ./debug/" + configuration + ".csv")
 
         return total_time, avg_time, metric_value
 
-    def parseTmpCSV(self):
+    @staticmethod
+    def parseTmpCSV():
         metric_value = Metric()
         with open('tmp.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=';')
