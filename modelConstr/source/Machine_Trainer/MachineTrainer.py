@@ -44,6 +44,7 @@ class MachineTrainer:
         '''
         machine_profile = MachineProfile()
         for i in range(0, self.TRAINING_SIZE):
+            print(str(i) + " / " + str(self.TRAINING_SIZE))
             env1_cmd = self.getRandomEnv()
             env2_cmd = self.getRandomEnv()
             # train the first env for 10 seconds
@@ -86,6 +87,6 @@ class MachineTrainer:
             str(vm), '--vm-bytes',
             str(vm_bytes), '--hdd',
             str(hdd), '--hdd-bytes',
-            str(hdd_bytes)
+            str(hdd_bytes), '-q'
         ]
         return command
