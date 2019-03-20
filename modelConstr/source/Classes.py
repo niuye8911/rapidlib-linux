@@ -12,7 +12,20 @@ import requests
 
 
 class Metric:
-    EXCLUDED_METRIC = {"Date", "Time", "Proc Energy (Joules)"}
+    EXCLUDED_METRIC = {
+        "Date",
+        "Time",
+        "Proc Energy (Joules)",
+        'C0res%',
+        'C10res%',
+        'C1res%',
+        'C2res%',
+        'C3res%',
+        'C6res%',
+        'C7res%',
+        'C8res%',
+        'C9res%',
+    }
 
     def __init__(self, addtl_exclusion={}):
         self.metrics = dict()
@@ -26,7 +39,7 @@ class Metric:
             self.metric_names = sorted(self.metric_names)
 
     def printAsCSVLine(self, delimiter):
-        metricsNames = map(lambda metric: self.metrics[metric],
+        metricsNames = map(lambda metric: str(self.metrics[metric]),
                            self.metric_names)
         return delimiter.join(metricsNames)
 
@@ -101,12 +114,12 @@ class SysUsageTable:
 class SysArgs:
     def __init__(self):
         self.env = {}
-        self.env["cpu_num"] = [1, 2, 3, 4, 5, 6, 7]
-        self.env["io"] = [1, 2, 3, 4]
+        self.env["cpu_num"] = [1, 2, 3, 4]
+        self.env["io"] = [1, 2, 3]
         self.env["vm"] = [1, 2, 3]
-        self.env["vm_bytes"] = ["32M", "64M", "128M", "256M"]
-        self.env["hdd"] = [1, 2, 3, 4, 5, 6]
-        self.env["hdd_bytes"] = ["100M", "500M", "1G"]
+        self.env["vm_bytes"] = ["64K", "128K", "256K", "512K", "1M"]
+        self.env["hdd"] = [1, 2, 3]
+        self.env["hdd_bytes"] = ["100K", "500K"]
 
     def getRandomEnv(self):
         cpu_num = random.choice(self.env['cpu_num'])
@@ -116,13 +129,20 @@ class SysArgs:
         hdd = random.choice(self.env['hdd'])
         hdd_bytes = random.choice(self.env['hdd_bytes'])
         command = [
-            '/usr/bin/stress', "--cpu",
-            str(cpu_num), '--io',
-            str(io), '--vm',
-            str(vm), '--vm-bytes',
-            str(vm_bytes), '--hdd',
-            str(hdd), '--hdd-bytes',
-            str(hdd_bytes)
+            '/usr/bin/stress',
+            '-q',
+            "--cpu",
+            str(cpu_num),
+            '--io',
+            str(io),
+            '--vm',
+            str(vm),
+            '--vm-bytes',
+            str(vm_bytes),
+            '--hdd',
+            str(hdd),
+            '--hdd-bytes',
+            str(hdd_bytes),
         ]
         return command
 
@@ -916,8 +936,11 @@ class AppMethods():
         training_time_record = {}
 
         # iterate through configurations
+        total = len(configurations)
+        current = 1
         for configuration in configurations:
-
+            print("*****RUNNING:" + str(current) + "/" + str(total) + "*****")
+            current += 1
             # the purpose of each iteration is to fill in the two values below
             cost = 0.0
             mv = [0.0]
@@ -1064,7 +1087,7 @@ class AppMethods():
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
             pcm_prefix = [
-                '/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '-i=20',
+                '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns',
                 '2>/dev/null', '-csv=tmp.csv', '--'
             ]
             command = pcm_prefix + command
@@ -1088,7 +1111,7 @@ class AppMethods():
             csv_reader = csv.reader(csv_file, delimiter=';')
             line_count = 0
             metric = []
-            value = []
+            values = []
             for row in csv_reader:
                 if line_count == 0:
                     line_count += 1
@@ -1097,11 +1120,20 @@ class AppMethods():
                         metric.append(item)
                     line_count += 1
                 else:  # value line
+                    value = []
                     for item in row:
                         value.append(item)
+                    values.append(value)
             for i in range(0, len(metric)):
                 if metric[i] != '':
-                    metric_value.add_metric(metric[i], value[i])
+                    try:
+                        float(values[0][i])
+                    except ValueError:
+                        continue
+                    # calculate the average value
+                    avg_value = reduce((lambda x, y: (float(y[i]) + float(x))),
+                                       values, 0.) / float(len(values))
+                    metric_value.add_metric(metric[i], avg_value)
         csv_file.close()
         return metric_value
 
