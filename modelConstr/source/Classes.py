@@ -119,7 +119,7 @@ class SysArgs:
         self.env["vm"] = [1, 2, 3]
         self.env["vm_bytes"] = ["64K", "128K", "256K", "512K", "1M"]
         self.env["hdd"] = [1, 2, 3]
-        self.env["hdd_bytes"] = ["100K", "500K"]
+        self.env["hdd_bytes"] = ["100K", "500K", "1M"]
 
     def getRandomEnv(self):
         cpu_num = random.choice(self.env['cpu_num'])
@@ -889,7 +889,6 @@ class AppMethods():
             budget = (self.min_cost + float(percentage) * step_size
                       ) * self.fullrun_units / 1000.0
             cmd = self.getFullRunCommand(budget)
-            print(cmd)
             os.system(" ".join(cmd))
             # check the QoS
             mv = self.getQoS()
@@ -1039,7 +1038,7 @@ class AppMethods():
         slowdownTable = SlowDown(configuration)
         # if running random coverage, create the commands
         if len(env_commands) == 0:
-            for i in range(0, 30):  # run 30 different environment
+            for i in range(0, 20):  # run 30 different environment
                 env_command = env.getRandomEnv()
                 env_commands.append(env_command)
         for env_command in env_commands:
