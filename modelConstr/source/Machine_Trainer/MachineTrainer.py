@@ -11,15 +11,15 @@ from MachineProfile import MachineProfile
 class MachineTrainer:
     ENV = {
         "cpu_num": [1, 2, 3],
-        "io": [1, 2, 3],
-        "vm": [1, 2, 3],
-        "vm_bytes": ["32M", "64M", "128M"],
-        "hdd": [1, 2, 3, 4],
-        "hdd_bytes": ["100M", "500M"]
+        "io": [1, 2],
+        "vm": [1, 2],
+        "vm_bytes": ["64K", "128K", "256K", "512K", "1M"],
+        "hdd": [1, 2],
+        "hdd_bytes": ["100K", "500K", "1M"]
     }
 
     PCM_PREFIX = [
-        '/home/liuliu/Research/pcm/pcm.x', '-nc', '-ns', '2>/dev/null',
+        '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns', '2>/dev/null',
         '-csv=tmp.csv', '--'
     ]
 
@@ -81,12 +81,19 @@ class MachineTrainer:
         hdd = random.choice(MachineTrainer.ENV['hdd'])
         hdd_bytes = random.choice(MachineTrainer.ENV['hdd_bytes'])
         command = [
-            '/usr/bin/stress', "--cpu",
-            str(cpu_num), '--io',
-            str(io), '--vm',
-            str(vm), '--vm-bytes',
-            str(vm_bytes), '--hdd',
-            str(hdd), '--hdd-bytes',
-            str(hdd_bytes), '-q'
+            '/usr/bin/stress',
+            '-q',
+            '--cpu',
+            str(cpu_num),
+            '--io',
+            str(io),
+            '--vm',
+            str(vm),
+            '--vm-bytes',
+            str(vm_bytes),
+            '--hdd',
+            str(hdd),
+            '--hdd-bytes',
+            str(hdd_bytes),
         ]
         return command
