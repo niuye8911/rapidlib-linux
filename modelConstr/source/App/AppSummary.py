@@ -27,6 +27,8 @@ class AppSummary:
             'PERF_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + "-perf.csv"
         self.FILE_PATHS[
             'PROFILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + ".profile"
+        self.FILE_PATHS[
+            'M_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + "-mperf.csv"
         # create the training status
         self.STATUS = {}
         self.STATUS['STANDARD_TRAINED'] = os.path.exists(
@@ -42,6 +44,7 @@ class AppSummary:
             'withSYS': False,
             'withQoS': False,
             'withPerf': False,
+            'withMModel': False,
             'RS': False,
             'qosRun': False,
             'validate': False,
@@ -58,6 +61,8 @@ class AppSummary:
                 config_dict['withQoS'] = config['withQoS'] == 1
             if 'withPerf' in config:
                 config_dict['withPerf'] = config['withPerf'] == 1
+            if 'withMModel' in config:
+                config_dict['withMModel'] = config['withMModel'] == 1
             if 'RS' in config:
                 config_dict['calRS'] = config['RS'] == 1
             if 'qosRun' in config:

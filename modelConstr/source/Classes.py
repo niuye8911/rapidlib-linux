@@ -117,7 +117,7 @@ class SysArgs:
         self.env["cpu_num"] = [1, 2, 3, 4]
         self.env["io"] = [1, 2, 3]
         self.env["vm"] = [1, 2, 3]
-        self.env["vm_bytes"] = ["64K", "128K", "256K", "512K", "1M"]
+        self.env["vm_bytes"] = ["256K", "512K", "1M"]
         self.env["hdd"] = [1, 2, 3]
         self.env["hdd_bytes"] = ["100K", "500K", "1M"]
 
@@ -856,6 +856,11 @@ class AppMethods():
     2) get the training data by running the app in different configurations
     """
 
+    PCM_PREFIX = [
+        '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns',
+        '2>/dev/null', '-csv=tmp.csv', '--'
+    ]
+
     def __init__(self, name, obj_path):
         """ Initialization with app name
         :param name:
@@ -916,6 +921,7 @@ class AppMethods():
         withMV = train_conf['withQoS']
         withSys = train_conf['withSys']
         withPerf = train_conf['withPerf']
+        withMModel = train_conf['withMModel']
         costFact = open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'w')
         if withMV:
             mvFact = open(appInfo.FILE_PATHS['MV_FILE_PATH'], 'w')
@@ -924,6 +930,9 @@ class AppMethods():
         if withPerf:
             slowdownProfile = open(appInfo.FILE_PATHS['PERF_FILE_PATH'], 'w')
             slowdownHeader = False
+        if withMModel:
+            m_slowdownProfile = open(appInfo.FILE_PATHS['M_FILE_PATH'], 'w')
+            m_slowdownHeader = False
 
         # comment the lines below if need random coverage
         env = SysArgs()
@@ -980,6 +989,16 @@ class AppMethods():
                         slowdownProfile.write('\n')
                         slowdownHeader = True
                     slowdownTable.writeSlowDownTable(slowdownProfile)
+                # 5) train the slowdown given a known environment
+                if withMModel:
+                    print("START MModel Testing")
+                    m_slowdownTable = self.runMModelTest(configuration, cost)
+                    #if not m_slowdownHeader:
+                #        m_slowdownProfile.write(metric.printAsHeader(','))
+            #            m_slowdownProfile.write(",SLOWDOWN")
+        #                m_slowdownProfile.write('\n')
+    #                    m_slowdownHeader = True
+                    m_slowdownTable.writeSlowDownTable(m_slowdownProfile)
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
         costFact.close()
@@ -989,6 +1008,8 @@ class AppMethods():
             self.printUsageTable(sysFact)
         if withPerf:
             slowdownProfile.close()
+        if withMModel:
+            m_slowdownProfile.close()
         if upload:
             self.uploadToServer(appInfo)
         # udpate the status
@@ -1056,6 +1077,31 @@ class AppMethods():
             slowdownTable.add_slowdown(metric, slowdown)
         return slowdownTable
 
+    def runMModelTest(self, configuration, orig_cost):
+        app_command = self.getCommand(configuration.retrieve_configs())
+        env = SysArgs()
+        slowdownTable = SlowDown(configuration)
+        # if running random coverage, create the commands
+        for i in range(0, 5):  # run 5 different environment
+            env_command = env.getRandomEnv()
+            # measure the env
+            command = " ".join(self.PCM_PREFIX + env_command +
+                               ['-t', '5'])
+            os.system(command)
+            env_metric = AppMethods.parseTmpCSV()
+            # measure the combined env
+            env_creater = subprocess.Popen(
+                " ".join(env_command), shell=True, preexec_fn=os.setsid)
+            total_time, cost, total_metric = self.getCostAndSys(
+                app_command, self.training_units, True,
+                configuration.printSelf('-'))
+            # end the env
+            os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
+            # write the measurement to file
+            slowdown = cost / orig_cost
+            slowdownTable.add_slowdown(env_metric, slowdown)
+        return slowdownTable
+
     # Some default APIs
     def getName(self):
         """ Return the name of the app
@@ -1085,11 +1131,8 @@ class AppMethods():
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
-            pcm_prefix = [
-                '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns',
-                '2>/dev/null', '-csv=tmp.csv', '--'
-            ]
-            command = pcm_prefix + command
+
+            command = self.PCM_PREFIX + command
         os.system(" ".join(command))
         time2 = time.time()
         total_time = time2 - time1
