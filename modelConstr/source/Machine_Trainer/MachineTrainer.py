@@ -25,7 +25,7 @@ class MachineTrainer:
 
     TRAINING_TIME = 10
 
-    def __init__(self, training_size=500):
+    def __init__(self, training_size=5):
         '''
         Train a machine model based on the measurement
         :param training_size: number of observations
@@ -43,19 +43,19 @@ class MachineTrainer:
         :return: void, but write the model to the file
         '''
         machine_profile = MachineProfile()
+        debug_file = open('./debug/machine_train.csv', 'w')
         for i in range(0, self.TRAINING_SIZE):
             print(str(i) + " / " + str(self.TRAINING_SIZE))
             env1_cmd = self.getRandomEnv()
             env2_cmd = self.getRandomEnv()
             # train the first env for 10 seconds
             metric1 = self.trainSingle(env1_cmd)
-            print(metric1.metrics['READ'])
             # train the second env for 10 seconds
             metric2 = self.trainSingle(env2_cmd)
-            print(metric2.metrics['READ'])
             # train the combined env
             observation = self.trainCombined(env1_cmd, env2_cmd)
-            print(observation.metrics['READ'])
+            debug_file.write(" ".join(env1_cmd) + '\n')
+            debug_file.write(" ".join(env2_cmd))
             machine_profile.addObservation(metric1, metric2, observation)
         machine_profile.printToFile('machine.csv')
 
