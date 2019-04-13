@@ -115,11 +115,11 @@ class SysArgs:
     def __init__(self):
         self.env = {}
         self.env["cpu_num"] = [1, 2, 3, 4]
-        self.env["io"] = [1, 2, 3]
-        self.env["vm"] = [1, 2, 3]
-        self.env["vm_bytes"] = ["256K", "512K", "1M"]
+        self.env["io"] = [1, 2]
+        self.env["vm"] = [1, 2]
+        self.env["vm_bytes"] = ["128K", "256K", "512K"]
         self.env["hdd"] = [1, 2, 3]
-        self.env["hdd_bytes"] = ["100K", "500K", "1M"]
+        self.env["hdd_bytes"] = ["128K", "256K", "512K"]
 
     def getRandomEnv(self):
         cpu_num = random.choice(self.env['cpu_num'])
@@ -857,8 +857,8 @@ class AppMethods():
     """
 
     PCM_PREFIX = [
-        '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns',
-        '2>/dev/null', '-csv=tmp.csv', '--'
+        '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns', '2>/dev/null',
+        '-csv=tmp.csv', '--'
     ]
 
     def __init__(self, name, obj_path):
@@ -980,25 +980,26 @@ class AppMethods():
                 if withPerf:
                     # examine the execution time slow-down
                     print("START STRESS TRAINING")
-                    slowdownTable = self.runStressTest(configuration, cost,
-                                                       env_commands)
+                    slowdownTable, m_slowdownTable = self.runStressTest(
+                        configuration, cost, env_commands, withMModel)
                     # write the header
                     if not slowdownHeader:
                         slowdownProfile.write(metric.printAsHeader(','))
                         slowdownProfile.write(",SLOWDOWN")
                         slowdownProfile.write('\n')
+                        if withMModel:
+                            m_slowdownProfile.write(metric.printAsHeader(','))
+                            m_slowdownProfile.write(",SLOWDOWN")
+                            m_slowdownProfile.write('\n')
                         slowdownHeader = True
                     slowdownTable.writeSlowDownTable(slowdownProfile)
+                    if withMModel:
+                        m_slowdownTable.writeSlowDownTable(m_slowdownProfile)
                 # 5) train the slowdown given a known environment
-                if withMModel:
-                    print("START MModel Testing")
-                    m_slowdownTable = self.runMModelTest(configuration, cost)
-                    #if not m_slowdownHeader:
-                #        m_slowdownProfile.write(metric.printAsHeader(','))
-            #            m_slowdownProfile.write(",SLOWDOWN")
-        #                m_slowdownProfile.write('\n')
-    #                    m_slowdownHeader = True
-                    m_slowdownTable.writeSlowDownTable(m_slowdownProfile)
+                #if withMModel:
+                #print("START MModel Testing")
+                #m_slowdownTable = self.runMModelTest(configuration, cost)
+                #m_slowdownTable.writeSlowDownTable(m_slowdownProfile)
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
         costFact.close()
@@ -1053,16 +1054,26 @@ class AppMethods():
         os.system(" ".join(command))
         self.afterGTRun()
 
-    def runStressTest(self, configuration, orig_cost, env_commands=[]):
+    def runStressTest(self,
+                      configuration,
+                      orig_cost,
+                      env_commands=[],
+                      withMModel=False):
         app_command = self.getCommand(configuration.retrieve_configs())
         env = SysArgs()
         slowdownTable = SlowDown(configuration)
+        m_slowdownTable = SlowDown(configuration)
         # if running random coverage, create the commands
         if len(env_commands) == 0:
-            for i in range(0, 20):  # run 30 different environment
+            for i in range(0, 10):  # run 10 different environment
                 env_command = env.getRandomEnv()
                 env_commands.append(env_command)
         for env_command in env_commands:
+            # if withMModel, check the environment first
+            if withMModel:
+                command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
+                os.system(command)
+                env_metric = AppMethods.parseTmpCSV()
             # start the env
             env_creater = subprocess.Popen(
                 " ".join(env_command), shell=True, preexec_fn=os.setsid)
@@ -1075,7 +1086,9 @@ class AppMethods():
             # write the measurement to file
             slowdown = cost / orig_cost
             slowdownTable.add_slowdown(metric, slowdown)
-        return slowdownTable
+            if withMModel:
+                m_slowdownTable.add_slowdown(env_metric, slowdown)
+        return slowdownTable, m_slowdownTable
 
     def runMModelTest(self, configuration, orig_cost):
         app_command = self.getCommand(configuration.retrieve_configs())
@@ -1085,8 +1098,7 @@ class AppMethods():
         for i in range(0, 5):  # run 5 different environment
             env_command = env.getRandomEnv()
             # measure the env
-            command = " ".join(self.PCM_PREFIX + env_command +
-                               ['-t', '5'])
+            command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
             os.system(command)
             env_metric = AppMethods.parseTmpCSV()
             # measure the combined env
@@ -1163,6 +1175,9 @@ class AppMethods():
                     line_count += 1
                 else:  # value line
                     value = []
+                    if len(row) != len(metric):
+                        # discard the row, especially the last row
+                        continue
                     for item in row:
                         value.append(item)
                     values.append(value)

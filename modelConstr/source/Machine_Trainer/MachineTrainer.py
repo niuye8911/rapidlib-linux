@@ -6,16 +6,17 @@ import subprocess
 import signal
 from Classes import AppMethods
 from MachineProfile import MachineProfile
+from time import sleep
 
 
 class MachineTrainer:
     ENV = {
-        "cpu_num": [1, 2, 3, 4],
-        "io": [1, 2, 3, 4],
-        "vm": [1, 2, 3, 4, 5],
-        "vm_bytes": ["512K", "1M", "2M", '5M'],
+        "cpu_num": [1, 2, 3],
+        "io": [1, 2, 3],
+        "vm": [1, 2, 3],
+        "vm_bytes": ["128K", "256K", "512K", "1M"],
         "hdd": [1, 2],
-        "hdd_bytes": ["100K", "500K", "1M"]
+        "hdd_bytes": ["128K", "256KK", "512K", "1M"]
     }
 
     PCM_PREFIX = [
@@ -23,9 +24,9 @@ class MachineTrainer:
         '-csv=tmp.csv', '--'
     ]
 
-    TRAINING_TIME = 10
+    TRAINING_TIME = 5
 
-    def __init__(self, training_size=5):
+    def __init__(self, training_size=1000):
         '''
         Train a machine model based on the measurement
         :param training_size: number of observations
@@ -50,8 +51,10 @@ class MachineTrainer:
             env2_cmd = self.getRandomEnv()
             # train the first env for 10 seconds
             metric1 = self.trainSingle(env1_cmd)
+            sleep(0.5)
             # train the second env for 10 seconds
             metric2 = self.trainSingle(env2_cmd)
+            sleep(0.5) 
             # train the combined env
             observation = self.trainCombined(env1_cmd, env2_cmd)
             debug_file.write(" ".join(env1_cmd) + '\n')
