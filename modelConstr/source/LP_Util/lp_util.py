@@ -12,11 +12,11 @@ def solveAndPopulate(service_levels, PRINT, remote):
         item = result.split("\\n")
         maxsol = open("max.sol", 'w')
         for i in item:
-	    if i=="\"":
-    		continue
-    	maxsol.write(i)
-    	maxsol.write("\n")
-        maxsol.close()
+    	    if i == '\"':
+        		continue
+            maxsol.write(i)
+            maxsol.write("\n")
+            maxsol.close()
     else:
         os.system("gurobi_cl ResultFile=outputs/max.sol outputs/problem.lp")
     resFile = open("outputs/max.sol",'r')
