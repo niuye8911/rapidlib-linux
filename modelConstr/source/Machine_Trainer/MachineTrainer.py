@@ -14,9 +14,9 @@ class MachineTrainer:
         "cpu_num": [1, 2, 3],
         "io": [1, 2, 3],
         "vm": [1, 2, 3],
-        "vm_bytes": ["128K", "256K", "512K", "1M"],
+        "vm_bytes": ["128K", "256K", "512K"],
         "hdd": [1, 2],
-        "hdd_bytes": ["128K", "256KK", "512K", "1M"]
+        "hdd_bytes": ["128K", "256KK", "512K"]
     }
 
     PCM_PREFIX = [
@@ -54,7 +54,7 @@ class MachineTrainer:
             sleep(0.5)
             # train the second env for 10 seconds
             metric2 = self.trainSingle(env2_cmd)
-            sleep(0.5) 
+            sleep(0.5)
             # train the combined env
             observation = self.trainCombined(env1_cmd, env2_cmd)
             debug_file.write(" ".join(env1_cmd) + '\n')
