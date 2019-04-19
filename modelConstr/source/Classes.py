@@ -1012,6 +1012,7 @@ class AppMethods():
         if withMModel:
             m_slowdownProfile.close()
         if upload:
+            print("preparing to upload to server")
             self.uploadToServer(appInfo)
         # udpate the status
         appInfo.setTrained()
@@ -1029,7 +1030,7 @@ class AppMethods():
         # get the machine id
         hostname = socket.gethostname()
 
-        INIT_ENDPOINT = "http://algaesim.cs.rutgers.edu/server/init.php"
+        INIT_ENDPOINT = "http://algaesim.cs.rutgers.edu/rapid_server/init.php"
         INIT_ENDPOINT = INIT_ENDPOINT + "?" + 'machine=' + hostname + \
             '&app=' + appInfo.APP_NAME
 

@@ -29,6 +29,8 @@ def genFact(appInfo, config_table, numOfFixedEnv):
     if appInfo.isTrained():
         # construct the time_record
         time_record = recoverTimeRecord(appInfo, appMethods.training_units)
+        # upload to server
+        appMethods.uploadToServer(appInfo)
         return time_record
     if appInfo.TRAINING_CFG['withQoS']:
         appMethods.runGT()
