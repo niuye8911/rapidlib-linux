@@ -3,9 +3,10 @@
 "appPath":"/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps/swaptions/src/swaptions",
 "appMet":"/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/swaptionMet.py",
 "appDep":"/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort/depfileswaptions",
-  "withQoS": 1,
+  "withQoS": 0,
   "RS": 0,
   "qosRun": 0,
   "withSys": 1,
-  "withPerf": 1
+  "withPerf": 1,
+  "withMModel":1
 }
