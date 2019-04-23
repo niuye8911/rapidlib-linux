@@ -1027,6 +1027,10 @@ class AppMethods():
         # get the app performance profile text
         with open(appInfo.FILE_PATHS['PERF_FILE_PATH'], 'r') as perfF:
             perf_data = perfF.read()
+        with open(appInfo.FILE_PATHS['MV_FILE_PATH'], 'r') as perfF:
+            mv_data = perfF.read()
+        with open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'r') as perfF:
+            cost_data = perfF.read()
         # get the machine id
         hostname = socket.gethostname()
 
@@ -1035,7 +1039,12 @@ class AppMethods():
             '&app=' + appInfo.APP_NAME
 
         # set up the post params
-        POST_PARAMS = {'buckets': sys_data, 'p_model': perf_data}
+        POST_PARAMS = {
+            'buckets': sys_data,
+            'p_model': perf_data,
+            'mv': mv_data,
+            'cost': cost_data
+        }
 
         req = requests.post(url=INIT_ENDPOINT, data=POST_PARAMS)
 
