@@ -1,0 +1,33 @@
+{
+  "STATUS": {
+    "STRESS_TRAINED": false, 
+    "STANDARD_TRAINED": false
+  }, 
+  "TRAINING_OUTPUT_DIR": "training_outputs/bodytrack/", 
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/bodytrackMet.py", 
+  "APP_NAME": "bodytrack", 
+  "DEBUG_DIR": "debug/bodytrack/", 
+  "OUTPUT_DIR_PREFIX": "outputs/bodytrack/", 
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/bodytrack/obj/amd64-linux.gcc-serial/TrackingBenchmark/bodytrack", 
+  "TRAINING_CFG": {
+    "withPerf": true, 
+    "validate_rs_path": "", 
+    "calRS": false, 
+    "qosRun": false, 
+    "RS": false, 
+    "withQoS": true, 
+    "withSys": true, 
+    "validate": false, 
+    "withSYS": false, 
+    "withMModel": true
+  }, 
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort/depfilebodytrack_nolimit", 
+  "FILE_PATHS": {
+    "SYS_FILE_PATH": "outputs/bodytrack/bodytrack-sys.csv", 
+    "COST_FILE_PATH": "outputs/bodytrack/bodytrack-cost.fact", 
+    "MV_FILE_PATH": "outputs/bodytrack/bodytrack-mv.fact", 
+    "M_FILE_PATH": "outputs/bodytrack/bodytrack-mperf.csv", 
+    "PROFILE_PATH": "outputs/bodytrack/bodytrack.profile", 
+    "PERF_FILE_PATH": "outputs/bodytrack/bodytrack-perf.csv"
+  }
+}

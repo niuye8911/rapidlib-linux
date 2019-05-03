@@ -1155,6 +1155,7 @@ class AppMethods():
             # sudo ./pcm.x -csv=results.csv
 
             command = self.PCM_PREFIX + command
+        print(command)
         os.system(" ".join(command))
         time2 = time.time()
         total_time = time2 - time1

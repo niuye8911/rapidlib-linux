@@ -8,7 +8,7 @@ from Classes import *  # import the parent class and other classes from the
 
 
 class appMethods(AppMethods):
-    input_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps" \
+    input_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
                  "/bodytrack/run/sequenceB_261/"
 
     def __init__(self, name, obj_path):
