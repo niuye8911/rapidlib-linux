@@ -9,12 +9,12 @@ from Classes import *  # import the parent class and other classes from the
 
 
 class appMethods(AppMethods):
-    database_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps" \
+    database_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
                     "/ferret/run/corelnative/"
     table = "lsh"
-    query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs/apps" \
+    query_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
                  "/ferret/run/queries"
-    fullrun_query_path = "/home/liuliu/Research/mara_bench/parsec-3.0/pkgs" \
+    fullrun_query_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs" \
                          "/apps/ferret/run/queriesnative"
 
     def __init__(self, name, obj_path):
