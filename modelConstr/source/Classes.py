@@ -114,11 +114,11 @@ class SysUsageTable:
 class SysArgs:
     def __init__(self):
         self.env = {}
-        self.env["cpu_num"] = [1, 2, 3, 4]
+        self.env["cpu_num"] = [1, 2, 3]
         self.env["io"] = [1, 2]
         self.env["vm"] = [1, 2]
         self.env["vm_bytes"] = ["128K", "256K", "512K"]
-        self.env["hdd"] = [1, 2, 3]
+        self.env["hdd"] = [1, 2]
         self.env["hdd_bytes"] = ["128K", "256K", "512K"]
 
     def getRandomEnv(self):
@@ -956,6 +956,7 @@ class AppMethods():
             )  # extract the configurations
             # assembly the command
             command = self.getCommand(configs)
+            print(" ".join(command))
 
             if not appInfo.isTrained():
                 # 1) COST Measuremnt
