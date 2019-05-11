@@ -9,7 +9,7 @@ from Classes import AppMethods  # import the parent class and other classes
 
 class appMethods(AppMethods):
     image_index_path = "/home/liuliu/Research/mara_bench/mara_face/pics" \
-                       "/pic_index/training.txt"
+                       "/pic_index/training50.txt"
     image_index_full_path = "/home/liuliu/Research/mara_bench/mara_face" \
                             "/pics" \
                             "/pic_index/full.txt"
@@ -19,14 +19,14 @@ class appMethods(AppMethods):
     full_grond_truth_path = "/home/liuliu/Research/mara_bench/mara_face/pics" \
                        "/pic_index/full_result.txt"
     train_grond_truth_path = "/home/liuliu/Research/mara_bench/mara_face/pics" \
-                       "/pic_index/training_result.txt"
+                       "/pic_index/training50_result.txt"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 100
+        self.training_units = 50
         self.fullrun_units = 861
         self.max_cost = 182
         self.min_cost = 10
@@ -78,8 +78,9 @@ class appMethods(AppMethods):
                     # knob
                 elif name == "eyes":
                     eyes = config.val  # retrieve the setting for each knob
+        index = self.image_index_full_path if qosRun else self.image_index_path
         return [
-            self.obj_path, "-index", self.image_index_path, '-p',
+            self.obj_path, "-index", index, '-p',
             str(pyramid), '-s',
             str(selectivity), '-e',
             str(eyes)

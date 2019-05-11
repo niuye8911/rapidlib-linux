@@ -1,0 +1,33 @@
+{
+  "STATUS": {
+    "STRESS_TRAINED": false, 
+    "STANDARD_TRAINED": false
+  }, 
+  "TRAINING_OUTPUT_DIR": "training_outputs/facedetect/", 
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/facedetectMet.py", 
+  "APP_NAME": "facedetect", 
+  "DEBUG_DIR": "debug/facedetect/", 
+  "OUTPUT_DIR_PREFIX": "outputs/facedetect/", 
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/mara_face/facedetect", 
+  "TRAINING_CFG": {
+    "withPerf": true, 
+    "validate_rs_path": "", 
+    "calRS": false, 
+    "qosRun": false, 
+    "RS": false, 
+    "withQoS": true, 
+    "withSys": true, 
+    "validate": false, 
+    "withSYS": false, 
+    "withMModel": true
+  }, 
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort/depfileface", 
+  "FILE_PATHS": {
+    "SYS_FILE_PATH": "outputs/facedetect/facedetect-sys.csv", 
+    "COST_FILE_PATH": "outputs/facedetect/facedetect-cost.fact", 
+    "MV_FILE_PATH": "outputs/facedetect/facedetect-mv.fact", 
+    "M_FILE_PATH": "outputs/facedetect/facedetect-mperf.csv", 
+    "PROFILE_PATH": "outputs/facedetect/facedetect.profile", 
+    "PERF_FILE_PATH": "outputs/facedetect/facedetect-perf.csv"
+  }
+}

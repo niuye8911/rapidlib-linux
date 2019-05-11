@@ -4,12 +4,14 @@ import datetime
 import hashlib
 import os
 import random
+import imp
 import signal
 import subprocess
 import time
 import socket
 import requests
-
+from App.AppSummary import AppSummary
+from stage_1.training import genTrainingSet
 
 class Metric:
     EXCLUDED_METRIC = {
@@ -55,10 +57,14 @@ class SlowDown:
         self.configuration = configuration
         self.slowdown_table = dict()
         self.metrics = dict()
+        self.stresser_info = dict()
 
-    def add_slowdown(self, metric, slowdown):
-        self.slowdown_table[self.get_md5(metric).hexdigest()] = slowdown
-        self.metrics[self.get_md5(metric).hexdigest()] = metric
+    def add_slowdown(self, metric, slowdown, stresser_info=''):
+        signature = self.get_md5(metric).hexdigest()
+        self.slowdown_table[signature] = slowdown
+        self.metrics[signature] = metric
+        if stresser_info != '':
+            self.stresser_info[signature] = stresser_info
 
     def get_md5(self, metric):
         return hashlib.md5(metric.printAsCSVLine(',').encode())
@@ -78,6 +84,9 @@ class SlowDown:
             # write the config
             filestream.write(self.configuration.printSelf('-'))
             filestream.write(',')
+            if metricmd5 in self.stresser_info:
+                filestream.write(self.stresser_info[metricmd5])
+                filestream.write(',')
             filestream.write(self.get_metric(metricmd5))
             filestream.write(',')
             filestream.write(str(slowdown))
@@ -110,39 +119,58 @@ class SysUsageTable:
             filestream.write("\n")
         filestream.close()
 
+class Stresser:
+    APP_FILES = {
+    'bodytrack':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort',
+    'facedetect':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
+    'ferret':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
+    'swaptions':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort'
+    }
+
+    def __init__(self, target_app):
+        self.target_app = target_app
+        self.apps = {}
+        self.loadAll()
+
+    def loadAll(self):
+        for app_name, config_file in self.APP_FILES.items():
+            if app_name==self.target_app:
+                continue
+            app = AppSummary(config_file+'/config_algae.json')
+            knobs, config_table, knob_samples = genTrainingSet(app.DESC)
+            # groundTruth_profile contains all the config_table
+            module = imp.load_source("", app.METHODS_PATH)
+            appMethods = module.appMethods(app.APP_NAME, app.OBJ_PATH)
+            self.apps[app_name]={'appMethods':appMethods, 'configs':list(config_table.configurations)}
+
+    def getRandomStresser(self):
+        app = random.choice(self.apps.keys())
+        configuration = random.choice(self.apps[app]['configs'])
+        cmd = self.apps[app]['appMethods'].getCommand(configuration.retrieve_configs(),True) #set to true to return the full run command
+        return {'app':app,'configuration':configuration, 'command':cmd}
+
 
 class SysArgs:
     def __init__(self):
         self.env = {}
-        self.env["cpu_num"] = [1, 2, 3]
-        self.env["io"] = [1, 2]
-        self.env["vm"] = [1, 2]
+        self.env["cpu_num"] = [0,1]
+        self.env["io"] = [0,1]
+        self.env["vm"] = [1]
         self.env["vm_bytes"] = ["128K", "256K", "512K"]
-        self.env["hdd"] = [1, 2]
-        self.env["hdd_bytes"] = ["128K", "256K", "512K"]
 
     def getRandomEnv(self):
         cpu_num = random.choice(self.env['cpu_num'])
         io = random.choice(self.env['io'])
         vm = random.choice(self.env['vm'])
         vm_bytes = random.choice(self.env['vm_bytes'])
-        hdd = random.choice(self.env['hdd'])
-        hdd_bytes = random.choice(self.env['hdd_bytes'])
         command = [
             '/usr/bin/stress',
             '-q',
-            "--cpu",
-            str(cpu_num),
-            '--io',
-            str(io),
-            '--vm',
-            str(vm),
-            '--vm-bytes',
-            str(vm_bytes),
-            '--hdd',
-            str(hdd),
-            '--hdd-bytes',
-            str(hdd_bytes),
+            "--cpu 1" if cpu_num==1 else "",
+            '--io 1' if io==1 else "",
+            '--vm 1',
+            '--vm-bytes ',
+            str(vm_bytes)
         ]
         return command
 
@@ -935,12 +963,13 @@ class AppMethods():
             m_slowdownHeader = False
 
         # comment the lines below if need random coverage
-        env = SysArgs()
+        #env = SysArgs()
+        env = Stresser(self.appName)
         env_commands = []
         if numOfFixedEnv != -1:
             for i in range(0, numOfFixedEnv):  # run different environment
-                env_commands.append(env.getRandomEnv())
-
+                #env_commands.append(env.getRandomEnv())
+                env_commands.append(env.getRandomStresser())
         training_time_record = {}
 
         # iterate through configurations
@@ -956,7 +985,6 @@ class AppMethods():
             )  # extract the configurations
             # assembly the command
             command = self.getCommand(configs)
-            print(" ".join(command))
 
             if not appInfo.isTrained():
                 # 1) COST Measuremnt
@@ -1076,18 +1104,25 @@ class AppMethods():
         m_slowdownTable = SlowDown(configuration)
         # if running random coverage, create the commands
         if len(env_commands) == 0:
+            print("No commands input, get 10 synthetic stressers")
             for i in range(0, 10):  # run 10 different environment
                 env_command = env.getRandomEnv()
                 env_commands.append(env_command)
         for env_command in env_commands:
             # if withMModel, check the environment first
             if withMModel:
-                command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
-                os.system(command)
+                #command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
+                #os.system(command)
+                command = " ".join(self.PCM_PREFIX + env_command['command'])
+                info = env_command['app']+":"+env_command['configuration'].printSelf('-')
+                stresser = subprocess.Popen(command, shell=True, preexec_fn=os.setsid)
+                time.sleep(5) #profile for 5 seconds
+                os.killpg(os.getpgid(stresser.pid), signal.SIGTERM)
                 env_metric = AppMethods.parseTmpCSV()
             # start the env
-            env_creater = subprocess.Popen(
-                " ".join(env_command), shell=True, preexec_fn=os.setsid)
+            #env_creater = subprocess.Popen(
+            #    " ".join(env_command), shell=True, preexec_fn=os.setsid)
+            env_creater = subprocess.Popen(" ".join(env_command['command']), shell=True, preexec_fn=os.setsid)
 
             total_time, cost, metric = self.getCostAndSys(
                 app_command, self.training_units, True,
@@ -1098,7 +1133,7 @@ class AppMethods():
             slowdown = cost / orig_cost
             slowdownTable.add_slowdown(metric, slowdown)
             if withMModel:
-                m_slowdownTable.add_slowdown(env_metric, slowdown)
+                m_slowdownTable.add_slowdown(env_metric, slowdown,info)
         return slowdownTable, m_slowdownTable
 
     def runMModelTest(self, configuration, orig_cost):

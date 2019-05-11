@@ -1,8 +1,5 @@
 import itertools
 
-from Classes import *
-
-
 # stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
     config_file = open(cfg_file, 'r')  # input file
@@ -13,6 +10,7 @@ def genTrainingSet(cfg_file):
     # flat the all_training
     flatted = flatAll(all_training)
     # filter out the invalid configs
+    from Classes import Profile,Configuration,Knobs
     flatted_all_training = Profile()
     invalid = 0
     for config in flatted:
@@ -37,6 +35,7 @@ def genTrainingSet(cfg_file):
 
 # read in a description file
 def processFile(cfg_file):
+    from Classes import Knob, Constraint
     knobs = set()
     and_constriants = set()
     or_constraints = set()
@@ -95,6 +94,7 @@ def flatAll(listOfTuples):
 # product - a cross product containing bunch of Configurations
 # knob_samples - a disctionary contains all sampled configs
 def genAllTraining(knobs):
+    from Classes import Config
     final_sets = set()
     knob_samples = {}
     for knob in knobs:
