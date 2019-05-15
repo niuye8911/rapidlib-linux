@@ -7,7 +7,7 @@ from cs231n.data_utils import load_CIFAR10
 
 
 class appMethods(AppMethods):
-    data_path = "/home/liuliu/Research/mara_bench/machine_learning/cs231n" \
+    data_path = "/home/liuliu/Research/mara_bench/mara_learn/cs231n" \
                 "/datasets/cifar-10-batches-py"
 
     def __init__(self, name, obj_path):
