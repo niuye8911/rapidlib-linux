@@ -22,15 +22,15 @@ class appMethods(AppMethods):
 
     def cleanUpAfterEachRun(self, configs=None):
         learningRate = 100 * 1e-7
-        regular = 25000
+        regular = 1e-5
         batch = 500
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "learningRate":
-                    learningRate = float(config.val) * 1e-7
+                    learningRate = float(config.val) * 1e-5
                 elif name == "regular":
-                    regular = config.val * 100  # retrieve the setting for each
+                    regular = config.val * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(2,
@@ -38,18 +38,18 @@ class appMethods(AppMethods):
                     # for each knob
 
         # backup the generated output to another location
-        self.moveFile("./model_nn_w1.p", "./training_outputs/output_nn_w1_" +
-                      str(float(learningRate) * 1e7) + "_" +
-                      str(int(regular)) + "_" + str(int(batch)) + ".p")
-        self.moveFile("./model_nn_b1.p", "./training_outputs/output_nn_b1_" +
-                      str(float(learningRate) * 1e7) + "_" +
-                      str(int(regular)) + "_" + str(int(batch)) + ".p")
-        self.moveFile("./model_nn_w2.p", "./training_outputs/output_nn_w2_" +
-                      str(float(learningRate) * 1e7) + "_" +
-                      str(int(regular)) + "_" + str(int(batch)) + ".p")
-        self.moveFile("./model_nn_b2.p", "./training_outputs/output_nn_b2_" +
-                      str(float(learningRate) * 1e7) + "_" +
-                      str(int(regular)) + "_" + str(int(batch)) + ".p")
+        #self.moveFile("./model_nn_w1.p", "./training_outputs/output_nn_w1_" +
+        #              str(float(learningRate) * 1e-7) + "_" +
+    #                  str(int(regular)) + "_" + str(int(batch)) + ".p")
+    #    self.moveFile("./model_nn_b1.p", "./training_outputs/output_nn_b1_" +
+#                      str(float(learningRate) * 1e-7) + "_" +
+                      #str(int(regular)) + "_" + str(int(batch)) + ".p")
+        #self.moveFile("./model_nn_w2.p", "./training_outputs/output_nn_w2_" +
+                      #str(float(learningRate) * 1e-7) + "_" +
+                      #str(int(regular)) + "_" + str(int(batch)) + ".p")
+        #self.moveFile("./model_nn_b2.p", "./training_outputs/output_nn_b2_" +
+                      #str(float(learningRate) * 1e-7) + "_" +
+                      #str(int(regular)) + "_" + str(int(batch)) + ".p")
 
     def getFullRunCommand(self, budget):
         return [self.obj_path,
@@ -61,15 +61,15 @@ class appMethods(AppMethods):
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
         learningRate = 100 * 1e-7
-        regular = 25000
+        regular = 1e-5
         batch = 500
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "learningRate":
-                    learningRate = float(config.val) * 1e-7
+                    learningRate = float(config.val) * 1e-5
                 elif name == "regular":
-                    regular = config.val * 100  # retrieve the setting for each
+                    regular = float(config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = config.val * 64  # retrieve the setting for each

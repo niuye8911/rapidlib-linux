@@ -26,7 +26,7 @@ class appMethods(AppMethods):
 
     def cleanUpAfterEachRun(self, configs=None):
         learningRate = 100 * 1e-7
-        regular = 25000
+        regular = 1e-5
         batch = 500
         if configs is None:
             # no ground truth
@@ -37,7 +37,7 @@ class appMethods(AppMethods):
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-7
                 elif name == "regular":
-                    regular = config.val * 5000  # retrieve the setting for each
+                    regular = float(config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(2,
@@ -45,11 +45,11 @@ class appMethods(AppMethods):
                     # for each knob
 
         # backup the generated output to another location
-        self.moveFile("./model_svm.p",
-                      "./training_outputs/output_" + str(
-                          float(learningRate) * 1e7) + "_" + str(
-                          int(regular)) + "_" + str(
-                          int(batch)) + ".txt")
+        #self.moveFile("./model_svm.p",
+        #              "./training_outputs/output_" + str(
+        #                  float(learningRate) * 1e-5) + "_" + str(
+        #                  int(regular)) + "_" + str(
+        #                  int(batch)) + ".txt")
 
     def getFullRunCommand(self, budget):
         return [self.obj_path,
@@ -60,16 +60,16 @@ class appMethods(AppMethods):
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
-        learningRate = 100 * 1e-7
-        regular = 25000
+        learningRate = 100 * 1e-5
+        regular = 1e-5
         batch = 500
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "learningRate":
-                    learningRate = float(config.val) * 1e-7
+                    learningRate = float(config.val) * 1e-5
                 elif name == "regular":
-                    regular = config.val * 5000  # retrieve the setting for each
+                    regular = float(config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(2,
