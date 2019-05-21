@@ -179,7 +179,7 @@ class SysArgs:
         vm = random.choice(self.env['vm'])
         vm_bytes = random.choice(self.env['vm_bytes'])
         # in case everyone is 0
-        if cpu_num + io_num + vm == 0:
+        if cpu_num + io + vm == 0:
             cpu_num = 1
         command = ['/usr/bin/stress', '-q']
         cpu_substr = '' if cpu_num == 0 else '--cpu ' + str(cpu_num)
@@ -992,7 +992,7 @@ class AppMethods():
             # half single half multi
             for i in range(0, numOfFixedEnv / 2):  # run different environment
                 #env_commands.append(env.getRandomEnv())
-                env_commands.append(env.getRandomStresser())
+                env_commands.append(single_env.getRandomStresser())
                 env_commands.append(multi_env.getRandomEnv())
         training_time_record = {}
 
