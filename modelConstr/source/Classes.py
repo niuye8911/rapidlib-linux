@@ -13,6 +13,7 @@ import requests
 from App.AppSummary import AppSummary
 from stage_1.training import genTrainingSet
 
+
 class Metric:
     EXCLUDED_METRIC = {
         "Date",
@@ -119,12 +120,17 @@ class SysUsageTable:
             filestream.write("\n")
         filestream.close()
 
+
 class Stresser:
     APP_FILES = {
-    'bodytrack':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort',
-    'facedetect':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
-    'ferret':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
-    'swaptions':'/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort'
+        'bodytrack':
+        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort',
+        'facedetect':
+        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
+        'ferret':
+        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
+        'swaptions':
+        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort'
     }
 
     def __init__(self, target_app):
@@ -134,45 +140,61 @@ class Stresser:
 
     def loadAll(self):
         for app_name, config_file in self.APP_FILES.items():
-            if app_name==self.target_app:
+            if app_name == self.target_app:
                 continue
-            app = AppSummary(config_file+'/config_algae.json')
+            app = AppSummary(config_file + '/config_algae.json')
             knobs, config_table, knob_samples = genTrainingSet(app.DESC)
             # groundTruth_profile contains all the config_table
             module = imp.load_source("", app.METHODS_PATH)
             appMethods = module.appMethods(app.APP_NAME, app.OBJ_PATH)
-            self.apps[app_name]={'appMethods':appMethods, 'configs':list(config_table.configurations)}
+            self.apps[app_name] = {
+                'appMethods': appMethods,
+                'configs': list(config_table.configurations)
+            }
 
     def getRandomStresser(self):
         app = random.choice(self.apps.keys())
         configuration = random.choice(self.apps[app]['configs'])
-        cmd = self.apps[app]['appMethods'].getCommand(configuration.retrieve_configs(),True) #set to true to return the full run command
-        return {'app':app,'configuration':configuration, 'command':cmd}
+        cmd = self.apps[app]['appMethods'].getCommand(
+            configuration.retrieve_configs(),
+            True)  #set to true to return the full run command
+        return {
+            'app': app,
+            'configuration': configuration.printSelf('-'),
+            'command': cmd
+        }
 
 
 class SysArgs:
     def __init__(self):
         self.env = {}
-        self.env["cpu_num"] = [0,1]
-        self.env["io"] = [0,1]
-        self.env["vm"] = [1]
-        self.env["vm_bytes"] = ["128K", "256K", "512K"]
+        self.env["cpu_num"] = [0, 0, 0, 1, 2, 3]
+        self.env["io"] = [0, 0, 1, 2]
+        self.env["vm"] = [0, 0, 1, 2]
+        self.env["vm_bytes"] = ["128K", "256K", "512K", "1M"]
 
     def getRandomEnv(self):
         cpu_num = random.choice(self.env['cpu_num'])
         io = random.choice(self.env['io'])
         vm = random.choice(self.env['vm'])
         vm_bytes = random.choice(self.env['vm_bytes'])
-        command = [
-            '/usr/bin/stress',
-            '-q',
-            "--cpu 1" if cpu_num==1 else "",
-            '--io 1' if io==1 else "",
-            '--vm 1',
-            '--vm-bytes ',
-            str(vm_bytes)
-        ]
-        return command
+        # in case everyone is 0
+        if cpu_num + io_num + vm == 0:
+            cpu_num = 1
+        command = ['/usr/bin/stress', '-q']
+        cpu_substr = '' if cpu_num == 0 else '--cpu ' + str(cpu_num)
+        io_substr = '' if io == 0 else '--io ' + str(io)
+        vm_substr = '' if vm == 0 else '--vm_bytes ' + str(vm_bytes)
+        command.append(cpu_substr)
+        command.append(io_substr)
+        command.append(vm_substr)
+        config_name = 'cpu_' + str(cpu_num) + '_io_' + str(io) + '_vm_' + str(
+            vm) + '_vmbytes_' + str(vm_bytes)
+        return {
+            'app': 'stress',
+            'configuration': config_name,
+            'command': command
+        }
 
 
 class Knob:
@@ -919,8 +941,8 @@ class AppMethods():
         step_size = (self.max_cost - self.min_cost) / 10.0
         mvs = []
         for percentage in range(1, 10):
-            budget = (self.min_cost + float(percentage) * step_size
-                      ) * self.fullrun_units / 1000.0
+            budget = (self.min_cost + float(percentage) *
+                      step_size) * self.fullrun_units / 1000.0
             cmd = self.getFullRunCommand(budget)
             os.system(" ".join(cmd))
             # check the QoS
@@ -963,13 +985,15 @@ class AppMethods():
             m_slowdownHeader = False
 
         # comment the lines below if need random coverage
-        #env = SysArgs()
-        env = Stresser(self.appName)
+        multi_env = SysArgs()
+        single_env = Stresser(self.appName)
         env_commands = []
         if numOfFixedEnv != -1:
-            for i in range(0, numOfFixedEnv):  # run different environment
+            # half single half multi
+            for i in range(0, numOfFixedEnv / 2):  # run different environment
                 #env_commands.append(env.getRandomEnv())
                 env_commands.append(env.getRandomStresser())
+                env_commands.append(multi_env.getRandomEnv())
         training_time_record = {}
 
         # iterate through configurations
@@ -1114,15 +1138,19 @@ class AppMethods():
                 #command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
                 #os.system(command)
                 command = " ".join(self.PCM_PREFIX + env_command['command'])
-                info = env_command['app']+":"+env_command['configuration'].printSelf('-')
-                stresser = subprocess.Popen(command, shell=True, preexec_fn=os.setsid)
-                time.sleep(5) #profile for 5 seconds
+                info = env_command['app'] + ":" + env_command['configuration']
+                stresser = subprocess.Popen(command,
+                                            shell=True,
+                                            preexec_fn=os.setsid)
+                time.sleep(5)  #profile for 5 seconds
                 os.killpg(os.getpgid(stresser.pid), signal.SIGTERM)
                 env_metric = AppMethods.parseTmpCSV()
             # start the env
             #env_creater = subprocess.Popen(
             #    " ".join(env_command), shell=True, preexec_fn=os.setsid)
-            env_creater = subprocess.Popen(" ".join(env_command['command']), shell=True, preexec_fn=os.setsid)
+            env_creater = subprocess.Popen(" ".join(env_command['command']),
+                                           shell=True,
+                                           preexec_fn=os.setsid)
 
             total_time, cost, metric = self.getCostAndSys(
                 app_command, self.training_units, True,
@@ -1133,7 +1161,7 @@ class AppMethods():
             slowdown = cost / orig_cost
             slowdownTable.add_slowdown(metric, slowdown)
             if withMModel:
-                m_slowdownTable.add_slowdown(env_metric, slowdown,info)
+                m_slowdownTable.add_slowdown(env_metric, slowdown, info)
         return slowdownTable, m_slowdownTable
 
     def runMModelTest(self, configuration, orig_cost):
@@ -1148,8 +1176,9 @@ class AppMethods():
             os.system(command)
             env_metric = AppMethods.parseTmpCSV()
             # measure the combined env
-            env_creater = subprocess.Popen(
-                " ".join(env_command), shell=True, preexec_fn=os.setsid)
+            env_creater = subprocess.Popen(" ".join(env_command),
+                                           shell=True,
+                                           preexec_fn=os.setsid)
             total_time, cost, total_metric = self.getCostAndSys(
                 app_command, self.training_units, True,
                 configuration.printSelf('-'))
