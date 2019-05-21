@@ -123,8 +123,6 @@ class SysUsageTable:
 
 class Stresser:
     APP_FILES = {
-        'bodytrack':
-        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort',
         'facedetect':
         '/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
         'ferret':
@@ -184,7 +182,7 @@ class SysArgs:
         command = ['/usr/bin/stress', '-q']
         cpu_substr = '' if cpu_num == 0 else '--cpu ' + str(cpu_num)
         io_substr = '' if io == 0 else '--io ' + str(io)
-        vm_substr = '' if vm == 0 else '--vm_bytes ' + str(vm_bytes)
+        vm_substr = '' if vm == 0 else '--vm-bytes ' + str(vm_bytes)
         command.append(cpu_substr)
         command.append(io_substr)
         command.append(vm_substr)
@@ -1132,12 +1130,16 @@ class AppMethods():
             for i in range(0, 10):  # run 10 different environment
                 env_command = env.getRandomEnv()
                 env_commands.append(env_command)
+        id = 0
         for env_command in env_commands:
             # if withMModel, check the environment first
             if withMModel:
+                print('running stresser alone', env_command['configuration'], id)
+                id+=1
                 #command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
                 #os.system(command)
-                command = " ".join(self.PCM_PREFIX + env_command['command'])
+                command = " ".join(self.PCM_PREFIX + env_command['command'] +
+                                   ['&> /dev/null'])
                 info = env_command['app'] + ":" + env_command['configuration']
                 stresser = subprocess.Popen(command,
                                             shell=True,
@@ -1148,7 +1150,9 @@ class AppMethods():
             # start the env
             #env_creater = subprocess.Popen(
             #    " ".join(env_command), shell=True, preexec_fn=os.setsid)
-            env_creater = subprocess.Popen(" ".join(env_command['command']),
+            print('running stresser+app')
+            env_creater = subprocess.Popen(" ".join(env_command['command'] +
+                                                    ['&> /dev/null']),
                                            shell=True,
                                            preexec_fn=os.setsid)
 
@@ -1230,9 +1234,9 @@ class AppMethods():
         # parse the csv
         if withSys:
             metric_value = AppMethods.parseTmpCSV()
-            if configuration != '':
-                # back up the csv_file
-                os.system("mv tmp.csv ./debug/" + configuration + ".csv")
+            #if configuration != '':
+            # back up the csv_file
+            #    os.system("mv tmp.csv ./debug/" + configuration + ".csv")
 
         return total_time, avg_time, metric_value
 
