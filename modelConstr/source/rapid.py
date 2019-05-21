@@ -39,7 +39,7 @@ knob_samples = {}
 
 # Training Options
 PLOT = False
-NUM_OF_FIXED_ENV = 20  # -1:random environment N:N fixed environments
+NUM_OF_FIXED_ENV = 16  # -1:random environment N:N fixed environments
 targetMax = 0.1
 targetMean = 0.05
 THRESHOLD = 0.05
