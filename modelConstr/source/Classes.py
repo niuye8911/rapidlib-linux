@@ -1184,6 +1184,9 @@ class AppMethods():
         :param withSys: whether to check system usage or not
         :return: the average execution time for each work unit
         """
+        # remove csv if exists
+        if os.path.isfile('./tmp.csv'):
+            os.system('rm tmp.csv')
         time1 = time.time()
         metric_value = {}
         if withSys:
@@ -1191,7 +1194,6 @@ class AppMethods():
             # sudo ./pcm.x -csv=results.csv
 
             command = self.PCM_PREFIX + command
-        print(command)
         os.system(" ".join(command))
         time2 = time.time()
         total_time = time2 - time1
