@@ -182,7 +182,7 @@ class SysArgs:
         command = ['/usr/bin/stress', '-q']
         cpu_substr = '' if cpu_num == 0 else '--cpu ' + str(cpu_num)
         io_substr = '' if io == 0 else '--io ' + str(io)
-        vm_substr = '' if vm == 0 else '--vm-bytes ' + str(vm_bytes)
+        vm_substr = '' if vm == 0 else '--vm '+str(vm)+' --vm-bytes ' + vm_bytes
         command.append(cpu_substr)
         command.append(io_substr)
         command.append(vm_substr)
@@ -1134,19 +1134,24 @@ class AppMethods():
         for env_command in env_commands:
             # if withMModel, check the environment first
             if withMModel:
-                print('running stresser alone', env_command['configuration'], id)
+                print('running stresser alone', env_command['configuration'], id,env_command['command'])
                 id+=1
                 #command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
                 #os.system(command)
                 command = " ".join(self.PCM_PREFIX + env_command['command'] +
                                    ['&> /dev/null'])
                 info = env_command['app'] + ":" + env_command['configuration']
-                stresser = subprocess.Popen(command,
-                                            shell=True,
-                                            preexec_fn=os.setsid)
-                time.sleep(5)  #profile for 5 seconds
-                os.killpg(os.getpgid(stresser.pid), signal.SIGTERM)
-                env_metric = AppMethods.parseTmpCSV()
+                env_metric = None
+                while env_metric is None:
+                    # broken, rerun
+                    stresser = subprocess.Popen(command,
+                                                shell=True,
+                                                preexec_fn=os.setsid)
+                    time.sleep(5)  #profile for 5 seconds
+                    os.killpg(os.getpgid(stresser.pid), signal.SIGTERM)
+                    env_metric = AppMethods.parseTmpCSV()
+
+
             # start the env
             #env_creater = subprocess.Popen(
             #    " ".join(env_command), shell=True, preexec_fn=os.setsid)
@@ -1221,7 +1226,7 @@ class AppMethods():
         if os.path.isfile('./tmp.csv'):
             os.system('rm tmp.csv')
         time1 = time.time()
-        metric_value = {}
+        metric_value = None
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
@@ -1234,10 +1239,10 @@ class AppMethods():
         # parse the csv
         if withSys:
             metric_value = AppMethods.parseTmpCSV()
-            #if configuration != '':
-            # back up the csv_file
-            #    os.system("mv tmp.csv ./debug/" + configuration + ".csv")
-
+            while metric_value is None:
+                print("rerun")
+                # rerun
+                os.system(" ".join(command))
         return total_time, avg_time, metric_value
 
     @staticmethod
@@ -1252,6 +1257,9 @@ class AppMethods():
                 if line_count == 0:
                     line_count += 1
                 elif line_count == 1:  # header line
+                    if len(row)!=34: #broken line
+                        print("tmp csv file broken with line",len(row))
+                        return None
                     for item in row:
                         metric.append(item)
                     line_count += 1
@@ -1267,8 +1275,12 @@ class AppMethods():
                 if metric[i] != '':
                     try:
                         float(values[0][i])
-                    except ValueError:
-                        continue
+                    except:
+                        if i <= 1:
+                            continue
+                        else:
+                            print("not valid number found in csv",values[0],i)
+                            return None
                     # calculate the average value
                     avg_value = reduce((lambda x, y: (float(y[i]) + float(x))),
                                        values, 0.) / float(len(values))
