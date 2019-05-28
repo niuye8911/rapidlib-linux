@@ -166,9 +166,9 @@ class Stresser:
 class SysArgs:
     def __init__(self):
         self.env = {}
-        self.env["cpu_num"] = [0, 0, 0, 1, 2, 3]
-        self.env["io"] = [0, 0, 1, 2]
-        self.env["vm"] = [0, 0, 1, 2]
+        self.env["cpu_num"] = [0, 0, 0, 1, 2, 3,4,5]
+        self.env["io"] = [0, 0, 1, 2,3]
+        self.env["vm"] = [0, 0, 1, 2,3,4]
         self.env["vm_bytes"] = ["128K", "256K", "512K", "1M"]
 
     def getRandomEnv(self):
@@ -1139,16 +1139,17 @@ class AppMethods():
                 #command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
                 #os.system(command)
                 command = " ".join(self.PCM_PREFIX + env_command['command'] +
-                                   ['&> /dev/null'])
+                                   ['2> /dev/null'])
                 info = env_command['app'] + ":" + env_command['configuration']
                 env_metric = None
                 while env_metric is None:
                     # broken, rerun
+                    os.system('rm tmp.csv')
                     stresser = subprocess.Popen(command,
                                                 shell=True,
                                                 preexec_fn=os.setsid)
                     time.sleep(5)  #profile for 5 seconds
-                    os.killpg(os.getpgid(stresser.pid), signal.SIGTERM)
+                    os.killpg(os.getpgid(stresser.pid), signal.SIGKILL)
                     env_metric = AppMethods.parseTmpCSV()
 
 
@@ -1165,7 +1166,7 @@ class AppMethods():
                 app_command, self.training_units, True,
                 configuration.printSelf('-'))
             # end the env
-            os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
+            os.killpg(os.getpgid(env_creater.pid), signal.SIGKILL)
             # write the measurement to file
             slowdown = cost / orig_cost
             slowdownTable.add_slowdown(metric, slowdown)
@@ -1192,7 +1193,7 @@ class AppMethods():
                 app_command, self.training_units, True,
                 configuration.printSelf('-'))
             # end the env
-            os.killpg(os.getpgid(env_creater.pid), signal.SIGTERM)
+            os.killpg(os.getpgid(env_creater.pid), signal.SIGKILL)
             # write the measurement to file
             slowdown = cost / orig_cost
             slowdownTable.add_slowdown(env_metric, slowdown)
@@ -1240,9 +1241,11 @@ class AppMethods():
         if withSys:
             metric_value = AppMethods.parseTmpCSV()
             while metric_value is None:
-                print("rerun")
+                print("rerun"," ".join(command))
                 # rerun
+                os.system('rm tmp.csv')
                 os.system(" ".join(command))
+                metric_value = AppMethods.parseTmpCSV()
         return total_time, avg_time, metric_value
 
     @staticmethod
