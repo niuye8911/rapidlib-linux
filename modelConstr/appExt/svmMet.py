@@ -82,7 +82,7 @@ class appMethods(AppMethods):
                 str(regular),
                 "--batch",
                 str(batch),
-                "--train"]
+                "" if qosRun else "--train"]
 
     # helper function to evaluate the QoS
     def getQoS(self):

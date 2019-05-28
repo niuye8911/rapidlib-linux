@@ -128,7 +128,9 @@ class Stresser:
         'ferret':
         '/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
         'swaptions':
-        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort'
+        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort',
+        'svm':
+        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/svmPort'
     }
 
     def __init__(self, target_app):
@@ -1287,6 +1289,10 @@ class AppMethods():
                     # calculate the average value
                     avg_value = reduce((lambda x, y: (float(y[i]) + float(x))),
                                        values, 0.) / float(len(values))
+                    if avg_value == -1:
+                        # broken line
+                        print('-1 found in line')
+                        return None
                     metric_value.add_metric(metric[i], avg_value)
         csv_file.close()
         return metric_value
