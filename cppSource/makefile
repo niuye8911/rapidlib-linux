@@ -17,9 +17,14 @@ all: ./build/rsdg.a
 	ar -r -c -s $@ *.o
 
 # top lvl object
-rsdg.o: rsdgMission.cpp rsdgservice.o rsdgService.h
+rsdg.o: rsdgMission.cpp rapidm.o rsdgservice.o rsdgService.h
 	$(info building rsdg Mission...)
 	$(CC) $(CFLAGS) $(INCLUDE) $(LDLIBS) -L rsdgservice.o -o $@ $<
+
+# RAPID_M Server
+rapidm.o: rapid_m_server.cpp
+	$(info building rapid_m client...)
+	$(CC) $(CFLAGS) $(INCLUDE) $<
 
 # RSDG Service
 rsdgservice.o: rsdgService.cpp

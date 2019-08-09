@@ -31,6 +31,14 @@ public:
 
 public:
   const static bool REMOTE = false;
+
+public:
+  const static bool RAPIDS = false;
+
+public:
+  const static bool RAPIDM = true;
+
+  string app_name;
   bool DEBUG = false; // set to true if debug info is needed
   int numThreads;
   const string pythonScript =
@@ -62,6 +70,8 @@ public:
   int curUpdatingId = -1;
   bool lpsolve;
   bool local;
+  bool rapidm;
+  bool rapidm_started;
   long long lastCheckPoint;
   long long timeSinceLastCheckPoint = 0;
   long long startTime = -1;
@@ -101,7 +111,7 @@ public:
   void genAllConfigs(int, vector<string>);
 
 public:
-  rsdgMission();
+  rsdgMission(string name);
   rsdgService *getService(string name);
   void regService(string, string, void *(*)(void *), bool,
                   pair<rsdgPara *, int>);
@@ -111,6 +121,7 @@ public:
   void setupSolverFreq(int);
   void setUnit(int);
   void consultServer();
+  void consultServer_M();
   void updateSelection(vector<string> &result);
   void applyResult();
   void updateThread(rsdgService *s, string basicNode, double value);
@@ -123,7 +134,7 @@ public:
   void updateWeight(string, string, double);
   int getNumThreads();
   int printPref(string serviceName);
-  void setSolver(bool, bool);
+  void setSolver(bool, bool, bool);
   void finish_one_unit();
   void reconfig();
   void printProb(string);

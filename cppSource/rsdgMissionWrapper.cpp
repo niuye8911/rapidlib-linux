@@ -4,8 +4,9 @@
 extern "C" {
 
 // C-wrapper for constructor
-void *newRAPIDMission() {
-  rsdgMission *mission = new rsdgMission();
+void *newRAPIDMission(char* name) {
+  string app_name(name);
+  rsdgMission *mission = new rsdgMission(app_name);
   return (void *)mission;
 }
 
@@ -75,11 +76,12 @@ void setBudget(void *mission, int budget) {
 }
 
 // setSolver
-void setSolver(void *mission, int gurobi, int local) {
+void setSolver(void *mission, int gurobi, int local, int rapidm) {
   rsdgMission *target_mission = (rsdgMission *)mission;
   bool is_gurobi = gurobi == 1;
   bool is_local = local == 1;
-  target_mission->setSolver(is_gurobi, is_local);
+  bool is_rapidm = rapidm == 1;
+  target_mission->setSolver(is_gurobi, is_local, is_rapidm);
 }
 
 // setUnit

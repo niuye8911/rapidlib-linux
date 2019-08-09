@@ -1,23 +1,26 @@
 #include "rsdgMission.h"
+#include "rapid_m_server.h"
 #include "rsdgService.h"
 #include "stdlib.h"
 #include "string.h"
 #include <ctime>
 #include <curl/curl.h>
 #include <iostream>
+#include <math.h>
 #include <signal.h>
 #include <sstream>
 #include <string>
 #include <unistd.h>
-#include <math.h>
 #include <vector>
 
 /////rsdgMission////
-rsdgMission::rsdgMission() {
+rsdgMission::rsdgMission(string name) {
   RS_fact.open("observed.csv");
+  app_name = name;
   numThreads = 0;
   budget = 0;
   curBudget = 0;
+  rapidm_started = false;
   string test = "test";
   logfile.open("./mission.log");
   logfile << "selection, ExpectedEnergy, MV \n";
@@ -138,6 +141,23 @@ void rsdgMission::getRes(vector<string> &holder, string response) {
   }
   return;
 }
+
+void rsdgMission::consultServer_M() {
+  // consult the server with RAPID_M option
+  if (!rapidm_started) {
+    string register_result =
+        RAPIDS_SERVER::start("algaesim", app_name, curBudget);
+    if (register_result != "1") {
+      cout << "app cannot be registered to be started, msg:" << register_result
+           << endl;
+    };
+  }
+  string result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
+  cout << result << std::endl;
+  //TODO: add result parsing 
+  exit(1);
+}
+
 void rsdgMission::consultServer() {
   if (offline_search) {
     vector<string> res = searchProfile();
@@ -293,11 +313,11 @@ void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
   } else if (contParaList.find(basic) != contParaList.end()) {
     // only change if change is greater than 1%
     double origin_value = contParaList[basic]->intPara;
-    if (fabs(value-origin_value) / origin_value <= 0.01){
+    if (fabs(value - origin_value) / origin_value <= 0.01) {
       logDebug("Insignificant Change Ignored");
-      logfile << basic<< " ignored" <<endl;
+      logfile << basic << " ignored" << endl;
       logfile.flush();
-    }else{
+    } else {
       contParaList[basic]->intPara = value;
     }
   }
@@ -497,7 +517,10 @@ void rsdgMission::reconfig() {
     // phase1, max MV
     graph->minmax = MAX;
     printProb(outfileName);
-    consultServer();
+    if (rapidm)
+      consultServer_M();
+    else
+      consultServer();
     // phase2 and set the new MV
     /*        graph->minmax = MIN;
      graph->targetMV = objValue;
@@ -628,9 +651,10 @@ void rsdgMission::printProb(string outfile) {
   graph->writeXMLLp(name, lpsolve);
 }
 
-void rsdgMission::setSolver(bool LP, bool LC) {
+void rsdgMission::setSolver(bool LP, bool LC, bool RM) {
   lpsolve = LP;
   local = LC;
+  rapidm = RM;
 }
 
 void rsdgMission::cancel() {
@@ -717,8 +741,8 @@ void rsdgMission::updateModel(int unitSinceLastCheckPoint) {
   realCost = (double)timeSinceLastCheckPoint / (double)unitSinceLastCheckPoint;
   logDebug("timesincelastCheckpoint" + to_string(timeSinceLastCheckPoint) +
            "   unitsince" + to_string(unitSinceLastCheckPoint));
-  logDebug("REAL=" + to_string(realCost) + "   PREDICTED=" +
-           to_string(predictedCost));
+  logDebug("REAL=" + to_string(realCost) +
+           "   PREDICTED=" + to_string(predictedCost));
   string targetNode = "";
   // get the current selected nodes
   // TODO: currently only support 1-node situation

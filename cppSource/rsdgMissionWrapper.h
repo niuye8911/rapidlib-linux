@@ -2,7 +2,7 @@
 extern "C" {
 #endif
 
-void *newRAPIDMission();
+void *newRAPIDMission(char *);
 void *newRAPIDPara();
 
 int getParaVal(void *);
@@ -16,7 +16,7 @@ void reconfig(void *);
 void finish_one_unit(void *);
 void setUnit(void *, int);
 void setUnitBetweenCheckpoints(void *, int);
-void setSovler(void *, int, int);
+void setSovler(void *, int, int, int);
 long long getCurrentTimeInMilli();
 void finish_one_unit(void *);
 void addConstraint(void *, char *, int);
