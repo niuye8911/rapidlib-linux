@@ -1,4 +1,4 @@
-CC = g++
+CC = g++-7
 CFLAGS =  -std=c++11 -pthread -Wall -Wno-sign-compare -g -c
 TFLAGS =  -std=c++11 -pthread -Wall -g
 

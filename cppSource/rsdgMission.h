@@ -103,6 +103,9 @@ public:
   double maxMV;
   double minEnergy;
   bool solvable = true;
+  //    RAPID_M related
+  double slowdown = 0.0;
+  string bucket;
 
   // thread+runnable list
   vector<void *(*)(void *)> runnableList;

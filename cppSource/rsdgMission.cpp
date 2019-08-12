@@ -152,10 +152,12 @@ void rsdgMission::consultServer_M() {
            << endl;
     };
   }
-  string result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
-  cout << result << std::endl;
-  //TODO: add result parsing 
-  exit(1);
+  string response = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
+  cout << response << std::endl;
+  RAPIDS_SERVER::Response result = RAPIDS_SERVER::parse_response(response);
+  updateSelection(result.configs);
+  slowdown = result.slowdown;
+  bucket = result.bucket;
 }
 
 void rsdgMission::consultServer() {
