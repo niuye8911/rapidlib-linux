@@ -1077,3 +1077,6 @@ void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
  for(auto
  }
  }*/
+void rsdgMission::finish(){
+  RAPIDS_SERVER::end("algaesim", app_name);
+}

@@ -159,4 +159,8 @@ void readContTrainingSet(void *mission) {
   rsdgMission *target = (rsdgMission *)mission;
   target->readContTrainingSet();
 }
+void finish(void *mission){
+  rsdgMission *target = (rsdgMission *) mission;
+  target->finish();
+}
 } // extern "C"

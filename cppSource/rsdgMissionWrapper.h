@@ -28,6 +28,7 @@ void readCostProfile(void *);
 void setOfflineSearch(void *);
 void readContTrainingSet(void *);
 void setDebug(void *);
+void finish(void *);
 #ifdef __cplusplus
 }
 #endif

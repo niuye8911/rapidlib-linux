@@ -185,6 +185,7 @@ public:
   void logWarning(string msg);
   void logDebug(string msg);
   void logInfo(string msg);
+  void finish();
   double getFreq();
 };
 #endif

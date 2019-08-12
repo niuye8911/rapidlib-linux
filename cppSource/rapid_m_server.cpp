@@ -73,7 +73,7 @@ bool end(std::string machineID, std::string appID) {
   std::string result =
       queryServer(std::string("end.php"), getParams, postParams);
 
-  return result.empty();
+  return result=="SUCCESS";
 }
 
 int strToInt(std::string str) {
