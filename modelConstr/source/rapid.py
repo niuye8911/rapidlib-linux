@@ -151,9 +151,10 @@ def main(argv):
                         new_pref.append(1.0 + float(pref))
                     else:
                         new_pref.append(1.0)
-                factfile, mvfactfile = genFactWithRSDG(
-                    appname, groundTruth_profile, cost_rsdg, mv_rsdgs,
-                    appMethod, new_pref)
+                factfile, mvfactfile = genFactWithRSDG(appname,
+                                                       groundTruth_profile,
+                                                       cost_rsdg, mv_rsdgs,
+                                                       appMethod, new_pref)
                 readFact(factfile, knobs, groundTruth_profile)
                 readFact(mvfactfile, knobs, groundTruth_profile, False)
                 # calculate the new optimal configs
@@ -178,8 +179,6 @@ def main(argv):
                 if values[cur_budget] < cur_worst:
                     cur_worst = values[cur_budget]
             worst_cases.append(cur_worst)
-        print
-        worst_cases
         return
 
     if mode == "standard":
@@ -274,8 +273,8 @@ def main(argv):
             run_config['rapidScript'] = os.path.abspath('./rapid.py')
             run_config['seglvl'] = seglvl
             run_config['desc'] = os.path.abspath(appInfo.DESC)
-            run_config['preferences'] = list(
-                map(lambda x: 1.0, mv_paths[0:-1]))
+            run_config['preferences'] = list(map(lambda x: 1.0,
+                                                 mv_paths[0:-1]))
             json.dump(run_config, runFile, indent=2, sort_keys=True)
             runFile.close()
 
@@ -310,18 +309,6 @@ def main(argv):
         # get an observed file by randomly select some observation
         populateRSDG(observed, fact, True, model, remote)
         return 0
-
-    if (mode == "qos"):  # check the QoS loss of two different runtime behavior
-        # fact will be the golden truth
-        # observed will be the actual runtime data
-        if app == "swaptions":
-            checkSwaption(fact, observed, True, "")
-        if app == "ferret":
-            checkFerret(fact, observed, True, "")
-        if app == "bodytrack":
-            checkBodytrack(fact, observed, True, "")
-        return
-
     return 0
 
 
