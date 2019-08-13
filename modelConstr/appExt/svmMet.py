@@ -53,7 +53,7 @@ class appMethods(AppMethods):
 
     def getFullRunCommand(self, budget):
         return [self.obj_path,
-                "--rsdg", "-cont",
+                "-rsdg", "-cont",
                 "-b", str(budget),
                 "-xml", "./outputs/" + self.appName + "-default.xml",
                 "-u", '1']
