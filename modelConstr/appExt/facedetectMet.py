@@ -28,8 +28,8 @@ class appMethods(AppMethods):
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 50
         self.fullrun_units = 861
-        self.max_cost = 182
-        self.min_cost = 10
+        self.max_cost = 1000
+        self.min_cost = 30
         self.gt_path = self.train_grond_truth_path # default is training
 
     def cleanUpAfterEachRun(self, configs=None):

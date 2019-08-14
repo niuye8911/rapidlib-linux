@@ -24,8 +24,8 @@ class appMethods(AppMethods):
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 20
         self.fullrun_units = 1000
-        self.max_cost = 182
-        self.min_cost = 91
+        self.max_cost = 120
+        self.min_cost = 80
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location

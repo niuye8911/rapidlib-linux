@@ -22,8 +22,8 @@ class appMethods(AppMethods):
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 10
         self.fullrun_units = 100
-        self.max_cost = 2800
-        self.min_cost = 280
+        self.max_cost = 2194
+        self.min_cost = 228
         self.gt_path = "./training_outputs/grountTruth.txt"
 
     def cleanUpAfterEachRun(self, configs=None):

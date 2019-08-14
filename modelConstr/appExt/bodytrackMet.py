@@ -4,8 +4,6 @@ This is an example file for prepraing Bodytrack for RAPID(C)
 
 from Classes import *  # import the parent class and other classes from the
 
-# file Classes.py
-
 
 class appMethods(AppMethods):
     input_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
@@ -18,8 +16,8 @@ class appMethods(AppMethods):
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 30
         self.fullrun_units = 241
-        self.max_cost = 251
-        self.min_cost = 100
+        self.max_cost = 293
+        self.min_cost = 25
         self.gt_path = "./training_outputs/grountTruth.txt"
 
     def cleanUpAfterEachRun(self, configs=None):
