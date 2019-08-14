@@ -924,6 +924,17 @@ class AppMethods():
     def setTrainingUnits(self, unit):
         self.training_units = unit
 
+    def getCommandWithConfig(self, config_str, qosRun=False):
+        ''' use config string to generate a config and get command '''
+        elements = config_str.split('-')
+        configs = []
+        for i in range(0,len(elements)):
+            if i%2 ==0:# knob name
+                knob = Knob(elements[i],elements[i],-99999,99999)
+                configs.append(Config(knob,elements[i+1]))
+                i+=1
+        return self.getCommand(configs,qosRun)
+
     # Implement this function
     def getCommand(self, configs=None, qosRun=False):
         """ Assembly the CMD line for running the app
