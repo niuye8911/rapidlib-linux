@@ -18,7 +18,7 @@ class appMethods(AppMethods):
         self.fullrun_units = 241
         self.max_cost = 293
         self.min_cost = 25
-        self.gt_path = "./training_outputs/grountTruth.txt"
+        self.gt_path = "./training_outputs/groundTruth.txt"
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -37,7 +37,7 @@ class appMethods(AppMethods):
             str(layer) + "_" + str(particle) + ".txt")
 
     def afterGTRun(self):
-        self.gt_path = "./training_outputs/grountTruth.txt"
+        self.gt_path = "./training_outputs/groundTruth.txt"
         output_path = self.input_path + "poses.txt"
         self.moveFile(output_path, self.gt_path)
 
@@ -109,7 +109,5 @@ class appMethods(AppMethods):
                     val = 1
                 distortion += val
             distortion /= len(truth_results[i])
-            print
-            "DISTORTION = " + str(distortion)
             totDistortion += distortion
         return (1.0 - (totDistortion / len(truth_results))) * 100.0

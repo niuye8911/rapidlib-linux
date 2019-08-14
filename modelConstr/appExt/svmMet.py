@@ -41,7 +41,7 @@ class appMethods(AppMethods):
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(2,
-                                     config.val - 1)  # retrieve the setting
+                                     int(config.val) - 1)  # retrieve the setting
                     # for each knob
 
         # backup the generated output to another location
@@ -73,7 +73,7 @@ class appMethods(AppMethods):
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(2,
-                                     config.val - 1)  # retrieve the setting
+                                     int(config.val) - 1)  # retrieve the setting
                     # for each knob
         return [self.obj_path,
                 "--lr",
@@ -82,7 +82,7 @@ class appMethods(AppMethods):
                 str(regular),
                 "--batch",
                 str(batch),
-                "" if qosRun else "--train"]
+                "" if qosRun else "-train"]
 
     # helper function to evaluate the QoS
     def getQoS(self):
@@ -96,7 +96,7 @@ class appMethods(AppMethods):
         X_test -= mean_image
         X_test = np.hstack([X_test, np.ones((X_test.shape[0], 1))])
         svm = LinearSVM()
-        svm.W = pickle.load(open("./model_svm.p", "rb"))
+        svm.W = pickle.load(open("./model_svm.p", "rb"),encoding='latin1')
         y_test_pred = svm.predict(X_test)
         test_accuracy = np.mean(y_test == y_test_pred)
-        return test_accuracy
+        return test_accuracy*100.0

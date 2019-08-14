@@ -23,7 +23,7 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 20
-        self.fullrun_units = 1000
+        self.fullrun_units = 3500 # two are . and ..
         self.max_cost = 120
         self.min_cost = 80
 
@@ -87,7 +87,7 @@ class appMethods(AppMethods):
                 "50",
                 "20",
                 "1",
-                "output.txt",
+                "./output.txt",
                 '-l',
                 str(hash),
                 '-t',
@@ -193,9 +193,6 @@ class appMethods(AppMethods):
             S.clear()
             T.clear()
             Z.clear()
-            print[totCoverage / float(totimg),
-                  totRanking / float(totimg),
-                  totAcuracy / float(totimg)]
         return [totCoverage / float(totimg),
                 totRanking / float(totimg),
                 totAcuracy / float(totimg)]

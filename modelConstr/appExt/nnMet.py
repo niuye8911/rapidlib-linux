@@ -67,18 +67,20 @@ class appMethods(AppMethods):
             for config in configs:
                 name = config.knob.set_name
                 if name == "learningRate":
-                    learningRate = float(config.val) * 1e-5
+                    learningRate = float(config.val) * 1e-7
                 elif name == "regular":
                     regular = float(config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = config.val * 64  # retrieve the setting for each
+                    batch = 64 * pow(2,
+                                     int(config.val) - 1)   # retrieve the setting for each
                     # knob
         return [
             self.obj_path, "--lr",
             str(learningRate), "--reg",
             str(regular), "--batch",
-            str(batch), "--train"
+            str(batch),
+            "" if qosRun else "-train"
         ]
 
     def _get_test_data(self,
@@ -129,13 +131,11 @@ class appMethods(AppMethods):
 
         net = TwoLayerNet(input_size, hidden_size, num_classes)
 
-        net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"))
-        net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"))
-        net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"))
-        net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"))
+        net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"),encoding='latin1')
+        net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"),encoding='latin1')
+        net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"),encoding='latin1')
+        net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"),encoding='latin1')
 
         test_accuracy = (net.predict(X_test) == y_test).mean()
 
-        print
-        test_accuracy
-        return test_accuracy
+        return test_accuracy*100.0

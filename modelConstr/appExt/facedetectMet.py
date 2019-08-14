@@ -111,7 +111,6 @@ class appMethods(AppMethods):
             './result.txt', '-f', '0', '-i', self.pic_path, '-l',
             indexfile, '-z', '.jpg'
         ]
-        print(" ".join(evaluate_cmd))
         os.system(" ".join(evaluate_cmd))
         # get the precision and recall
         result = open('./tempDiscROC.txt', 'r')
