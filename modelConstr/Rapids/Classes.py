@@ -10,6 +10,7 @@ import subprocess
 import time
 import socket
 import requests
+import functools
 from App.AppSummary import AppSummary
 from stage_1.training import genTrainingSet
 
@@ -1298,7 +1299,7 @@ class AppMethods():
                             print("not valid number found in csv",values[0],i)
                             return None
                     # calculate the average value
-                    avg_value = reduce((lambda x, y: (float(y[i]) + float(x))),
+                    avg_value = functools.reduce((lambda x, y: (float(y[i]) + float(x))),
                                        values, 0.) / float(len(values))
                     if avg_value == -1:
                         # broken line
