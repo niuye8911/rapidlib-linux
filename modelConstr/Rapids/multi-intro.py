@@ -10,7 +10,7 @@ for i in range(0, 3):
     slowdowns.append([])
 
 id = 0
-with open('/home/liuliu/Research/rapidlib-linux/modelConstr/source/outputs'
+with open('/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/outputs'
           '/ferret-perf-intro.csv', 'r') as f:
     for line in f:
         colums = line.split(',')
