@@ -147,7 +147,7 @@ def validate(configs, knobs, and_constraints, or_constraints):
         set_name = knob.set_name
         set_min = knob.min
         set_max = knob.max
-        if not (config_map.has_key(set_name)):
+        if not (set_name in config_map.keys()):
             print
             "configuration does not have such setting name:" + set_name
             return False

@@ -1,1 +1,1 @@
-__all__ = ["MachineTrainer"]
+__all__ = ["MachineTrainer","MachineProfile"]

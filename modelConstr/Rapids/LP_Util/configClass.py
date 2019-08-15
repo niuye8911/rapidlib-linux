@@ -14,7 +14,6 @@ class RAPIDConfig:
         for i in self.services:
             res += i.print_in_constraint()
             res += " "
-        print res
         return res
 
 

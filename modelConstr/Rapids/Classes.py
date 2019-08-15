@@ -153,7 +153,7 @@ class Stresser:
             }
 
     def getRandomStresser(self):
-        app = random.choice(self.apps.keys())
+        app = random.choice(list(self.apps.keys()))
         configuration = random.choice(self.apps[app]['configs'])
         cmd = self.apps[app]['appMethods'].getCommand(
             configuration.retrieve_configs(),
@@ -296,8 +296,8 @@ class Configuration:
         white-space
         :return: as described
         """
-        items = map((lambda x: x.knob.set_name + delimiter + str(x.val)),
-                    self.knob_settings)
+        items = list(map((lambda x: x.knob.set_name + delimiter + str(x.val)),
+                    self.knob_settings))
         items.sort()
         return delimiter.join(sorted(items))
         # for config in self.knob_settings:
@@ -1001,7 +1001,7 @@ class AppMethods():
         env_commands = []
         if numOfFixedEnv != -1:
             # half single half multi
-            for i in range(0, numOfFixedEnv / 2):  # run different environment
+            for i in range(0, int(numOfFixedEnv / 2)):  # run different environment
                 #env_commands.append(env.getRandomEnv())
                 env_commands.append(single_env.getRandomStresser())
                 env_commands.append(multi_env.getRandomEnv())

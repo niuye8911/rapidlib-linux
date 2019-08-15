@@ -1,5 +1,5 @@
-from piecewiseProb import *
-from quadProb import *
+from stage_4.piecewiseProb import *
+from stage_4.quadProb import *
 from stage_1.training import *
 
 

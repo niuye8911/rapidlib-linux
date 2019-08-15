@@ -1,33 +1,34 @@
-import  os
+import os
 import requests
-from configClass import RSDGNode
-from configClass import RAPIDConfig
+from .configClass import RSDGNode
+from .configClass import RAPIDConfig
+
 
 def solveAndPopulate(service_levels, PRINT, remote):
     if remote == True:
         url = "http://algaesim.cs.rutgers.edu/solver/index.php"
-        file = {'upload_file[]' : ('hello', open("./problem.lp", 'rb'))}
-        response = requests.post(url, files = file)
+        file = {'upload_file[]': ('hello', open("./problem.lp", 'rb'))}
+        response = requests.post(url, files=file)
         result = response.text
         item = result.split("\\n")
         maxsol = open("max.sol", 'w')
         for i in item:
-    	    if i == '\"':
-        		continue
+            if i == '\"':
+                continue
             maxsol.write(i)
             maxsol.write("\n")
             maxsol.close()
     else:
         os.system("gurobi_cl ResultFile=outputs/max.sol outputs/problem.lp")
-    resFile = open("outputs/max.sol",'r')
+    resFile = open("outputs/max.sol", 'r')
     rsdg = {}
     for line in resFile:
         col = line.split()
-        if len(col)==2:# a result
+        if len(col) == 2:  # a result
             nodeName = col[0]
             val = float(col[1])
             nodeName = nodeName.split('_')
-            if not(len(nodeName)==2):
+            if not (len(nodeName) == 2):
                 rsdg[col[0]] = []
                 rsdg[col[0]].append(val)
                 continue
@@ -35,31 +36,32 @@ def solveAndPopulate(service_levels, PRINT, remote):
             lvl = int(nodeName[1])
             #add to rsdg
             # if the service is first seen
-            if not(rsdg.has_key(svcName)):#not found service
+            if not (rsdg.has_key(svcName)):  #not found service
                 rsdg[svcName] = []
                 lvlNum = service_levels[svcName]
-                for i in range(0,lvlNum):
+                for i in range(0, lvlNum):
                     rsdg[svcName].append(-1)
             # add the current result to the rsdg
-            print svcName, lvl-1
-            rsdg[svcName][lvl-1] = val
+            rsdg[svcName][lvl - 1] = val
     resFile.close()
-    if(PRINT):printRSDG(rsdg,True)
+    if (PRINT): printRSDG(rsdg, True)
     return rsdg
 
-def printRSDG(rsdg,output):
-    rsdgF = open("outputs/rsdg",'w')
+
+def printRSDG(rsdg, output):
+    rsdgF = open("outputs/rsdg", 'w')
     for i in rsdg:
         strg = ""
         lvls = rsdg[i]
         for lvl in lvls:
-            strg+=str(lvl) + " "
-        rsdgF.write(i + " "+ strg + "\n")
-        if output: print (str(i) + ":"+ strg + "\n")
+            strg += str(lvl) + " "
+        rsdgF.write(i + " " + strg + "\n")
+        if output: print(str(i) + ":" + strg + "\n")
+
 
 # generate the optimization problem that tries to find a value distribution that minimizes the error
 def genProblem(service_levels, configs):
-    prob = open("./outputs/problem.lp",'w')
+    prob = open("./outputs/problem.lp", 'w')
     #write obj
     #prob.write("Minimize\nerr\n\n")
     prob.write("Minimize\n")
@@ -68,29 +70,30 @@ def genProblem(service_levels, configs):
     quad_obj = " [ "
     linear_obj = ""
     for i in range(0, len(constraints)):
-        quad_obj+="err"+str(i)+" ^ 2"
-        linear_obj+=" -2 err"+str(i)
-        if not (i==len(constraints)-1):
-            quad_obj+=" + "
+        quad_obj += "err" + str(i) + " ^ 2"
+        linear_obj += " -2 err" + str(i)
+        if not (i == len(constraints) - 1):
+            quad_obj += " + "
         else:
-            prob.write(linear_obj+" + "+quad_obj+" ] \n")
+            prob.write(linear_obj + " + " + quad_obj + " ] \n")
     prob.write("Subject To\n")
     for s in service_levels:
         lvls = service_levels[s]
-        for i in range(1,lvls):
-            prob.write(s + "_" + str(i) + " - " + s + "_" + str(i+1) + " > 1\n")
+        for i in range(1, lvls):
+            prob.write(s + "_" + str(i) + " - " + s + "_" + str(i + 1) +
+                       " > 1\n")
     prob.write("\n")
     for c in constraints:
         prob.write(c)
         prob.write("\n")
 
     # if a node does not occur, we assume it's around the middle of the neighboring nodes
-        #set up the not_touched nodes list
+    #set up the not_touched nodes list
     not_touched = {}
     for service in service_levels:
         lvl = service_levels[service]
         not_touched[service] = []
-        for i in range(1,lvl+1):
+        for i in range(1, lvl + 1):
             not_touched[service].append(i)
         # remove the visited nodes
     for config in configs:
@@ -110,8 +113,8 @@ def genProblem(service_levels, configs):
                 continue
             # print to file
             cur_node = service + "_" + str(lvl)
-            top_neighbour = service + "_" + str(lvl-1)
-            bot_neighbour = service + "_" + str(lvl+1)
+            top_neighbour = service + "_" + str(lvl - 1)
+            bot_neighbour = service + "_" + str(lvl + 1)
             linear_constraint = top_neighbour + " + " + bot_neighbour + " - 2 " + cur_node + " = 0"
             prob.write(linear_constraint)
             prob.write("\n")
@@ -126,8 +129,8 @@ def genConstraintsFromConfigs(configs):
     result_constraints = []
     err_id = 0
     for config in configs:
-        constraint, dual_constraint = genConstraintFromConfig(config,err_id)
-        err_id+=1
+        constraint, dual_constraint = genConstraintFromConfig(config, err_id)
+        err_id += 1
         result_constraints.append(constraint)
         #commented out
         #result_constraints.append(dual_constraint)
@@ -135,7 +138,7 @@ def genConstraintsFromConfigs(configs):
 
 
 # return a constraint and a dual-constraint for each configuration
-def genConstraintFromConfig(c,err_id):
+def genConstraintFromConfig(c, err_id):
     """It returns two strings, representing the constraint pair of a config in observed file"""
     constraint = ""
     dualConstraint = ""
@@ -145,35 +148,37 @@ def genConstraintFromConfig(c,err_id):
         node = nodes[i]
         constraint += node.print_in_constraint()
         dualConstraint += node.print_in_constraint()
-        if i<num_of_nodes-1:# not the last node
+        if i < num_of_nodes - 1:  # not the last node
             constraint += " + "
             dualConstraint += " + "
         else:
             #this is to enforce the over-estimating
             #constraint += " >= " + c.get_cost()
             #dualConstraint += " - " + c.get_cost() + " err <= " + c.get_cost()
-            constraint += " - " + c.get_cost() + " err"+str(err_id) + " = 0 "
+            constraint += " - " + c.get_cost() + " err" + str(err_id) + " = 0 "
     return constraint, dualConstraint
+
 
 # return an array of RAPIDConfig's and a map that indicates how many layers are there in a particular service
 def generateConfigsFromTraining(fileName):
     """Return a list of RAPIDConfigs objects that contains the ndoe selected and their cost"""
-    factFile = open(fileName,'r')
+    factFile = open(fileName, 'r')
     configs = []
-    service_levels = {} # a map that the entry is the service name and the value is the total configs
+    service_levels = {
+    }  # a map that the entry is the service name and the value is the total configs
     for line in factFile:
         col = line.split(',')
         lineLength = len(col)
         name = ""
         lvl = -1
         nodes = []
-        for i in range(0,lineLength):
-            if i==lineLength-1:
+        for i in range(0, lineLength):
+            if i == lineLength - 1:
                 cost = col[i]
                 configs.append(RAPIDConfig(nodes, cost))
                 continue
             cur = col[i]
-            if not(cur.isdigit()):#if it's service name
+            if not (cur.isdigit()):  #if it's service name
                 name = cur
             else:
                 lvl = int(cur)
@@ -187,10 +192,11 @@ def generateConfigsFromTraining(fileName):
     factFile.close()
     return configs, service_levels
 
+
 def parseKF(KF):
-    kf = open(KF,'r')
+    kf = open(KF, 'r')
     kfc = ""
     for line in kf:
         col = line.split()
         kfc += col[0] + " = " + col[1] + '\n'
-    return kfc;
+    return kfc
