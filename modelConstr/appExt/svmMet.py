@@ -21,8 +21,8 @@ class appMethods(AppMethods):
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 1
         self.fullrun_units = 10
-        self.max_cost = 3438
-        self.min_cost = 2480
+        self.max_cost = 3563
+        self.min_cost = 2529
 
     def cleanUpAfterEachRun(self, configs=None):
         learningRate = 100 * 1e-7
