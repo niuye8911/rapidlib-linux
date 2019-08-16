@@ -26,6 +26,8 @@ class appMethods(AppMethods):
         self.fullrun_units = 3500 # two are . and ..
         self.max_cost = 120
         self.min_cost = 80
+        self.min_mv = 58.69
+        self.max_mv = 100
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location

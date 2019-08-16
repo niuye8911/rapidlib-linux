@@ -19,6 +19,8 @@ class appMethods(AppMethods):
         self.fullrun_units = 10
         self.max_cost = 3126
         self.min_cost = 2597
+        self.min_mv = 7.2
+        self.max_mv = 18.3
 
     def cleanUpAfterEachRun(self, configs=None):
         learningRate = 100 * 1e-7
