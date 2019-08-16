@@ -1309,6 +1309,10 @@ class AppMethods():
         csv_file.close()
         return metric_value
 
+    def getScaledQoS(self):
+        ''' return the scaled QoS from 0 to 100 '''
+        return self.getQoS()
+
     def getQoS(self):
         """ Return the QoS for a configuration"""
         return [0.0]
