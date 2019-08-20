@@ -3,6 +3,7 @@ from os import system
 from contigous import *
 from psd import *
 from stage_1.training import *
+from Classes import *
 
 
 def populatePieceWiseRSDG(observed, partitions):

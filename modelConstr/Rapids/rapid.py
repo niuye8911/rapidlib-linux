@@ -185,7 +185,7 @@ def main(argv):
         # initialize the app summary info
         appInfo = AppSummary(config_file)
         appInfo.printSummary()
-
+        appname = appInfo.APP_NAME
         # ######################STAGE-1########################
         # generate initial training set
 
