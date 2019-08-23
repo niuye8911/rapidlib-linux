@@ -113,15 +113,18 @@ class appMethods(AppMethods):
             './result.txt', '-f', '0', '-i', self.pic_path, '-l',
             indexfile, '-z', '.jpg'
         ]
-        os.system(" ".join(evaluate_cmd))
-        # get the precision and recall
-        result = open('./tempDiscROC.txt', 'r')
-        # call evaluate routine
-        for line in result:
-            col = line.split()
-            recall = float(col[0])
-            precision = float(col[1])
-            break
+        try:
+            os.system(" ".join(evaluate_cmd))
+            # get the precision and recall
+            result = open('./tempDiscROC.txt', 'r')
+            # call evaluate routine
+            for line in result:
+                col = line.split()
+                recall = float(col[0])
+                precision = float(col[1])
+                break
+        except:
+            return [0.0,0.0,0.0]
         return [
             precision, recall,
             100.0 * 2 * precision * recall / (precision + recall)

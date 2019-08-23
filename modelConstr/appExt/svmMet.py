@@ -98,7 +98,10 @@ class appMethods(AppMethods):
         X_test -= mean_image
         X_test = np.hstack([X_test, np.ones((X_test.shape[0], 1))])
         svm = LinearSVM()
-        svm.W = pickle.load(open("./model_svm.p", "rb"),encoding='latin1')
-        y_test_pred = svm.predict(X_test)
-        test_accuracy = np.mean(y_test == y_test_pred)
+        try:
+            svm.W = pickle.load(open("./model_svm.p", "rb"),encoding='latin1')
+            y_test_pred = svm.predict(X_test)
+            test_accuracy = np.mean(y_test == y_test_pred)
+        except:
+            test_accuracy = 0.0
         return test_accuracy*100.0

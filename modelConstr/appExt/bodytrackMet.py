@@ -15,7 +15,7 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 30
-        self.fullrun_units = 241
+        self.fullrun_units = 261
         self.max_cost = 293
         self.min_cost = 25
         self.min_mv = 65.69
@@ -46,9 +46,9 @@ class appMethods(AppMethods):
     def getFullRunCommand(self, budget, xml=''):
         xml_path = xml if xml != '' else "./outputs/" + self.appName + "-default.xml"
         return [
-            self.obj_path, self.input_path, "4", '241', '4000', '5', '4', '1',
+            self.obj_path, self.input_path, "4", '261', '4000', '5', '4', '1',
             "-rsdg", "-cont", "-b",
-            str(budget), "-xml", xml_path, "-u", '24'
+            str(budget), "-xml", xml_path, "-u", '26'
         ]
 
     # helper function to assembly the command
@@ -105,7 +105,11 @@ class appMethods(AppMethods):
                 if (truth_results[i][j] == "\n"):
                     continue
                 curtrue = float(truth_results[i][j])
-                curmission = float(mission_results[i][j])
+                try:
+                    curmission = float(mission_results[i][j])
+                except IndexError:
+                    print('cannot find')
+                    curmission = 0.0
                 val = abs((curtrue - curmission) / curtrue)
                 if val > 1:
                     val = 1

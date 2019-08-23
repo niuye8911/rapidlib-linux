@@ -15,7 +15,7 @@ class appMethods(AppMethods):
     query_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
                  "/ferret/run/queries"
     fullrun_query_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs" \
-                         "/apps/ferret/run/queriesnative"
+                         "/apps/ferret/run/queries1000"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
@@ -23,9 +23,9 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 20
-        self.fullrun_units = 3500 # two are . and ..
-        self.max_cost = 120
-        self.min_cost = 80
+        self.fullrun_units = 1000 # two are . and ..
+        self.max_cost = 99
+        self.min_cost = 68
         self.min_mv = 58.69
         self.max_mv = 100
 
@@ -146,16 +146,13 @@ class appMethods(AppMethods):
         for line in truth:
             col = line.split('\t')
             name = col[0].split("/")[-1]
-            if name not in missionmap:
-                continue
             truthmap[name] = []
             for i in range(1, len(col)):  # 50 results
                 truthmap[name].append(col[i].split(':')[0])
-        if len(missionmap) != len(truthmap):
+        #if len(missionmap) != len(truthmap):
             # mission failed in between
-            print
-            len(missionmap), len(truthmap)
-            return [0.0, 0.0, 0.0]
+        #    print(len(missionmap), len(truthmap))
+        #    return [0.0, 0.0, 0.0]
         # now that 2 maps are set, compare each item
         # setup the Z / S/ and T
         Z = set()
@@ -168,27 +165,31 @@ class appMethods(AppMethods):
         for query_image in truthmap:
             totimg += 1.0
             truth_res = truthmap[query_image]
-            mission_res = missionmap[query_image]
-            # compute the worst case senario, where Z = empty
-            maxError = len(truth_res) * (len(truth_res) + 1)
-            # setup S and T
-            S.update(truth_res)
-            T.update(mission_res)
-            Z = S & T  # Z includes images both in S and T
-            # clear S and T
-            for s in Z:
-                T.remove(s)
-                S.remove(s)
-            # now that Z, S, and T are set, compute the ranking function
-            # two Sub QoS
-            coverage = -1 * (len(truth_res) - len(Z)) * (len(truth_res) + 1)
-            ranking = -1 * (self.compute2(truth_res, mission_res,
-                                          Z) - self.compute1(truth_res,
-                                                             S) - self.compute1(
-                mission_res, T))
-            ranking_res = (1.0 + (2 * coverage + ranking) / float(
-                maxError)) * 100.0
-
+            try:
+                mission_res = missionmap[query_image]
+                # compute the worst case senario, where Z = empty
+                maxError = len(truth_res) * (len(truth_res) + 1)
+                # setup S and T
+                S.update(truth_res)
+                T.update(mission_res)
+                Z = S & T  # Z includes images both in S and T
+                # clear S and T
+                for s in Z:
+                    T.remove(s)
+                    S.remove(s)
+                # now that Z, S, and T are set, compute the ranking function
+                # two Sub QoS
+                coverage = -1 * (len(truth_res) - len(Z)) * (len(truth_res) + 1)
+                ranking = -1 * (self.compute2(truth_res, mission_res,
+                                              Z) - self.compute1(truth_res,
+                                                                 S) - self.compute1(
+                    mission_res, T))
+                ranking_res = (1.0 + (2 * coverage + ranking) / float(
+                    maxError)) * 100.0
+            except:
+                ranking_res = 0.0
+                ranking = 0.0
+                coverage = 0.0
             totAcuracy += ranking_res
             totRanking += ranking
             totCoverage += coverage

@@ -132,12 +132,13 @@ class appMethods(AppMethods):
         num_classes = 10
 
         net = TwoLayerNet(input_size, hidden_size, num_classes)
+        try:
+            net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"),encoding='latin1')
+            net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"),encoding='latin1')
+            net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"),encoding='latin1')
+            net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"),encoding='latin1')
 
-        net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"),encoding='latin1')
-        net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"),encoding='latin1')
-        net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"),encoding='latin1')
-        net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"),encoding='latin1')
-
-        test_accuracy = (net.predict(X_test) == y_test).mean()
-
+            test_accuracy = (net.predict(X_test) == y_test).mean()
+        except:
+            test_accuracy = 0.0
         return test_accuracy*100.0
