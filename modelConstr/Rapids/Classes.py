@@ -130,8 +130,7 @@ class Stresser:
         '/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort',
         'swaptions':
         '/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort',
-        'svm':
-        '/home/liuliu/Research/rapidlib-linux/modelConstr/data/svmPort'
+        'svm': '/home/liuliu/Research/rapidlib-linux/modelConstr/data/svmPort'
     }
 
     def __init__(self, target_app):
@@ -144,7 +143,8 @@ class Stresser:
             if app_name == self.target_app:
                 continue
             app = AppSummary(config_file + '/config_algae.json')
-            knobs, config_table, knob_samples = genTrainingSet(app.DESC)
+            knobs, config_table, knob_samples, flatted_blackbox_training = genTrainingSet(
+                app.DESC)
             # groundTruth_profile contains all the config_table
             module = imp.load_source("", app.METHODS_PATH)
             appMethods = module.appMethods(app.APP_NAME, app.OBJ_PATH)
@@ -169,9 +169,9 @@ class Stresser:
 class SysArgs:
     def __init__(self):
         self.env = {}
-        self.env["cpu_num"] = [0, 0, 0, 1, 2, 3,4,5]
-        self.env["io"] = [0, 0, 1, 2,3]
-        self.env["vm"] = [0, 0, 1, 2,3,4]
+        self.env["cpu_num"] = [0, 0, 0, 1, 2, 3, 4, 5]
+        self.env["io"] = [0, 0, 1, 2, 3]
+        self.env["vm"] = [0, 0, 1, 2, 3, 4]
         self.env["vm_bytes"] = ["128K", "256K", "512K", "1M"]
 
     def getRandomEnv(self):
@@ -185,7 +185,8 @@ class SysArgs:
         command = ['/usr/bin/stress', '-q']
         cpu_substr = '' if cpu_num == 0 else '--cpu ' + str(cpu_num)
         io_substr = '' if io == 0 else '--io ' + str(io)
-        vm_substr = '' if vm == 0 else '--vm '+str(vm)+' --vm-bytes ' + vm_bytes
+        vm_substr = '' if vm == 0 else '--vm ' + str(
+            vm) + ' --vm-bytes ' + vm_bytes
         command.append(cpu_substr)
         command.append(io_substr)
         command.append(vm_substr)
@@ -297,8 +298,9 @@ class Configuration:
         white-space
         :return: as described
         """
-        items = list(map((lambda x: x.knob.set_name + delimiter + str(x.val)),
-                    self.knob_settings))
+        items = list(
+            map((lambda x: x.knob.set_name + delimiter + str(x.val)),
+                self.knob_settings))
         items.sort()
         return delimiter.join(sorted(items))
         # for config in self.knob_settings:
@@ -547,6 +549,14 @@ class Profile:
             profiles.append(profile)
         return profiles
 
+    def genRSSubset(self, config_list):
+        profile = Profile()
+        for config in config_list:
+            profile.addCostEntry(config, self.getCost(config))
+            profile.addMVEntry(config, self.getMV(config))
+        partitions = Profile.getPartitions(config_list)
+        return profile, partitions
+
     def genRandomSubset(self, n):
         profile = Profile()
         n = min(n, len(self.configurations))  # if not 20, then use the overall
@@ -659,16 +669,24 @@ class quadRSDG:
         elif abc == "c":
             self.coeffTable[a][b].addConstCoeff(val)
 
-    def printRSDG(self, COST=True):
+    def printRSDG(self, COST=True, KDG=True, RS=False):
         """ print the RSDG to a file
         The output path is ./outputs/[cost/mv].rsdg
         :param COST: if True, print the Cost rsdg, else the MV rsdg
         """
         outfilename = ""
         if COST:
-            outfilename = "./outputs/cost.rsdg"
+            if KDG:
+                outfilename = "./outputs/cost.rsdg"
+            if RS:
+                outfilename = "./outputs/cost_rs.rsdg"
+            outfilename = "./outputs/cost_bb.rsdg"
         else:
-            outfilename = "./outputs/mv.rsdg"
+            if KDG:
+                outfilename = "./outputs/mv.rsdg"
+            if RS:
+                outfilename = "./outputs/mv_rs.rsdg"
+            outfilename = "./outputs/mv_bb.rsdg"
         rsdg = open(outfilename, 'w')
         for knob in self.knob_table:
             rsdg.write(knob + "\n")
@@ -812,16 +830,24 @@ class pieceRSDG:
         elif abc == "c":
             self.coeffTable[a][b].addConstCoeff(val)
 
-    def printRSDG(self, COST=True, id=0):
+    def printRSDG(self, COST=True, id=0, KDG=True, RS=False):
         """ print the RSDG to a file
         The output path is ./outputs/[cost/mv].rsdg
         :param COST: if True, print the Cost rsdg, else the MV rsdg
         """
         outfilename = ""
         if COST:
-            outfilename = "./outputs/cost.rsdg"
+            if KDG:
+                outfilename = "./outputs/cost.rsdg"
+            if RS:
+                outfilename = "./outputs/cost_rs.rsdg"
+            outfilename = "./outputs/cost_bb.rsdg"
         else:
-            outfilename = "./outputs/mv" + str(id) + ".rsdg"
+            if KDG:
+                outfilename = "./outputs/mv" + str(id) + ".rsdg"
+            if RS:
+                outfilename = "./outputs/mv" + str(id) + "_rs.rsdg"
+            outfilename = "./outputs/mv" + str(id) + "_bb.rsdg"
         rsdg = open(outfilename, 'w')
         # print the segments
         for knob in self.knob_table:
@@ -929,12 +955,12 @@ class AppMethods():
         ''' use config string to generate a config and get command '''
         elements = config_str.split('-')
         configs = []
-        for i in range(0,len(elements)):
-            if i%2 ==0:# knob name
-                knob = Knob(elements[i],elements[i],-99999,99999)
-                configs.append(Config(knob,elements[i+1]))
-                i+=1
-        return self.getCommand(configs,qosRun)
+        for i in range(0, len(elements)):
+            if i % 2 == 0:  # knob name
+                knob = Knob(elements[i], elements[i], -99999, 99999)
+                configs.append(Config(knob, elements[i + 1]))
+                i += 1
+        return self.getCommand(configs, qosRun)
 
     # Implement this function
     def getCommand(self, configs=None, qosRun=False):
@@ -962,22 +988,29 @@ class AppMethods():
             if type(mv) is list:
                 mv = mv[-1]  # use the default qos metric
             mvs.append(mv)
-            print
-            "mv:" + str(mv)
+            print("mv:" + str(mv))
         return mvs
 
     # Implement this function
-    def train(self, config_table, numOfFixedEnv, appInfo, upload=True):
+    def train(self,
+              config_table,
+              bb_profile,
+              numOfFixedEnv,
+              appInfo,
+              upload=False):
         """ Train the application with all configurations in config_table and
         write Cost / Qos in costFact and mvFact.
         :param config_table: A table of class Profile containing all
         configurations to train
+        :param bb_profile: A table of class Profile containing all
+        configurations(invalid+valid)
         :param numOfFixedEnv: number of environments if running for fixed env
         :param appInfo: a obj of Class AppSummary
         :param upload: whether to upload the measuremnet to RAPID_M server
         """
         # perform a single run for training
         configurations = config_table.configurations  # get the
+        configurations_bb = bb_profile.configurations
         # configurations in the table
         train_conf = appInfo.TRAINING_CFG
         withMV = train_conf['withQoS']
@@ -1002,16 +1035,17 @@ class AppMethods():
         env_commands = []
         if numOfFixedEnv != -1:
             # half single half multi
-            for i in range(0, int(numOfFixedEnv / 2)):  # run different environment
+            for i in range(0, int(numOfFixedEnv /
+                                  2)):  # run different environment
                 #env_commands.append(env.getRandomEnv())
                 env_commands.append(single_env.getRandomStresser())
                 env_commands.append(multi_env.getRandomEnv())
         training_time_record = {}
 
         # iterate through configurations
-        total = len(configurations)
+        total = len(configurations_bb)
         current = 1
-        for configuration in configurations:
+        for configuration in configurations_bb:
             print("*****RUNNING:" + str(current) + "/" + str(total) + "*****")
             current += 1
             # the purpose of each iteration is to fill in the two values below
@@ -1148,8 +1182,9 @@ class AppMethods():
         for env_command in env_commands:
             # if withMModel, check the environment first
             if withMModel:
-                print('running stresser alone', env_command['configuration'], id,env_command['command'])
-                id+=1
+                print('running stresser alone', env_command['configuration'],
+                      id, env_command['command'])
+                id += 1
                 #command = " ".join(self.PCM_PREFIX + env_command + ['-t', '5'])
                 #os.system(command)
                 command = " ".join(self.PCM_PREFIX + env_command['command'] +
@@ -1165,7 +1200,6 @@ class AppMethods():
                     time.sleep(5)  #profile for 5 seconds
                     os.killpg(os.getpgid(stresser.pid), signal.SIGKILL)
                     env_metric = AppMethods.parseTmpCSV()
-
 
             # start the env
             #env_creater = subprocess.Popen(
@@ -1255,7 +1289,7 @@ class AppMethods():
         if withSys:
             metric_value = AppMethods.parseTmpCSV()
             while metric_value is None:
-                print("rerun"," ".join(command))
+                print("rerun", " ".join(command))
                 # rerun
                 os.system('rm tmp.csv')
                 os.system(" ".join(command))
@@ -1274,8 +1308,8 @@ class AppMethods():
                 if line_count == 0:
                     line_count += 1
                 elif line_count == 1:  # header line
-                    if len(row)!=34: #broken line
-                        print("tmp csv file broken with line",len(row))
+                    if len(row) != 34:  #broken line
+                        print("tmp csv file broken with line", len(row))
                         return None
                     for item in row:
                         metric.append(item)
@@ -1296,11 +1330,13 @@ class AppMethods():
                         if i <= 1:
                             continue
                         else:
-                            print("not valid number found in csv",values[0],i)
+                            print("not valid number found in csv", values[0],
+                                  i)
                             return None
                     # calculate the average value
-                    avg_value = functools.reduce((lambda x, y: (float(y[i]) + float(x))),
-                                       values, 0.) / float(len(values))
+                    avg_value = functools.reduce(
+                        (lambda x, y: (float(y[i]) + float(x))), values,
+                        0.) / float(len(values))
                     if avg_value == -1:
                         # broken line
                         print('-1 found in line')

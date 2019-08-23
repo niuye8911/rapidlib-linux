@@ -4,7 +4,7 @@ from stage_4.constructRSDG import *
 from util import *
 
 
-def genContRS(gt, targetMean):
+def genContRS(gt, targetMean, KDG=True):
     '''generate the representative set for continuous apps
     '''
     print("generating RS")
@@ -37,7 +37,7 @@ def genContRS(gt, targetMean):
             # calculate the error
             partitions = Profile.getPartitions(observed_profile.configurations)
             costrsdg, mvrsdgs, costpath, mvpaths = populate(
-                observed_profile, partitions, "piecewise")
+                observed_profile, partitions, "piecewise", KDG)
             error = compare(costrsdg, gt, True, "piecewise")
             if error <= curMinErr:
                 selected = config

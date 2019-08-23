@@ -45,7 +45,7 @@ def readFact(fact_file, knobs, gt, COST=True):
         if COST:
             gt.setCost(configuration, float(vals[0]))
         else:
-            gt.setMV(configuration, map(lambda x: float(x), vals))
+            gt.setMV(configuration, list(map(lambda x: float(x), vals)))
     print
     "RAPID-C / STAGE-4 : trained profile constructed"
     return

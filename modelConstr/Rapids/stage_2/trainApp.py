@@ -21,7 +21,7 @@ def recoverTimeRecord(appInfo, units):
     return time_record
 
 
-def genFact(appInfo, config_table, numOfFixedEnv):
+def genFact(appInfo, config_table, bb_profile, numOfFixedEnv):
     ''' return the a table containing the training time '''
     module = imp.load_source("", appInfo.METHODS_PATH)
     appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
@@ -30,11 +30,11 @@ def genFact(appInfo, config_table, numOfFixedEnv):
         # construct the time_record
         time_record = recoverTimeRecord(appInfo, appMethods.training_units)
         # upload to server
-        appMethods.uploadToServer(appInfo)
+        #appMethods.uploadToServer(appInfo)
         return time_record
     if appInfo.TRAINING_CFG['withQoS']:
         appMethods.runGT()
-    training_time_record = appMethods.train(config_table, numOfFixedEnv,
+    training_time_record = appMethods.train(config_table,bb_profile, numOfFixedEnv,
                                             appInfo)
     return training_time_record
 

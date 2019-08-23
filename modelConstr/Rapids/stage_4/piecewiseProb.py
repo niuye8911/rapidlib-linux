@@ -6,12 +6,16 @@ from stage_1.training import *
 from Classes import *
 
 
-def populatePieceWiseRSDG(observed, partitions):
+def populatePieceWiseRSDG(observed, partitions, KDG, RS):
     # get the segments
     segments, seg_values, segconst, inter_coeff = generatePieceWiseContProblem(
         observed, partitions)
-    costrsdg, cost_path = solveAndPopulateRSDG(segments, seg_values, segconst,
-                                               inter_coeff)
+    costrsdg, cost_path = solveAndPopulateRSDG(segments,
+                                               seg_values,
+                                               segconst,
+                                               inter_coeff,
+                                               KDG=KDG,
+                                               RS=RS)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     # generate multiple RSDG
@@ -25,8 +29,13 @@ def populatePieceWiseRSDG(observed, partitions):
             generatePieceWiseContProblem(
                 mvprofile, partitions, False)
 
-        mvrsdg, mv_path = solveAndPopulateRSDG(
-            segments_mv, seg_values_mv, segconst_mv, inter_coeff_mv, False, id)
+        mvrsdg, mv_path = solveAndPopulateRSDG(segments_mv,
+                                               seg_values_mv,
+                                               segconst_mv,
+                                               inter_coeff_mv,
+                                               False,
+                                               id,
+                                               KDG=KDG)
         system("mv ./debug/max.sol ./debug/maxmv" + str(id) + ".sol")
         system("mv ./debug/fitting.lp ./debug/fittingmv" + str(id) + ".lp")
         mvrsdgs.append(mvrsdg)
@@ -78,8 +87,8 @@ def getSegments(samples):
             id += 1
             min = points[i]
             # check if the last item is adjacent to the second last
-            if i == len(points) - 1 and i > 0 and points[i] == points[i
-                                                                      - 1] + 1:
+            if i == len(points) - 1 and i > 0 and points[i] == points[i -
+                                                                      1] + 1:
                 seg = Segment(segname, name, points[i], points[i])
                 seg.setID(id)
                 segments[name].append(seg)
@@ -300,7 +309,9 @@ def solveAndPopulateRSDG(segments,
                          segconst,
                          inter_coeff,
                          COST=True,
-                         id=0):
+                         id=0,
+                         KDG=True,
+                         RS=False):
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
            "ResultFile=./debug/max.sol ./debug/fitting.lp > licenseinfo")
     result = open("./debug/max.sol", 'r')
@@ -357,7 +368,7 @@ def solveAndPopulateRSDG(segments,
                 b = coeffs.b
                 c = coeffs.c
                 coeffs.a, coeffs.b, coeffs.c = nearestPDcorr(a, b, c)
-    file_path = rsdg.printRSDG(COST, id)
+    file_path = rsdg.printRSDG(COST, id, KDG, RS)
     return rsdg, file_path
 
 
@@ -372,7 +383,9 @@ def modelValid(rsdg, groundTruth, PRINT):
         rsdgCost = rsdg.calCost(configuration)
         measurement = groundTruth.getCost(configuration)
         if measurement == 0:
-            error += 0
+            measurement = rsdgCost
+        if measurement == 0:
+            error += 0.0
         else:
             error += abs(measurement - rsdgCost) / measurement
         if PRINT:

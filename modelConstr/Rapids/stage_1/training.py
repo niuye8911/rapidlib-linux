@@ -12,15 +12,17 @@ def genTrainingSet(cfg_file):
     # filter out the invalid configs
     from Classes import Profile,Configuration,Knobs
     flatted_all_training = Profile()
+    flatted_blackbox_training = Profile()
     invalid = 0
     for config in flatted:
+        configuration = Configuration()
+        configuration.addConfig(config)
         if validate(config, knobs, and_constriants, or_constraints):
             # add the list to configs
-            configuration = Configuration()
-            configuration.addConfig(config)
             flatted_all_training.addCostEntry(configuration, 0.0)
         else:
             invalid += 1
+        flatted_blackbox_training.addCostEntry(configuration, 0.0)
     print("RAPID-C / STAGE-1 : ommited in total " + str(invalid) + " settings")
     # write all valid configs to file
     outfile = open('./outputs/trainingset', 'w')  # output file
@@ -30,7 +32,7 @@ def genTrainingSet(cfg_file):
     knobs_class = Knobs()
     for k in knobs:
         knobs_class.addKnob(k)
-    return knobs_class, flatted_all_training, knob_samples
+    return knobs_class, flatted_all_training, knob_samples, flatted_blackbox_training
 
 
 # read in a description file
@@ -167,7 +169,7 @@ def validate(configs, knobs, and_constraints, or_constraints):
         source_max = and_cons.source_max
         sink_max = and_cons.sink_max
         # now check
-        if not (config_map.has_key(sink) and config_map.has_key(source)):
+        if not (sink in config_map and source in config_map):
             # this is assume to be a valid setting
             print
             "cannot find sink or source in config+map"

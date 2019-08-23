@@ -12,7 +12,8 @@ def constructRSDG(gt,
                   PRINT,
                   model,
                   training_time_record=None,
-                  seglvl=0):
+                  seglvl=0,
+                  KDG=True):
     # gT is a dictionary where entry is the config and value is hte cost
     # profile_configs is the structured configuration
     # segmentation level
@@ -23,28 +24,28 @@ def constructRSDG(gt,
         # ramdom generate 20 configurations
         rand20list, partitions = gt.genRandomSubset(20)
         costrsdg, mvrsdgs, costpath, mvpaths = populate(
-            rand20list, partitions, model)
+            rand20list, partitions, model, KDG)
+        trainingsize= 20
     elif model == "quad" or model == "piecewise":
         if model == "quad":
             maxT = 3
         if seglvl == 0:
             while error >= threshold:
                 if seglvl >= maxT:
-                    print
-                    "Reached Highest Segmentation Granularity"
+                    print("Reached Highest Segmentation Granularity")
                     break
                 seglvl += 1
                 partitions = partition(seglvl, knob_samples)
                 observed_profile = retrieve(partitions, gt, knobs)
                 costrsdg, mvrsdgs, costpath, mvpaths = populate(
-                    observed_profile, partitions, model)
+                    observed_profile, partitions, model, KDG, False)
                 error = compare(costrsdg, gt, False, model)
             trainingsize = len(observed_profile.configurations)
         else:
             partitions = partition(seglvl, knob_samples)
             observed_profile = retrieve(partitions, gt, knobs)
             costrsdg, mvrsdgs, costpath, mvpaths = populate(
-                observed_profile, partitions, model)
+                observed_profile, partitions, model,KDG)
     if PRINT:
         error = compare(costrsdg, gt, True, model)
         print("error = " + str(error))
@@ -53,9 +54,14 @@ def constructRSDG(gt,
         training_time = {}
         # the total time:
         total_time = 0.0
-        for config in training_time_record.keys():
-            total_time += training_time_record[config]
-        training_time['KDG'] = total_time
+        for config in gt.configurations:
+            name = config.printSelf('-')
+            if name in training_time_record:
+                total_time += training_time_record[name]
+        if KDG:
+            training_time['KDG'] = total_time
+        else:
+            training_time['FULL'] = total_time
         # the rand20 time:
         # repeat 10 times
         times = []
@@ -76,7 +82,10 @@ def constructRSDG(gt,
             config_name = config.printSelf('-')
             total_time += training_time_record[
                 config_name] if config_name in training_time_record else 0.0
-        training_time['PIECEWISE'] = total_time
+        if KDG:
+            training_time['PIECEWISE'] = total_time
+        else:
+            training_time['PIECEWISE_bb'] = total_time
         return costrsdg, mvrsdgs, costpath, mvpaths, seglvl, training_time, \
                trainingsize
 
@@ -115,9 +124,8 @@ def partition(seglvl, knob_samples):
                 new_ids.append(half)
             ids = new_ids
         for id in ids:
+            id = int(id)
             partitions[knob].append(val_range[id])
-    print
-    partitions
     return partitions
 
 
@@ -150,9 +158,9 @@ def retrieve(partitions, gt, knobs):
 
 # given an observed profile, generate the continuous problem and populate the
 # rsdg
-def populate(observed, partitions, model):
+def populate(observed, partitions, model, KDG, RS=False):
     if model == "piecewise" or model == 'rand20':
-        return populatePieceWiseRSDG(observed, partitions)
+        return populatePieceWiseRSDG(observed, partitions, KDG, RS)
     elif model == "quad":
         return populateQuadRSDG(observed, True)
     elif model == "linear":
