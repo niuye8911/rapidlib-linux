@@ -1,7 +1,7 @@
-navapp
+nav
 screen s 1 6
 freq f 1 3
-GPS gps 0 1
+GPS GPS 0 1
 Info info 1 3
 and s info 1 1 3 3
 and s info 1 2 2 3

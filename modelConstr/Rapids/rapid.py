@@ -13,7 +13,7 @@ from optimality import findOptimal
 from plot import draw
 from stage_1.training import genTrainingSet
 from stage_2.trainApp import genFact, genFactWithRSDG
-from stage_4.constructRSDG import constructRSDG
+from stage_4.constructRSDG import constructRSDG, populate
 from Machine_Trainer.MachineTrainer import MachineTrainer
 from xmlgen import completeXML
 
@@ -44,6 +44,8 @@ targetMax = 0.1
 targetMean = 0.05
 THRESHOLD = 0.05
 RS_THRESHOLD = 0.05
+
+RSRUN = False
 
 
 def main(argv):
@@ -168,7 +170,7 @@ def main(argv):
                             -1]
                     mv_loss.append(default_optimal / real_optimal)
                 # get the preference in string
-                pref_string = "-".join(map(lambda x: str(x), new_pref))
+                pref_string = "-".join(list(map(lambda x: str(x), new_pref)))
                 mv_under_budget[pref_string] = mv_loss
             id += 1
         # report only the worst case
@@ -189,8 +191,10 @@ def main(argv):
         # ######################STAGE-1########################
         # generate initial training set
 
-        knobs, groundTruth_profile, knob_samples = genTrainingSet(appInfo.DESC)
+        knobs, groundTruth_profile, knob_samples, bb_profile = genTrainingSet(
+            appInfo.DESC)
         fulltraining_size = len(groundTruth_profile.configurations)
+        bb_size = len(bb_profile.configurations)
         # generate the structural RSDG files (XML)
         xml = xmlgen.genxml(appInfo.APP_NAME, "", "", True, appInfo.DESC)
         if (stage == 1):
@@ -200,15 +204,19 @@ def main(argv):
         # train the application
 
         # load user-supplied methods
-        time_record = genFact(appInfo, groundTruth_profile, NUM_OF_FIXED_ENV)
+        time_record = genFact(appInfo, groundTruth_profile, bb_profile,
+                              NUM_OF_FIXED_ENV)
         # ######################STAGE-3########################
         # third stage: Modeling, use the specific modeling method to construct
         # the RSDG
         readFact(appInfo.FILE_PATHS['COST_FILE_PATH'], knobs,
                  groundTruth_profile)
+        readFact(appInfo.FILE_PATHS['COST_FILE_PATH'], knobs, bb_profile)
         if appInfo.TRAINING_CFG['withQoS']:
             readFact(appInfo.FILE_PATHS['MV_FILE_PATH'], knobs,
                      groundTruth_profile, False)
+            readFact(appInfo.FILE_PATHS['MV_FILE_PATH'], knobs, bb_profile,
+                     False)
         groundTruth_profile.printProfile(appInfo.FILE_PATHS['PROFILE_PATH'])
         # if it's just model validation
         if appInfo.TRAINING_CFG['validate']:
@@ -217,46 +225,81 @@ def main(argv):
             representset.validateRS(groundTruth_profile, rs_configs)
             return
         # construct the cost rsdg iteratively given a threshold
-        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time, \
-        rsp_size = \
-            constructRSDG(
-                groundTruth_profile, knob_samples, THRESHOLD, knobs, True,
-                model,
-                time_record)
+        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time, rsp_size = constructRSDG(
+            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
+            time_record)
+        cost_bb_rsdg, mv_bb_rsdgs, cost_bb_path, mv_bb_paths, seglvl_bb, training_time_full, rsp_bb_size = constructRSDG(
+            bb_profile,
+            knob_samples,
+            THRESHOLD,
+            knobs,
+            True,
+            model,
+            time_record,
+            KDG=False)
+        training_time.update(training_time_full)
 
         # Generate the representative set
         rss_size = 0
+        rss_bb_size = 0
+        rs = []
+        rs_bb = []
         if appInfo.TRAINING_CFG['calRS']:
             rs, mean = representset.genContRS(groundTruth_profile,
                                               RS_THRESHOLD)
+            rs_bb, mean_bb = representset.genContRS(bb_profile,
+                                                    RS_THRESHOLD,
+                                                    KDG=False)
+            # generate the rsdg recorvered by rs
+            subprofile, partitions = groundTruth_profile.genRSSubset(rs)
+            costrsdg_rs, mvrsdgs_rs, costpath_rs, mvpaths_rs = populate(
+                subprofile, partitions, model, KDG=False, RS=True)
             rss_size = len(rs)
+            rss_bb_size = len(rs_bb)
             with open(appname + ".rs", 'w') as result:
                 for config in rs:
+                    result.write(config.printSelf(",") + "\n")
+                result.write(str(mean))
+            with open(appname + "_bb.rs", 'w') as result:
+                for config in rs_bb:
                     result.write(config.printSelf(",") + "\n")
                 result.write(str(mean))
             # calculate training time for RS
             if time_record is not None:
                 total_time = 0.0
+                total_time_bb = 0.0
                 for config in rs:
-                    total_time += time_record[config.printSelf("-")]
+                    if config.printSelf("-") in time_record:
+                        total_time += time_record[config.printSelf("-")]
+                for config in rs_bb:
+                    if config.printSelf("-") in time_record:
+                        total_time_bb += time_record[config.printSelf("-")]
                 training_time['RS'] = total_time
-
+                training_time['RS_bb'] = total_time_bb
         # write training time to file
         if time_record is not None:
-            with open('time_compare.txt', 'w') as file:
+            with open('./outputs/' + appname + '/' + 'time_compare.txt',
+                      'w') as file:
                 file.write(json.dumps(training_time, indent=2, sort_keys=True))
         if PLOT:
             draw("outputs/modelValid.csv")
 
         with open('./training_size.txt', 'w') as ts:
-            ts.write("full:" + str(fulltraining_size) + "\n")
+            ts.write("full:" + str(bb_size) + "\n")
+            ts.write("kdg:" + str(fulltraining_size) + "\n")
             ts.write("rsp:" + str(rsp_size) + "\n")
             ts.write("rss:" + str(rss_size) + "\n")
+            ts.write("rsp_bb:" + str(rsp_bb_size) + "\n")
+            ts.write("rss_bb:" + str(rss_bb_size) + "\n")
 
         # ######################STAGE-4########################
         # forth stage, generate the final RSDG in XML format
-        default_xml_path = completeXML(appInfo.APP_NAME, xml, cost_rsdg,
-                                       mv_rsdgs[-1], model)
+        if not RSRUN:
+            default_xml_path = completeXML(appInfo.APP_NAME, xml, cost_rsdg,
+                                           mv_rsdgs[-1], model)
+        else:
+            default_xml_path = completeXML(appInfo.APP_NAME, xml, costrsdg_rs,
+                                           mvrsdgs_rs[-1], model)
 
         # cleaning
         os.system("rm *.log")
@@ -265,8 +308,8 @@ def main(argv):
         with open('./' + appInfo.APP_NAME + "_run.config", 'w') as runFile:
             run_config = {}
             run_config['cost_rsdg'] = os.path.abspath(cost_path)
-            run_config['mv_rsdgs'] = map(lambda x: os.path.abspath(x),
-                                         mv_paths[0:-1])
+            run_config['mv_rsdgs'] = list(
+                map(lambda x: os.path.abspath(x), mv_paths[0:-1]))
             run_config['mv_default_rsdg'] = os.path.abspath(mv_paths[-1])
             run_config['defaultXML'] = os.path.abspath(default_xml_path)
             run_config['appMet'] = os.path.abspath(appInfo.METHODS_PATH)
@@ -285,9 +328,10 @@ def main(argv):
             module = imp.load_source("", appInfo.METHODS_PATH)
             appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
             mvs = appMethods.qosRun()
-            with open(
-                    "./qos_report_" + appInfo.APP_NAME + "_" + model + ".txt",
-                    'w') as report:
+            output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_" + model + ".txt"
+            if RSRUN:
+                output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_RS" + ".txt"
+            with open(output_name, 'w') as report:
                 for mv in mvs:
                     report.write(str(mv))
                     report.write("\n")
