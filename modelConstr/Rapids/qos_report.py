@@ -24,7 +24,7 @@ def draw(qos_file, output):
                    marker={'color': colors[mode]},
                    x=apps,
                    y=list(sub_df['mean']),
-                   width=[0.22]*len(apps),
+                   width=[0.15]*len(apps),
                    error_y=dict(type='data',
                                 symmetric=False,
                                 array=list(sub_df['max'] - sub_df['mean']),
@@ -37,7 +37,8 @@ def draw(qos_file, output):
         title=go.layout.yaxis.Title(text="Normalized QoS", font=dict(
             size=18))),
                       barmode='group',
-                      bargap=0.33,
+                      bargap=0.55,
+                      bargroupgap=1,
                       paper_bgcolor='white',
                       plot_bgcolor='white')
     fig.update_xaxes(tickangle=-45, tickfont=dict(family='Roboto', size=18))
