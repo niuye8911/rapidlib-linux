@@ -24,7 +24,7 @@ def draw(qos_file, output):
                    marker={'color': colors[mode]},
                    x=apps,
                    y=list(sub_df['mean']),
-                   width=[0.15]*len(apps),
+                   width=[0.18]*len(apps),
                    error_y=dict(type='data',
                                 symmetric=False,
                                 array=list(sub_df['max'] - sub_df['mean']),
@@ -48,7 +48,7 @@ def draw(qos_file, output):
     fig.update_layout(legend=go.layout.Legend(
         x=0, y=1.1, traceorder="normal", font=dict(size=20, color="black")))
     fig.update_layout(legend_orientation='h')
-    fig.show()
+    fig.write_image(output)
 
 
 draw('./qos_report.csv', 'qos_report.png')
