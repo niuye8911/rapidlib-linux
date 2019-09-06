@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 
 def draw(qos_file, output):
     df = pd.read_csv(qos_file)
-    apps = list(dict.fromkeys(df['App']))
-    modes = ['Rand-20', 'RS_P(RAPIDS)', 'RS_S(RAPIDS)']
+    apps = ['Swaptions','FaceDetection','SVM','NN','Ferret','Bodytrack','average*']
+    modes = ['Rand-20', 'RS_P(RAPIDS)', 'RS_S(RAPIDS)','KDG','KDG-Dis']
     budgets = list(filter(lambda x: '%' in x, df.columns))
     df['mean'] = df[budgets].mean(axis=1)
     df['min'] = df[budgets].min(axis=1)
@@ -14,7 +14,7 @@ def draw(qos_file, output):
 
     fig = go.Figure()
 
-    colors = {'Rand-20': 'red', 'RS_P(RAPIDS)': 'limegreen', 'RS_S(RAPIDS)': 'orange'}
+    colors = {'Rand-20': 'red', 'RS_P(RAPIDS)': 'limegreen', 'RS_S(RAPIDS)': 'orange', 'KDG':'grey', 'KDG-Dis':'black'}
 
     # add all traces
     for mode in modes:
@@ -37,7 +37,7 @@ def draw(qos_file, output):
         title=go.layout.yaxis.Title(text="Normalized QoS", font=dict(
             size=18))),
                       barmode='group',
-                      bargap=0.55,
+                      bargap=0.25,
                       bargroupgap=1,
                       paper_bgcolor='white',
                       plot_bgcolor='white')
