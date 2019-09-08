@@ -1576,7 +1576,7 @@ void RSDG::writeXMLLp(string outfile, bool lp) {
           segments_string += segment_for_this_service[i];
         }
         constraintCont << "c" << c++ << ":" << service_name << " = 1 -> "
-                       << segments_string << " = 1" << endl;
+                       << segments_string << " <= 1" << endl;
         out << constraintCont.str();
       }
     }

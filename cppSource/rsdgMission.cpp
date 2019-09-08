@@ -109,7 +109,6 @@ void rsdgMission::finish_one_unit() {
   if (unit.get() == 0) {
     // mission is finished
     fact.close();
-    logfile.close();
   }
 }
 
@@ -214,6 +213,7 @@ void rsdgMission::updateSelection(vector<string> &result) {
     solvable = false;
     if (!TRAINING_MODE) {
       logWarning("Mission Failed");
+      finish(false);
       exit(0);
     }
     return;
@@ -315,13 +315,13 @@ void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
   } else if (contParaList.find(basic) != contParaList.end()) {
     // only change if change is greater than 1%
     double origin_value = contParaList[basic]->intPara;
-    if (fabs(value - origin_value) / origin_value <= 0.01) {
+    /*if (fabs(value - origin_value) / origin_value <= 0.01) {
       logDebug("Insignificant Change Ignored");
       logfile << basic << " ignored" << endl;
       logfile.flush();
-    } else {
-      contParaList[basic]->intPara = value;
-    }
+    } else {*/
+    contParaList[basic]->intPara = value;
+    //}
   }
   s->updateNode(f, basic);
 }
@@ -499,7 +499,11 @@ void rsdgMission::reconfig() {
   // first check if the model is corrected
   checkPoint();
   updateModel(unitBetweenCheckPoints);
-  updateBudget();
+  if (!updateBudget()) {
+    if (startTime == -1)
+      startTime = getCurrentTimeInMilli();
+    return; // do not need to reconfig
+  }
   if (startTime != -1) {
     if (LOGGER)
       printToLog();
@@ -675,7 +679,8 @@ void rsdgMission::cancel() {
 
 // The default impl uses the work unit left and time left to calculate the
 // budget per unit User could re-define this method to their own needs
-void rsdgMission::updateBudget() {
+// return true if reconfig is needed, else false
+bool rsdgMission::updateBudget() {
   int unit_left = unit.get();
   long long current_time = getCurrentTimeInMilli();
   long long usedMilli = startTime == -1 ? 0 : current_time - startTime;
@@ -686,7 +691,12 @@ void rsdgMission::updateBudget() {
   logDebug("Unit left = " + to_string(unit_left));
   logDebug("New Budget per Unit = " + to_string(new_budget_per_unit));
   setBudget(new_budget_per_unit);
-  return;
+  if (abs(new_budget_per_unit - cur_budget_per_unit) / cur_budget_per_unit <=
+      0.05) {
+    return false;
+  }
+  cur_budget_per_unit = new_budget_per_unit;
+  return true;
 }
 
 long long getCurrentTimeInMilli() {
@@ -922,11 +932,18 @@ void rsdgMission::readMVProfile() {
     while (getline(offline_profile, line)) {
       istringstream nodes(line);
       string finalconfig = "";
-      nodes >> mv;
-      string result;
-      while (nodes >> result) {
-        finalconfig += result + " ";
+      vector<string> lines;
+      string itm;
+      while (nodes >> itm) {
+        lines.push_back(itm);
       }
+      // get the result
+      for (int i = 0; i < lines.size() - 1; i++) {
+        finalconfig += lines[i] + " ";
+      }
+      finalconfig = finalconfig.substr(0, finalconfig.size() - 1);
+      // get the cost
+      mv = stod(lines.back());
       offlineMV[finalconfig] = mv;
       logDebug(finalconfig + " with mv" + to_string(mv));
     }
@@ -966,12 +983,18 @@ void rsdgMission::readCostProfile() {
     while (getline(offline_profile, line)) {
       istringstream nodes(line);
       string finalconfig = "";
-      nodes >> cost;
-      string result;
-      while (nodes >> result) {
-        finalconfig += result + " ";
+      vector<string> lines;
+      string itm;
+      while (nodes >> itm) {
+        lines.push_back(itm);
       }
-
+      // get the result
+      for (int i = 0; i < lines.size() - 1; i++) {
+        finalconfig += lines[i] + " ";
+      }
+      finalconfig = finalconfig.substr(0, finalconfig.size() - 1);
+      // get the cost
+      cost = stod(lines.back());
       offlineCost[finalconfig] = cost;
       logDebug(finalconfig + " with cost" + to_string(cost));
     }
@@ -1077,6 +1100,9 @@ void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
  for(auto
  }
  }*/
-void rsdgMission::finish(){
-  RAPIDS_SERVER::end("algaesim", app_name);
-}
+void rsdgMission::finish(bool FINISH) {
+  logfile<<"TotalConfig-Time:"<<to_string((double)total_reconfig_time)<<endl;
+  logfile<<"Total-Reconfig-Num:"<<to_string(num_of_reconfig)<<endl;
+  logfile<<"SUCCESS:"<<FINISH<<endl;
+  logfile.close();
+  RAPIDS_SERVER::end("algaesim", app_name); }

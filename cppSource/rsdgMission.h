@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -79,6 +80,7 @@ public:
   int unitBetweenCheckPoints = 0;
   bool CONT = false;
   ofstream logfile;
+  double cur_budget_per_unit = 0.1;
 
   // mission related;
   RSDG *graph;
@@ -91,7 +93,7 @@ public:
   double objValue;
   pthread_t monitor;
   int num_of_reconfig = 0;
-  int total_reconfig_time = 0;
+  double total_reconfig_time = 0;
   vector<vector<string>> RS;
   bool offline_search = false;
   bool LOGGER = false;
@@ -143,7 +145,7 @@ public:
   void printProb(string);
   void stopSolver();
   void cancel();
-  virtual void updateBudget();
+  virtual bool updateBudget();
   vector<string> getDep(string);
   void reset() {
     selected.clear();
@@ -185,7 +187,7 @@ public:
   void logWarning(string msg);
   void logDebug(string msg);
   void logInfo(string msg);
-  void finish();
+  void finish(bool FINISH=true);
   double getFreq();
 };
 #endif
