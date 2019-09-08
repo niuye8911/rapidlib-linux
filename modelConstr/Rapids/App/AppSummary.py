@@ -47,6 +47,7 @@ class AppSummary:
             'withMModel': False,
             'RS': False,
             'qosRun': False,
+            'overheadRun': False,
             'validate': False,
             'validate_rs_path': ''
         }
@@ -67,6 +68,8 @@ class AppSummary:
                 config_dict['calRS'] = config['RS'] == 1
             if 'qosRun' in config:
                 config_dict['qosRun'] = config['qosRun'] == 1
+            if 'overheadRun' in config:
+                config_dict['overheadRun'] = config['overheadRun'] == 1
             if 'validate_rs_path' in config:
                 config_dict['validate'] = config['validate_rs_path'] != ""
                 self.VALIDATE_RS_PATH = config['validate_rs_path']
