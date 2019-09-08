@@ -1,5 +1,13 @@
 # A utility file providing all helper functions
+from shutil import copyfile
 
+
+def genOfflineFact(app_name):
+    dir = 'outputs/'+app_name+"/"
+    cost_fact = dir+app_name+'-cost.fact'
+    mv_fact = dir+app_name+'-mv.fact'
+    copyfile(cost_fact, './factcost.csv')
+    copyfile(mv_fact, './factmv.csv')
 
 def checkRate(rsdg, fact):
     factCost = open(fact, 'r')
