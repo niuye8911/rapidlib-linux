@@ -32,7 +32,7 @@ class appMethods(AppMethods):
         self.min_cost = 30
         self.min_mv = 0
         self.max_mv = 142
-        self.gt_path = self.train_grond_truth_path # default is training
+        self.gt_path = self.train_grond_truth_path  # default is training
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -50,23 +50,34 @@ class appMethods(AppMethods):
                 elif name == "eyes":
                     eyes = config.val  # retrieve the setting for each knob
 
-        self.moveFile("./result.txt",
-                      "./training_outputs/result_" + str(pyramid) + "_" +
-                      str(selectivity) + "_" + str(eyes) + ".txt")
+        self.moveFile(
+            "./result.txt", "./training_outputs/result_" + str(pyramid) + "_" +
+            str(selectivity) + "_" + str(eyes) + ".txt")
 
     def afterGTRun(self):
         pass
 
-    def getFullRunCommand(self, budget):
+    def getFullRunCommand(self, budget, OFFLINE=False,UNIT=-1):
         self.gt_path = self.full_grond_truth_path
-        return [self.obj_path, "-index", self.image_index_full_path,
-                "-rsdg", "-cont",
-                "-b", str(budget),
-                "-xml", "./outputs/" + self.appName + "-default.xml",
-                "-u", '86']
+        if UNIT==-1:
+            unit = 10000 # arbiturary large, then no reconfig
+        else:
+            unit = max(1,int(self.fullrun_units / UNIT))
+        cmd = [
+            self.obj_path, "-index", self.image_index_full_path, "-rsdg",
+            "-cont", "-b",
+            str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
+            "-u", str(unit)
+        ]
+        print(" ".join(cmd))
+        if OFFLINE:
+            cmd = cmd + ['-offline']
+        return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
+        if qosRun:
+            return ['ls']  # return dummy command
         pyramid = 25
         selectivity = 2
         eyes = 2
@@ -97,7 +108,7 @@ class appMethods(AppMethods):
         beta = recall_pref / precision_pref
         normalization = 1 + beta * beta
         weighted_score = 100.0 * normalization * precision * recall / (
-                beta * beta * precision + recall)
+            beta * beta * precision + recall)
         # default_score = 100.0 * 2 * precision * recall / (precision+recall)
         return weighted_score
 
@@ -109,9 +120,8 @@ class appMethods(AppMethods):
         else:
             indexfile = self.image_index_path
         evaluate_cmd = [
-            self.evaluation_obj_path, '-a', self.gt_path, '-d',
-            './result.txt', '-f', '0', '-i', self.pic_path, '-l',
-            indexfile, '-z', '.jpg'
+            self.evaluation_obj_path, '-a', self.gt_path, '-d', './result.txt',
+            '-f', '0', '-i', self.pic_path, '-l', indexfile, '-z', '.jpg'
         ]
         try:
             os.system(" ".join(evaluate_cmd))
@@ -124,8 +134,8 @@ class appMethods(AppMethods):
                 precision = float(col[1])
                 break
         except:
-            return [0.0,0.0,0.0]
+            return [0.0, 0.0, 0.0]
         return [
             precision, recall,
-            100.0 * 2 * precision * recall / (precision + recall)
+            100.0 * 1.25 * precision * recall / (0.25* precision + recall)
         ]

@@ -3,7 +3,7 @@ This is an example file for prepraing SVM for RAPID(C)
 """
 
 import pickle
-
+import os
 import numpy as np
 from Classes import *
 from cs231n.classifiers import LinearSVM
@@ -39,11 +39,13 @@ class appMethods(AppMethods):
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-7
                 elif name == "regular":
-                    regular = float(config.val) * 1e-5  # retrieve the setting for each
+                    regular = float(
+                        config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = 64 * pow(2,
-                                     int(config.val) - 1)  # retrieve the setting
+                    batch = 64 * pow(
+                        2,
+                        int(config.val) - 1)  # retrieve the setting
                     # for each knob
 
         # backup the generated output to another location
@@ -53,15 +55,25 @@ class appMethods(AppMethods):
         #                  int(regular)) + "_" + str(
         #                  int(batch)) + ".txt")
 
-    def getFullRunCommand(self, budget):
-        return [self.obj_path,
-                "-rsdg", "-cont",
-                "-b", str(budget),
-                "-xml", "./outputs/" + self.appName + "-default.xml",
-                "-u", '1']
+    def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
+        if UNIT==-1:
+            unit = 10000 # arbiturary large, then no reconfig
+        else:
+            unit = max(1,int(self.fullrun_units / UNIT))
+        cmd = [
+            self.obj_path, "-rsdg", "-cont", "-b",
+            str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
+            "-u", str(unit),'> /dev/null'
+        ]
+        if OFFLINE:
+            cmd = cmd + ['-offline']
+        cmd = cmd+['> /dev/null']
+        return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
+        if qosRun:
+            return ['ls']
         learningRate = 100 * 1e-5
         regular = 1e-5
         batch = 500
@@ -71,20 +83,20 @@ class appMethods(AppMethods):
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-5
                 elif name == "regular":
-                    regular = float(config.val) * 1e-5  # retrieve the setting for each
+                    regular = float(
+                        config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = 64 * pow(2,
-                                     int(config.val) - 1)  # retrieve the setting
+                    batch = 64 * pow(
+                        2,
+                        int(config.val) - 1)  # retrieve the setting
                     # for each knob
-        return [self.obj_path,
-                "--lr",
-                str(learningRate),
-                "--reg",
-                str(regular),
-                "--batch",
-                str(batch),
-                "" if qosRun else "-train"]
+        return [
+            self.obj_path, "--lr",
+            str(learningRate), "--reg",
+            str(regular), "--batch",
+            str(batch), "" if qosRun else "-train"
+        ]
 
     # helper function to evaluate the QoS
     def getQoS(self):
@@ -99,9 +111,9 @@ class appMethods(AppMethods):
         X_test = np.hstack([X_test, np.ones((X_test.shape[0], 1))])
         svm = LinearSVM()
         try:
-            svm.W = pickle.load(open("./model_svm.p", "rb"),encoding='latin1')
+            svm.W = pickle.load(open("./model_svm.p", "rb"), encoding='latin1')
             y_test_pred = svm.predict(X_test)
             test_accuracy = np.mean(y_test == y_test_pred)
         except:
             test_accuracy = 0.0
-        return test_accuracy*100.0
+        return test_accuracy * 100.0

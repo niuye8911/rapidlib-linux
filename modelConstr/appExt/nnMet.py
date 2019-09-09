@@ -35,33 +35,45 @@ class appMethods(AppMethods):
                     regular = config.val * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = 64 * pow(2,
-                                     config.val - 1)  # retrieve the setting
+                    batch = 64 * pow(2, config.val - 1)  # retrieve the setting
                     # for each knob
 
         # backup the generated output to another location
         #self.moveFile("./model_nn_w1.p", "./training_outputs/output_nn_w1_" +
         #              str(float(learningRate) * 1e-7) + "_" +
+
     #                  str(int(regular)) + "_" + str(int(batch)) + ".p")
     #    self.moveFile("./model_nn_b1.p", "./training_outputs/output_nn_b1_" +
-#                      str(float(learningRate) * 1e-7) + "_" +
-                      #str(int(regular)) + "_" + str(int(batch)) + ".p")
-        #self.moveFile("./model_nn_w2.p", "./training_outputs/output_nn_w2_" +
-                      #str(float(learningRate) * 1e-7) + "_" +
-                      #str(int(regular)) + "_" + str(int(batch)) + ".p")
-        #self.moveFile("./model_nn_b2.p", "./training_outputs/output_nn_b2_" +
-                      #str(float(learningRate) * 1e-7) + "_" +
-                      #str(int(regular)) + "_" + str(int(batch)) + ".p")
 
-    def getFullRunCommand(self, budget):
-        return [self.obj_path,
-                "-rsdg", "-cont",
-                "-b", str(budget),
-                "-xml", "./outputs/" + self.appName + "-default.xml",
-                "-u", '1']
+
+#                      str(float(learningRate) * 1e-7) + "_" +
+#str(int(regular)) + "_" + str(int(batch)) + ".p")
+#self.moveFile("./model_nn_w2.p", "./training_outputs/output_nn_w2_" +
+#str(float(learningRate) * 1e-7) + "_" +
+#str(int(regular)) + "_" + str(int(batch)) + ".p")
+#self.moveFile("./model_nn_b2.p", "./training_outputs/output_nn_b2_" +
+#str(float(learningRate) * 1e-7) + "_" +
+#str(int(regular)) + "_" + str(int(batch)) + ".p")
+
+    def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
+        if UNIT==-1:
+            unit = 10000 # arbiturary large, then no reconfig
+        else:
+            unit = max(1,int(self.fullrun_units / UNIT))
+        return [
+            self.obj_path, "-rsdg", "-cont", "-b",
+            str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
+            "-u", str(unit),'> /dev/null'
+        ]
+        if OFFLINE:
+            cmd = cmd + ['-offline']
+        cmd = cmd+['> /dev/null']
+        return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
+        if qosRun:
+            return ['ls']
         learningRate = 100 * 1e-7
         regular = 1e-5
         batch = 500
@@ -71,18 +83,19 @@ class appMethods(AppMethods):
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-7
                 elif name == "regular":
-                    regular = float(config.val) * 1e-5  # retrieve the setting for each
+                    regular = float(
+                        config.val) * 1e-5  # retrieve the setting for each
                     # knob
                 elif name == "batch":
-                    batch = 64 * pow(2,
-                                     int(config.val) - 1)   # retrieve the setting for each
+                    batch = 64 * pow(
+                        2,
+                        int(config.val) - 1)  # retrieve the setting for each
                     # knob
         return [
             self.obj_path, "--lr",
             str(learningRate), "--reg",
             str(regular), "--batch",
-            str(batch),
-            "" if qosRun else "-train"
+            str(batch), "" if qosRun else "-train"
         ]
 
     def _get_test_data(self,
@@ -133,12 +146,16 @@ class appMethods(AppMethods):
 
         net = TwoLayerNet(input_size, hidden_size, num_classes)
         try:
-            net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"),encoding='latin1')
-            net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"),encoding='latin1')
-            net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"),encoding='latin1')
-            net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"),encoding='latin1')
+            net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"),
+                                           encoding='latin1')
+            net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"),
+                                           encoding='latin1')
+            net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"),
+                                           encoding='latin1')
+            net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"),
+                                           encoding='latin1')
 
             test_accuracy = (net.predict(X_test) == y_test).mean()
         except:
             test_accuracy = 0.0
-        return test_accuracy*100.0
+        return test_accuracy * 100.0

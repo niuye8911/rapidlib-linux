@@ -3,7 +3,7 @@ This is an example file for prepraing Swaptions for RAPID(C)
 """
 
 from Classes import *  # import the parent class and other classes from the
-
+import os
 
 # file Classes.py
 
@@ -21,12 +21,12 @@ class appMethods(AppMethods):
         """
         AppMethods.__init__(self, name, obj_path)
         self.training_units = 10
-        self.fullrun_units = 100
-        self.max_cost = 2194
-        self.min_cost = 228
+        self.fullrun_units = 50
+        self.max_cost = 2204
+        self.min_cost = 22
         self.min_mv = 85.67
         self.max_mv = 100
-        self.gt_path = "./training_outputs/grountTruth.txt"
+        self.gt_path = "./training_outputs/swap-gt.txt"
 
     def cleanUpAfterEachRun(self, configs=None):
         num = 1000000
@@ -41,17 +41,29 @@ class appMethods(AppMethods):
 
     def afterGTRun(self):
         # generate the ground truth
-        self.moveFile("./output.txt", self.gt_path)
+        if not os.path.exists(self.gt_path):
+            self.moveFile("./output.txt", self.gt_path)
 
-    def getFullRunCommand(self, budget, xml=''):
-        xml_path = xml if xml!='' else "./outputs/" + self.appName + "-default.xml"
-        return [self.obj_path, "-ns", str(self.fullrun_units), "-sm", "100",
-                "-rsdg", "-cont", "-b", str(budget),
-                "-xml", xml_path,
-                "-u", '10']
+    def getFullRunCommand(self, budget, xml='', OFFLINE=False, UNIT=-1):
+        xml_path = xml if xml != '' else "./outputs/" + self.appName + "-default.xml"
+        if UNIT==-1:
+            unit = 10000 # arbiturary large, then no reconfig
+        else:
+            unit = max(1,int(self.fullrun_units / UNIT))
+        cmd = [
+            self.obj_path, "-ns",
+            str(self.fullrun_units), "-sm", "100", "-rsdg", "-cont", "-b",
+            str(budget), "-xml", xml_path, "-u", str(unit)
+        ]
+        if OFFLINE:
+            cmd = cmd + ['-offline']
+        print(" ".join(cmd))
+        return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False):
+        if qosRun and os.path.exists(self.gt_path):
+            return ['ls']  # return dummy command
         num = 1000000
         if qosRun:
             units = self.fullrun_units
@@ -102,5 +114,4 @@ class appMethods(AppMethods):
             toterr += error
         # write the average error
         meanQoS = 1 - toterr / totalRound
-        meanQoS = meanQoS * 1000.0 - 999
-        return meanQoS * 100.0
+        return (meanQoS * 100.0 - 99.9) * 1000
