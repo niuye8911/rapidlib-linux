@@ -7,6 +7,7 @@ import sys
 import Classes
 import representset
 import xmlgen
+import csv
 from App.AppSummary import AppSummary
 from Parsing_Util.readFact import readFact
 from optimality import findOptimal
@@ -16,6 +17,7 @@ from stage_2.trainApp import genFact, genFactWithRSDG
 from stage_4.constructRSDG import constructRSDG, populate
 from Machine_Trainer.MachineTrainer import MachineTrainer
 from xmlgen import completeXML
+from util import genOfflineFact
 
 # CMD line Parmeters
 stage = -1
@@ -225,31 +227,32 @@ def main(argv):
             representset.validateRS(groundTruth_profile, rs_configs)
             return
         # construct the cost rsdg iteratively given a threshold
-        cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time, rsp_size = constructRSDG(
-            groundTruth_profile, knob_samples, THRESHOLD, knobs, True, model,
-            time_record)
-        cost_bb_rsdg, mv_bb_rsdgs, cost_bb_path, mv_bb_paths, seglvl_bb, training_time_full, rsp_bb_size = constructRSDG(
-            bb_profile,
-            knob_samples,
-            THRESHOLD,
-            knobs,
-            True,
-            model,
-            time_record,
-            KDG=False)
-        training_time.update(training_time_full)
+        if not model == "offline":
+            cost_rsdg, mv_rsdgs, cost_path, mv_paths, seglvl, training_time, rsp_size = constructRSDG(
+                groundTruth_profile, knob_samples, THRESHOLD, knobs, True,
+                model, time_record)
+        #cost_bb_rsdg, mv_bb_rsdgs, cost_bb_path, mv_bb_paths, seglvl_bb, training_time_full, rsp_bb_size = constructRSDG(
+        #    bb_profile,
+        #    knob_samples,
+        #    THRESHOLD,
+        #    knobs,
+        #    True,
+        #    model,
+        #    time_record,
+        #    KDG=False)
+        #training_time.update(training_time_full)
 
         # Generate the representative set
         rss_size = 0
         rss_bb_size = 0
         rs = []
         rs_bb = []
-        if appInfo.TRAINING_CFG['calRS']:
+        if appInfo.TRAINING_CFG['calRS'] or RSRUN:
             rs, mean = representset.genContRS(groundTruth_profile,
                                               RS_THRESHOLD)
-            rs_bb, mean_bb = representset.genContRS(bb_profile,
-                                                    RS_THRESHOLD,
-                                                    KDG=False)
+            #rs_bb, mean_bb = representset.genContRS(bb_profile,
+            #                                        RS_THRESHOLD,
+            #                                        KDG=False)
             # generate the rsdg recorvered by rs
             subprofile, partitions = groundTruth_profile.genRSSubset(rs)
             costrsdg_rs, mvrsdgs_rs, costpath_rs, mvpaths_rs = populate(
@@ -277,49 +280,57 @@ def main(argv):
                 training_time['RS'] = total_time
                 training_time['RS_bb'] = total_time_bb
         # write training time to file
-        if time_record is not None:
+        if time_record is not None and not model == "offline":
             with open('./outputs/' + appname + '/' + 'time_compare.txt',
                       'w') as file:
                 file.write(json.dumps(training_time, indent=2, sort_keys=True))
         if PLOT:
             draw("outputs/modelValid.csv")
-
-        with open('./training_size.txt', 'w') as ts:
-            ts.write("full:" + str(bb_size) + "\n")
-            ts.write("kdg:" + str(fulltraining_size) + "\n")
-            ts.write("rsp:" + str(rsp_size) + "\n")
-            ts.write("rss:" + str(rss_size) + "\n")
-            ts.write("rsp_bb:" + str(rsp_bb_size) + "\n")
-            ts.write("rss_bb:" + str(rss_bb_size) + "\n")
+        if not model == "offline":
+            with open('./training_size.txt', 'w') as ts:
+                ts.write("full:" + str(bb_size) + "\n")
+                ts.write("kdg:" + str(fulltraining_size) + "\n")
+                ts.write("rsp:" + str(rsp_size) + "\n")
+                ts.write("rss:" + str(rss_size) + "\n")
+            #ts.write("rsp_bb:" + str(rsp_bb_size) + "\n")
+            #ts.write("rss_bb:" + str(rss_bb_size) + "\n")
 
         # ######################STAGE-4########################
         # forth stage, generate the final RSDG in XML format
-        if not RSRUN:
-            default_xml_path = completeXML(appInfo.APP_NAME, xml, cost_rsdg,
-                                           mv_rsdgs[-1], model)
-        else:
-            default_xml_path = completeXML(appInfo.APP_NAME, xml, costrsdg_rs,
-                                           mvrsdgs_rs[-1], model)
+        if not model == "offline":
+            if not RSRUN:
+                default_xml_path = completeXML(appInfo.APP_NAME, xml,
+                                               cost_rsdg, mv_rsdgs[-1], model)
+            else:
+                default_xml_path = completeXML(appInfo.APP_NAME, xml,
+                                               costrsdg_rs, mvrsdgs_rs[-1],
+                                               model)
+                cost_path = costpath_rs
+                mv_paths = mvpaths_rs
 
         # cleaning
-        os.system("rm *.log")
+        try:
+            os.system("rm *.log")
+        except:
+            pass
 
         # write the generated RSDG back to desc file
-        with open('./' + appInfo.APP_NAME + "_run.config", 'w') as runFile:
-            run_config = {}
-            run_config['cost_rsdg'] = os.path.abspath(cost_path)
-            run_config['mv_rsdgs'] = list(
-                map(lambda x: os.path.abspath(x), mv_paths[0:-1]))
-            run_config['mv_default_rsdg'] = os.path.abspath(mv_paths[-1])
-            run_config['defaultXML'] = os.path.abspath(default_xml_path)
-            run_config['appMet'] = os.path.abspath(appInfo.METHODS_PATH)
-            run_config['rapidScript'] = os.path.abspath('./rapid.py')
-            run_config['seglvl'] = seglvl
-            run_config['desc'] = os.path.abspath(appInfo.DESC)
-            run_config['preferences'] = list(map(lambda x: 1.0,
-                                                 mv_paths[0:-1]))
-            json.dump(run_config, runFile, indent=2, sort_keys=True)
-            runFile.close()
+        if not model == "offline":
+            with open('./' + appInfo.APP_NAME + "_run.config", 'w') as runFile:
+                run_config = {}
+                run_config['cost_rsdg'] = os.path.abspath(cost_path)
+                run_config['mv_rsdgs'] = list(
+                    map(lambda x: os.path.abspath(x), mv_paths[0:-1]))
+                run_config['mv_default_rsdg'] = os.path.abspath(mv_paths[-1])
+                run_config['defaultXML'] = os.path.abspath(default_xml_path)
+                run_config['appMet'] = os.path.abspath(appInfo.METHODS_PATH)
+                run_config['rapidScript'] = os.path.abspath('./rapid.py')
+                run_config['seglvl'] = seglvl
+                run_config['desc'] = os.path.abspath(appInfo.DESC)
+                run_config['preferences'] = list(
+                    map(lambda x: 1.0, mv_paths[0:-1]))
+                json.dump(run_config, runFile, indent=2, sort_keys=True)
+                runFile.close()
 
         if (stage == 4):
             return
@@ -327,14 +338,33 @@ def main(argv):
         if appInfo.TRAINING_CFG['qosRun']:
             module = imp.load_source("", appInfo.METHODS_PATH)
             appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
-            mvs = appMethods.qosRun()
-            output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_" + model + ".txt"
-            if RSRUN:
-                output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_RS" + ".txt"
-            with open(output_name, 'w') as report:
-                for mv in mvs:
-                    report.write(str(mv))
-                    report.write("\n")
+            if model == 'offline':
+                genOfflineFact(appInfo.APP_NAME)
+            report = appMethods.qosRun(OFFLINE=model == "offline")
+            output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_" + model + ".csv"
+            columns = [
+                'Percentage', 'MV', 'Augmented_MV', 'Budget', 'Exec_Time'
+            ]
+            with open(output_name, 'w') as output:
+                writer = csv.DictWriter(output, fieldnames=columns)
+                writer.writeheader()
+                for data in report:
+                    writer.writerow(data)
+
+        if appInfo.TRAINING_CFG['overheadRun'] and model=='piecewise':
+            # only run this for piecewise
+            module = imp.load_source("", appInfo.METHODS_PATH)
+            appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
+            report = appMethods.overheadMeasure()
+            output_name = './outputs/' + appname + "/overhead_report_" + appInfo.APP_NAME + ".csv"
+            columns = [
+                'Unit', 'MV', 'Augmented_MV','Budget','Exec_Time', 'OverBudget', 'RC_TIME','RC_NUM','SUCCESS','overhead_pctg'
+            ]
+            with open(output_name, 'w') as output:
+                writer = csv.DictWriter(output, fieldnames=columns)
+                writer.writeheader()
+                for data in report:
+                    writer.writerow(data)
 
     # ######SOME EXTRA MODES#############
 
@@ -381,7 +411,7 @@ def declareParser():
 
 def parseCMD(options):
     global app_config, observed, fact, KF, remote, model, rs, stage, mode, \
-        PLOT, config_file, run_config_path
+        PLOT, config_file, run_config_path, RSRUN
     observed = options.observed
     fact = options.fact
     model = options.model
@@ -398,6 +428,9 @@ def parseCMD(options):
     if options.mode == "standard" and options.config == "":
         print(" ERROR: missing application config, use -C to provide")
         exit()
+    if options.model == "rs":
+        print("RUNNING Representative Set")
+        RSRUN = True
     if options.config is not None:
         config_file = options.config
     if options.stage is not None:

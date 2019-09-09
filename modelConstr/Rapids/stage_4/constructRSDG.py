@@ -19,17 +19,20 @@ def constructRSDG(gt,
     # segmentation level
     # initial error rate set to 100%
     error = 1.0
-    maxT = 10
+    maxT = 5
     if model == "rand20":
         # ramdom generate 20 configurations
         rand20list, partitions = gt.genRandomSubset(20)
         costrsdg, mvrsdgs, costpath, mvpaths = populate(
             rand20list, partitions, model, KDG)
         trainingsize= 20
-    elif model == "quad" or model == "piecewise":
+    elif model == "quad" or model == "piecewise" or model == "allpiece":
         if model == "quad":
             maxT = 3
-        if seglvl == 0:
+        if model == "allpiece":
+            seglvl = 5
+        if seglvl == 0 and model is not "allpiece":
+            print("finding right seg lvl")
             while error >= threshold:
                 if seglvl >= maxT:
                     print("Reached Highest Segmentation Granularity")
@@ -42,10 +45,15 @@ def constructRSDG(gt,
                 error = compare(costrsdg, gt, False, model)
             trainingsize = len(observed_profile.configurations)
         else:
+            print("prefix seg lvl:",seglvl)
             partitions = partition(seglvl, knob_samples)
             observed_profile = retrieve(partitions, gt, knobs)
             costrsdg, mvrsdgs, costpath, mvpaths = populate(
                 observed_profile, partitions, model,KDG)
+            trainingsize = len(observed_profile.configurations)
+            error = compare(costrsdg, gt, False, model)
+    elif model == "rs":
+        return None, None, '', '', -1, {}, -1
     if PRINT:
         error = compare(costrsdg, gt, True, model)
         print("error = " + str(error))
@@ -125,7 +133,8 @@ def partition(seglvl, knob_samples):
             ids = new_ids
         for id in ids:
             id = int(id)
-            partitions[knob].append(val_range[id])
+            if val_range[id] not in partitions[knob]:
+                partitions[knob].append(val_range[id])
     return partitions
 
 
@@ -159,7 +168,7 @@ def retrieve(partitions, gt, knobs):
 # given an observed profile, generate the continuous problem and populate the
 # rsdg
 def populate(observed, partitions, model, KDG, RS=False):
-    if model == "piecewise" or model == 'rand20':
+    if model in ["piecewise","rand20","allpiece","rs"] :
         return populatePieceWiseRSDG(observed, partitions, KDG, RS)
     elif model == "quad":
         return populateQuadRSDG(observed, True)
@@ -168,7 +177,7 @@ def populate(observed, partitions, model, KDG, RS=False):
 
 
 def compare(rsdg, groundTruth, PRINT, model):
-    if model == "piecewise" or model == 'rand20':
+    if model == "piecewise" or model == 'rand20' or model == "allpiece":
         return modelValid(rsdg, groundTruth, PRINT)
     elif model == "quad":
         return compareQuadRSDG(groundTruth, rsdg, True, PRINT)
