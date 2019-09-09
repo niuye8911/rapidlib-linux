@@ -1,7 +1,7 @@
 #!/bin/bash
 # run all qos run instances
 
-apps="ferretPort svmPort nnPort swaptPort bodyPort"
+apps="facePort ferretPort svmPort nnPort swapPort bodyPort"
 
 for app in $apps
 do
