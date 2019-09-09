@@ -676,17 +676,17 @@ class quadRSDG:
         """
         outfilename = ""
         if COST:
+            outfilename = "./outputs/cost_bb.rsdg"
             if KDG:
                 outfilename = "./outputs/cost.rsdg"
             if RS:
                 outfilename = "./outputs/cost_rs.rsdg"
-            outfilename = "./outputs/cost_bb.rsdg"
         else:
+            outfilename = "./outputs/mv_bb.rsdg"
             if KDG:
                 outfilename = "./outputs/mv.rsdg"
             if RS:
                 outfilename = "./outputs/mv_rs.rsdg"
-            outfilename = "./outputs/mv_bb.rsdg"
         rsdg = open(outfilename, 'w')
         for knob in self.knob_table:
             rsdg.write(knob + "\n")
@@ -837,17 +837,17 @@ class pieceRSDG:
         """
         outfilename = ""
         if COST:
+            outfilename = "./outputs/cost_bb.rsdg"
             if KDG:
                 outfilename = "./outputs/cost.rsdg"
             if RS:
                 outfilename = "./outputs/cost_rs.rsdg"
-            outfilename = "./outputs/cost_bb.rsdg"
         else:
+            outfilename = "./outputs/mv" + str(id) + "_bb.rsdg"
             if KDG:
                 outfilename = "./outputs/mv" + str(id) + ".rsdg"
             if RS:
                 outfilename = "./outputs/mv" + str(id) + "_rs.rsdg"
-            outfilename = "./outputs/mv" + str(id) + "_bb.rsdg"
         rsdg = open(outfilename, 'w')
         # print the segments
         for knob in self.knob_table:
@@ -973,23 +973,94 @@ class AppMethods():
     def getFullRunCommand(self, budget):
         pass
 
-    def qosRun(self):
+    def parseLog(self):
+        with open('./mission.log') as logfile:
+            for line in logfile:
+                if "TotalConfig-Time" in line:
+                    totTime = float(line.split(':')[1])
+                if "Total-Reconfig-Num" in line:
+                    totReconfig = int(line.split(':')[1])
+                if "SUCCESS" in line:
+                    success = line.split(':')[1].rstrip()
+        return totTime, totReconfig, success
+
+    def overheadMeasure(self):
+        print("measuring overhead")
+        self.runGT(True)
+        budget = (self.min_cost + 0.8 * (self.max_cost - self.min_cost)
+                  ) * self.fullrun_units / 1000.0  #budget in the middle
+        report = []
+        # generate the possible units
+        units = list(range(1,11))+list(range(20,101,10))
+        for unit in units:
+            if int(self.fullrun_units / unit)<1:
+                # finest granularity
+                continue
+            cmd = self.getFullRunCommand(budget, UNIT=unit)
+            for i in range(1,5): # for each run, 5 times
+                print("running budget",str(budget),"itr",str(i))
+                start_time = time.time()
+                os.system(" ".join(cmd))
+                elapsed_time = time.time() - start_time
+                mv = self.getQoS()
+                if type(mv) is list:
+                    mv = mv[-1]  # use the default qos metric
+                totTime, totReconfig, success = self.parseLog()
+                report.append({
+                    'Unit':
+                    unit,
+                    'MV':
+                    mv,
+                    'Augmented_MV':
+                    0.0 if elapsed_time > 1.05 * budget else mv,
+                    'Budget':
+                    budget,
+                    'Exec_Time':
+                    elapsed_time,
+                    'OverBudget':
+                    elapsed_time > 1.05*budget,
+                    'RC_TIME':
+                    totTime,
+                    'RC_NUM':
+                    totReconfig,
+                    'SUCCESS':
+                    success,
+                    'overhead_pctg':
+                    float(totTime)/(1000.0*float(elapsed_time))
+                })
+        return report
+
+    def qosRun(self, OFFLINE=False):
         print("running QOS run")
         self.runGT(True)  # first generate the groundtruth
-        step_size = (self.max_cost - self.min_cost) / 10.0
-        mvs = []
-        for percentage in range(1, 10):
+        step_size = (self.max_cost - self.min_cost) / 20.0
+        report = []
+        for percentage in range(1, 11):
             budget = (self.min_cost + float(percentage) *
                       step_size) * self.fullrun_units / 1000.0
-            cmd = self.getFullRunCommand(budget)
+            unit = self.fullrun_units / 10 # reconfig 10 times
+            print("RUNNING BUDGET:", str(budget))
+            cmd = self.getFullRunCommand(budget, OFFLINE=OFFLINE)
+            start_time = time.time()
             os.system(" ".join(cmd))
-            # check the QoS
+            elapsed_time = time.time() - start_time
             mv = self.getQoS()
             if type(mv) is list:
                 mv = mv[-1]  # use the default qos metric
-            mvs.append(mv)
+            report.append({
+                'Percentage':
+                percentage,
+                'MV':
+                mv,
+                'Augmented_MV':
+                0.0 if elapsed_time > 1.05 * budget else mv,
+                'Budget':
+                budget,
+                'Exec_Time':
+                elapsed_time
+            })
             print("mv:" + str(mv))
-        return mvs
+        return report
 
     # Implement this function
     def train(self,
