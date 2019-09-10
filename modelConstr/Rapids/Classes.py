@@ -951,7 +951,7 @@ class AppMethods():
     def setTrainingUnits(self, unit):
         self.training_units = unit
 
-    def getCommandWithConfig(self, config_str, qosRun=False):
+    def getCommandWithConfig(self, config_str, qosRun=False, fullRun=True):
         ''' use config string to generate a config and get command '''
         elements = config_str.split('-')
         configs = []
@@ -960,10 +960,10 @@ class AppMethods():
                 knob = Knob(elements[i], elements[i], -99999, 99999)
                 configs.append(Config(knob, elements[i + 1]))
                 i += 1
-        return self.getCommand(configs, qosRun)
+        return self.getCommand(configs, qosRun, fullRun)
 
     # Implement this function
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         """ Assembly the CMD line for running the app
         :param configs: a concrete configuration with knob settings
                         Default setting would assemble command for GT
@@ -987,7 +987,7 @@ class AppMethods():
     def overheadMeasure(self):
         print("measuring overhead")
         self.runGT(True)
-        budget = (self.min_cost + 0.8 * (self.max_cost - self.min_cost)
+        budget = (self.min_cost + 0.5 * (self.max_cost - self.min_cost)
                   ) * self.fullrun_units / 1000.0  #budget in the middle
         report = []
         # generate the possible units

@@ -61,7 +61,7 @@ class appMethods(AppMethods):
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun and os.path.exists(self.gt_path):
             return ['ls']
         particle = 4000
@@ -73,7 +73,7 @@ class appMethods(AppMethods):
                     particle = config.val  # retrieve the setting for each knob
                 elif name == "layer":
                     layer = config.val  # retrieve the setting for each knob
-        if qosRun:
+        if qosRun or fullRun:
             units = self.fullrun_units
         else:
             units = self.training_units

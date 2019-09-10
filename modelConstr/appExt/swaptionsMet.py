@@ -61,11 +61,11 @@ class appMethods(AppMethods):
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun and os.path.exists(self.gt_path):
             return ['ls']  # return dummy command
         num = 1000000
-        if qosRun:
+        if qosRun or fullRun:
             units = self.fullrun_units
         else:
             units = self.training_units

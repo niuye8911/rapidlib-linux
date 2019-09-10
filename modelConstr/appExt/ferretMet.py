@@ -70,7 +70,7 @@ class appMethods(AppMethods):
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun and os.path.exists(self.gt_path):
             return ['ls']  # return dummy command
         itr = 25
@@ -85,7 +85,7 @@ class appMethods(AppMethods):
                     probe = config.val  # retrieve the setting for each knob
                 elif name == "itr":
                     itr = config.val  # retrieve the setting for each knob
-        if qosRun:
+        if qosRun or fullRun:
             query_path = self.fullrun_query_path
         else:
             query_path = self.query_path

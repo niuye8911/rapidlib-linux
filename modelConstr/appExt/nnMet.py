@@ -71,7 +71,7 @@ class appMethods(AppMethods):
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun:
             return ['ls']
         learningRate = 100 * 1e-7
@@ -95,7 +95,7 @@ class appMethods(AppMethods):
             self.obj_path, "--lr",
             str(learningRate), "--reg",
             str(regular), "--batch",
-            str(batch), "" if qosRun else "-train"
+            str(batch), "" if (qosRun or fullRun) else "-train"
         ]
 
     def _get_test_data(self,

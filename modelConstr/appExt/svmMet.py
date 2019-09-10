@@ -56,22 +56,23 @@ class appMethods(AppMethods):
         #                  int(batch)) + ".txt")
 
     def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
-        if UNIT==-1:
-            unit = 10000 # arbiturary large, then no reconfig
+        if UNIT == -1:
+            unit = 10000  # arbiturary large, then no reconfig
         else:
-            unit = max(1,int(self.fullrun_units / UNIT))
+            unit = max(1, int(self.fullrun_units / UNIT))
         cmd = [
             self.obj_path, "-rsdg", "-cont", "-b",
             str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
-            "-u", str(unit),'> /dev/null'
+            "-u",
+            str(unit), '> /dev/null'
         ]
         if OFFLINE:
             cmd = cmd + ['-offline']
-        cmd = cmd+['> /dev/null']
+        cmd = cmd + ['> /dev/null']
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun:
             return ['ls']
         learningRate = 100 * 1e-5
@@ -95,7 +96,7 @@ class appMethods(AppMethods):
             self.obj_path, "--lr",
             str(learningRate), "--reg",
             str(regular), "--batch",
-            str(batch), "" if qosRun else "-train"
+            str(batch), "" if (qosRun or fullRun) else "-train"
         ]
 
     # helper function to evaluate the QoS

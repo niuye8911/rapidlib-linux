@@ -57,17 +57,18 @@ class appMethods(AppMethods):
     def afterGTRun(self):
         pass
 
-    def getFullRunCommand(self, budget, OFFLINE=False,UNIT=-1):
+    def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
         self.gt_path = self.full_grond_truth_path
-        if UNIT==-1:
-            unit = 10000 # arbiturary large, then no reconfig
+        if UNIT == -1:
+            unit = 10000  # arbiturary large, then no reconfig
         else:
-            unit = max(1,int(self.fullrun_units / UNIT))
+            unit = max(1, int(self.fullrun_units / UNIT))
         cmd = [
             self.obj_path, "-index", self.image_index_full_path, "-rsdg",
             "-cont", "-b",
             str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
-            "-u", str(unit)
+            "-u",
+            str(unit)
         ]
         print(" ".join(cmd))
         if OFFLINE:
@@ -75,9 +76,11 @@ class appMethods(AppMethods):
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False):
+    def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun:
             return ['ls']  # return dummy command
+        if fullRun:
+            self.gt_path = self.full_grond_truth_path
         pyramid = 25
         selectivity = 2
         eyes = 2
@@ -91,7 +94,8 @@ class appMethods(AppMethods):
                     # knob
                 elif name == "eyes":
                     eyes = config.val  # retrieve the setting for each knob
-        index = self.image_index_full_path if qosRun else self.image_index_path
+        index = self.image_index_full_path if (
+            qosRun or fullRun) else self.image_index_path
         return [
             self.obj_path, "-index", index, '-p',
             str(pyramid), '-s',
@@ -137,5 +141,5 @@ class appMethods(AppMethods):
             return [0.0, 0.0, 0.0]
         return [
             precision, recall,
-            100.0 * 1.25 * precision * recall / (0.25* precision + recall)
+            100.0 * 1.01 * precision * recall / (0.01 * precision + recall)
         ]
