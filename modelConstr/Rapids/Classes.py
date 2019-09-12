@@ -974,20 +974,21 @@ class AppMethods():
         pass
 
     def parseLog(self):
+        name = "./mission_"+self.appName+"_log.csv"
+        # go to the last line
         with open('./mission.log') as logfile:
             for line in logfile:
-                if "TotalConfig-Time" in line:
-                    totTime = float(line.split(':')[1])
-                if "Total-Reconfig-Num" in line:
-                    totReconfig = int(line.split(':')[1])
-                if "SUCCESS" in line:
-                    success = line.split(':')[1].rstrip()
+                pass
+            last_col = line.split(',')
+            totTime = float(last_col[-5])
+            totReconfig = int(last_col[-4])
+            success = last_col[-1].rstrip()
         return totTime, totReconfig, success
 
-    def overheadMeasure(self):
+    def overheadMeasure(self, budget=0.5):
         print("measuring overhead")
         self.runGT(True)
-        budget = (self.min_cost + 0.5 * (self.max_cost - self.min_cost)
+        budget = (self.min_cost + budget * (self.max_cost - self.min_cost)
                   ) * self.fullrun_units / 1000.0  #budget in the middle
         report = []
         # generate the possible units
@@ -1033,7 +1034,7 @@ class AppMethods():
     def qosRun(self, OFFLINE=False):
         print("running QOS run")
         self.runGT(True)  # first generate the groundtruth
-        step_size = (self.max_cost - self.min_cost) / 20.0
+        step_size = (self.max_cost - self.min_cost) / 10.0
         report = []
         for percentage in range(1, 11):
             budget = (self.min_cost + float(percentage) *
