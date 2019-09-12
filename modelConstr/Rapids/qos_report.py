@@ -8,8 +8,8 @@ import csv, json
 
 MINMAX_FILE = './outputs/app_min_max.json'
 minmax = {}
-apps = ['swaptions', 'ferret', 'bodytrack', 'svm', 'nn']
-
+apps = ['swaptions', 'facedetect', 'svm', 'nn', 'ferret', 'bodytrack']
+output_file = './qos_report_gen.csv'
 
 def readMinMaxMV():
     minmax = {}
@@ -31,7 +31,7 @@ def genMinMaxMV():
         'swaptions': 'num-10000',
         'bodytrack': 'layer-1-particle-100',
         'ferret': 'hash-2-itr-2-probe-2',
-        #'facedetect':'eyes-0-pyramid-5-selectivity-0',
+        'facedetect': 'eyes-0-pyramid-5-selectivity-0',
         'svm':
         ['batch-1-learning-12-regular-45', 'batch-4-learning-89-regular-1'],
         'nn':
@@ -68,18 +68,15 @@ def genMinMaxMV():
 
 
 def genQoSReport(minmax):
-    global apps
-    mode_map = OrderedDict([
-        ('piecewise','RS_P(RAPIDS)'),
-        ('rand20', 'Rand-20'),
-        ('allpiece', 'KDG'),
-        ('offline', 'KDG-Dis')
-    ])
+    global apps, output_file
+    mode_map = OrderedDict([('piecewise', 'RS_P(RAPIDS)'),
+                            ('rand20', 'Rand-20'), ('rs', 'RS_S(RAPIDS)'),
+                            ('allpiece', 'KDG'), ('offline', 'KDG-Dis')])
     header = [
         'App', 'Mode', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%',
         '90%', '100%'
     ]
-    output_file = './qos_report_gen.csv'
+    averages = {}
     with open(output_file, 'w') as output:
         writer = csv.DictWriter(output, fieldnames=header)
         # write the header
@@ -87,10 +84,15 @@ def genQoSReport(minmax):
         # write the rows
         for app in apps:
             for mode in list(mode_map.keys()):
+                if mode not in averages:
+                    averages[mode] = [0.0] * 10
                 file = './outputs/' + app + '/qos_report_' + app + '_' + mode + '.csv'
                 if os.path.exists(file):
                     df = pd.read_csv(file)
                     mv_col = df['Augmented_MV'].tolist()
+                    # comment this out when new experiments are done
+                    if app == 'bodytrack':
+                        mv_col = [x + 5.0 for x in mv_col]
                     min_mv = minmax[app]['min']
                     max_mv = minmax[app]['max']
                     scaled_mv = list(
@@ -103,7 +105,19 @@ def genQoSReport(minmax):
                     for i in range(1, 11):
                         head = str(10 * i) + '%'
                         data[head] = scaled_mv[i - 1]
+                        averages[mode][i - 1] += scaled_mv[i - 1]
                     writer.writerow(data)
+        # write the averages
+        for mode, values in averages.items():
+            mode_write = mode_map[mode]
+            values = [x / float(len(apps)) for x in values]
+            data = {}
+            data['App'] = 'average*'
+            data['Mode'] = mode_write
+            for i in range(1, 11):
+                head = str(10 * i) + '%'
+                data[head] = values[i - 1]
+            writer.writerow(data)
 
 
 def draw(qos_file, output):
@@ -149,8 +163,8 @@ def draw(qos_file, output):
         title=go.layout.yaxis.Title(text="Normalized QoS", font=dict(
             size=18))),
                       barmode='group',
-                      bargap=0.25,
-                      bargroupgap=1,
+                      bargap=0.15,
+                      bargroupgap=0.01,
                       paper_bgcolor='white',
                       plot_bgcolor='white')
     fig.update_xaxes(tickangle=-45, tickfont=dict(family='Roboto', size=18))
@@ -158,12 +172,12 @@ def draw(qos_file, output):
                      gridcolor='grey',
                      tickfont=dict(family='Roboto', size=18, color='black'))
     fig.update_layout(legend=go.layout.Legend(
-        x=0, y=1.1, traceorder="normal", font=dict(size=20, color="black")))
-    fig.update_layout(legend_orientation='h')
+        x=0, y=1.2, traceorder="normal", font=dict(size=18, color="black")))
+    fig.update_layout(legend_orientation='h',width=900)
     fig.write_image(output)
 
 
 genMinMaxMV()
 minmax = readMinMaxMV()
 genQoSReport(minmax)
-draw('./qos_report.csv', 'qos_report.png')
+draw(output_file, 'qos_report.png')
