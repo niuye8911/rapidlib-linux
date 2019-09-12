@@ -22,8 +22,10 @@ rsdgMission::rsdgMission(string name) {
   curBudget = 0;
   rapidm_started = false;
   string test = "test";
-  logfile.open("./mission.log");
-  logfile << "selection, ExpectedEnergy, MV \n";
+  string log_name = "./mission_" + name + "_log.csv";
+  logfile.open(log_name);
+  logfile << "Selection, Performed, Real Cost, RC_Time, RC, Budget, Exec, "
+             "SUCCESS \n";
 }
 
 rsdgService *rsdgMission::getService(string name) {
@@ -328,8 +330,16 @@ void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
 
 double rsdgMission::getObj() { return objValue; }
 
-void rsdgMission::printToLog() {
-  // print selection to log file
+void rsdgMission::printToLog(int status, bool rc_performed) {
+  if (status != 0) {
+    // in the middle of execution or has ended, write the real cost
+    logfile << ',' << realCost << ",,,,," << endl;
+    if (status == 1) {
+      // end
+      return;
+    }
+  }
+  // write the current config
   for (map<string, string>::iterator it = selected.begin();
        it != selected.end(); it++) {
     string basic = it->second;
@@ -346,23 +356,13 @@ void rsdgMission::printToLog() {
       // check if this service is a cont service
       lvl = contServiceValue[basic];
     }
-    logfile << service << "," << lvl << ",";
-    if (TRAINING_MODE)
-      fact << service << "," << lvl << ",";
-    if (update)
-      RS_fact << service << "," << lvl << ",";
+    logfile << service << "-" << lvl;
+    if (next(it) != selected.end()) {
+      logfile << "-";
+    }
   }
-  logfile << predictedCost << ",";
-  logfile << realCost << endl;
+  logfile << ',' << rc_performed;
   logfile.flush();
-  if (TRAINING_MODE) {
-    fact << realCost << endl;
-    fact.flush();
-  }
-  if (update) {
-    RS_fact << realCost << endl;
-    RS_fact.flush();
-  }
 }
 
 void rsdgMission::genFact() {
@@ -496,54 +496,33 @@ void rsdgMission::reconfig_updating() {
 
 void rsdgMission::reconfig() {
   logDebug("*Reconfiguration Start*");
-  // first check if the model is corrected
+  // updateModel(unitBetweenCheckPoints);
   checkPoint();
   updateModel(unitBetweenCheckPoints);
-  if (!updateBudget()) {
-    if (startTime == -1)
-      startTime = getCurrentTimeInMilli();
-    return; // do not need to reconfig
-  }
-  if (startTime != -1) {
-    if (LOGGER)
-      printToLog();
-  }
-  // get the result
-  if (TRAINING_MODE) {
-    reconfig_training();
-  } else if (!TRAINING_MODE && update) {
-    // updating RSDG
-    if (RS.size() == 0)
-      readRS("RS"); // read in representative set
-    reconfig_updating();
-  } else if (offline_search) {
-    consultServer();
-  } else {
-    // remove phase2 due to gurobi failure
-    // phase1, max MV
-    graph->minmax = MAX;
-    printProb(outfileName);
-    if (rapidm)
-      consultServer_M();
-    else
+  bool update = updateBudget();
+  if (startTime == -1 || update) {
+    // first time or need to reconfig
+    if (offline_search) {
+      // offline reconfig
       consultServer();
-    // phase2 and set the new MV
-    /*        graph->minmax = MIN;
-     graph->targetMV = objValue;
-     maxMV=objValue==0?-1:objValue;
-     printProb(outfileName);
-     consultServer();
-     minEnergy=objValue;*/
+    } else {
+      // rsdg reconfig
+      graph->minmax = MAX;
+      printProb(outfileName);
+      if (rapidm)
+        consultServer_M();
+      else
+        consultServer();
+    }
+    // apply result
+    applyResult();
+    // check point again to ignore the overhead by RSDG
+    checkPoint();
+    total_reconfig_time += timeSinceLastCheckPoint;
+    num_of_reconfig++;
   }
-  applyResult();
-  // check point again to ignore the overhead by RSDG
-  checkPoint();
-  total_reconfig_time += timeSinceLastCheckPoint;
-  num_of_reconfig++;
-  logDebug("reconfig overhead = " + to_string(timeSinceLastCheckPoint));
-  logDebug("AVG reconfig overhead = " +
-           to_string((double)total_reconfig_time / (double)num_of_reconfig) +
-           "ms");
+  int status = startTime == -1 ? 0 : 2;
+  printToLog(status, update);
   if (startTime == -1)
     startTime = getCurrentTimeInMilli();
 }
@@ -748,28 +727,10 @@ bool rsdgMission::validate(vector<string> &sel) {
 // update the model when actual usage is way off expected
 void rsdgMission::updateModel(int unitSinceLastCheckPoint) {
   if (startTime == -1) {
+    realCost = 0.0;
     return;
   }
   realCost = (double)timeSinceLastCheckPoint / (double)unitSinceLastCheckPoint;
-  logDebug("timesincelastCheckpoint" + to_string(timeSinceLastCheckPoint) +
-           "   unitsince" + to_string(unitSinceLastCheckPoint));
-  logDebug("REAL=" + to_string(realCost) +
-           "   PREDICTED=" + to_string(predictedCost));
-  string targetNode = "";
-  // get the current selected nodes
-  // TODO: currently only support 1-node situation
-  /*    for (map<string,string>::iterator it = selected.begin();
-   it!=selected.end();it++){ if(it->second == "")continue; targetNode =
-   it->second;
-   }
-   double error = (realCost - predictedCost) / realCost;
-   double updatedCost = newCost(realCost, predictedCost);
-   error = error<0?-1*error:error;//get the absolute error
-   if(error>=THRESHOLD){
-   cout<<RSDG_TAG+"OFF BY REAL CONSUMPTION BY "<<error;
-   cout<<" GREATER THAN THRESHOLD, MODEL NEEDS TO BE UPDATED"<<endl;
-   updateWeight(targetNode, updatedCost);
-   }*/
 }
 
 vector<string> rsdgMission::getDep(string s) {
@@ -1024,7 +985,7 @@ void rsdgMission::readCostProfile() {
  */
 vector<string> rsdgMission::searchProfile() {
   vector<string> resultConfig;
-  double curMaxMV = -1;
+  double curMaxMV = -100;
   string maxConfig = "";
   for (auto it = offlineCost.begin(); it != offlineCost.end(); it++) {
     double curcost = it->second;
@@ -1101,8 +1062,11 @@ void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
  }
  }*/
 void rsdgMission::finish(bool FINISH) {
-  logfile<<"TotalConfig-Time:"<<to_string((double)total_reconfig_time)<<endl;
-  logfile<<"Total-Reconfig-Num:"<<to_string(num_of_reconfig)<<endl;
-  logfile<<"SUCCESS:"<<FINISH<<endl;
+  printToLog(1, false);                                       // finish
+  long long total_used = getCurrentTimeInMilli() - startTime; // second
+  logfile << ",,," << to_string((double)total_reconfig_time) << ','
+          << to_string(num_of_reconfig) << "," << budget << "," << total_used
+          << ',' << FINISH << endl;
   logfile.close();
-  RAPIDS_SERVER::end("algaesim", app_name); }
+  RAPIDS_SERVER::end("algaesim", app_name);
+}

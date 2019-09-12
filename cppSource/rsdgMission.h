@@ -165,7 +165,7 @@ public:
   void
   updateModel(int); // this function will be called everytime before reconfig
   void setUnitBetweenCheckpoints(int);
-  void printToLog();
+  void printToLog(int,bool);
   void setTraining();
   void genFact();
   void reconfig_training();
