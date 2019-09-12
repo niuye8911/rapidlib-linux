@@ -125,7 +125,7 @@ class appMethods(AppMethods):
             ]
             dist = np.mean(dist) / mag
             totDistortion.append(dist)
-        return -np.mean(totDistortion)
+        return 5-np.mean(totDistortion)
 
     # helper function to evaluate the QoS
     def getQoS_DEPRECATED(self):

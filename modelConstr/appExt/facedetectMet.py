@@ -76,10 +76,10 @@ class appMethods(AppMethods):
         return cmd
 
     # helper function to assembly the command
-    def getCommand(self, configs=None, qosRun=False, fullRun=True):
+    def getCommand(self, configs=None, qosRun=False, fullRun=False):
         if qosRun:
             return ['ls']  # return dummy command
-        if fullRun:
+        if fullRun or qosRun:
             self.gt_path = self.full_grond_truth_path
         pyramid = 25
         selectivity = 2
@@ -141,5 +141,5 @@ class appMethods(AppMethods):
             return [0.0, 0.0, 0.0]
         return [
             precision, recall,
-            100.0 * 1.01 * precision * recall / (0.01 * precision + recall)
+            100.0 * 1.04 * precision * recall / (0.04 * precision + recall)
         ]
