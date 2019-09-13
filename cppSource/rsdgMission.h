@@ -3,12 +3,12 @@
 #include <map>
 
 #include "rsdgService.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
-#include <cmath>
 
 using namespace std;
 
@@ -128,8 +128,8 @@ public:
   void consultServer();
   void consultServer_M();
   void updateSelection(vector<string> &result);
-  void applyResult();
-  void updateThread(rsdgService *s, string basicNode, double value);
+  bool applyResult();
+  bool updateThread(rsdgService *s, string basicNode, double value);
   void start();
   void generateProb(string);
   void setBudget(int);
@@ -165,7 +165,7 @@ public:
   void
   updateModel(int); // this function will be called everytime before reconfig
   void setUnitBetweenCheckpoints(int);
-  void printToLog(int,bool);
+  void printToLog(int, bool, bool);
   void setTraining();
   void genFact();
   void reconfig_training();
@@ -187,7 +187,7 @@ public:
   void logWarning(string msg);
   void logDebug(string msg);
   void logInfo(string msg);
-  void finish(bool FINISH=true);
+  void finish(bool FINISH = true);
   double getFreq();
 };
 #endif

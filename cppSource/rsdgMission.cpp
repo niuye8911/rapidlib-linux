@@ -24,8 +24,8 @@ rsdgMission::rsdgMission(string name) {
   string test = "test";
   string log_name = "./mission_" + name + "_log.csv";
   logfile.open(log_name);
-  logfile << "Selection, Performed, Real Cost, RC_Time, RC, Budget, Exec, "
-             "SUCCESS \n";
+  logfile << "Selection,RC_by_budget,RC_by_result,Real_Cost,RC_Time,"
+             "RC_Num,Budget,Exec,SUCCESS\n";
 }
 
 rsdgService *rsdgMission::getService(string name) {
@@ -277,7 +277,8 @@ void rsdgMission::updateSelection(vector<string> &result) {
   }
 }
 
-void rsdgMission::applyResult() {
+bool rsdgMission::applyResult() {
+  bool reconfiged = false;
   for (map<string, string>::iterator it = selected.begin();
        it != selected.end(); it++) {
     string service = it->first;
@@ -287,16 +288,18 @@ void rsdgMission::applyResult() {
       continue;
     if (contParaList.find(basic) != contParaList.end()) {
       // this is a continuous service
-      updateThread(s, basic, contServiceValue[basic]);
+      bool updated = updateThread(s, basic, contServiceValue[basic]);
+      reconfiged = reconfiged || updated;
     } else
       updateThread(s, basic, 0.0);
   }
   // sleep for a few moment to let all config takes effect
   usleep(10000);
   logDebug("*Reconfiguration Finished*");
+  return reconfiged;
 }
 
-void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
+bool rsdgMission::updateThread(rsdgService *s, string basic, double value) {
   if (basic == "") { // turn this service off
     /*pthread_t curThread = s->getThread();
     if (pthread_kill(curThread, 0) == 0) {
@@ -313,24 +316,26 @@ void rsdgMission::updateThread(rsdgService *s, string basic, double value) {
     if (p != NULL) {
       int pValue = paraList[basic].second;
       p->intPara = pValue;
+      return true;
     }
   } else if (contParaList.find(basic) != contParaList.end()) {
     // only change if change is greater than 1%
     double origin_value = contParaList[basic]->intPara;
-    /*if (fabs(value - origin_value) / origin_value <= 0.01) {
+    if (fabs(value - origin_value) / origin_value <= 0.01) {
       logDebug("Insignificant Change Ignored");
-      logfile << basic << " ignored" << endl;
-      logfile.flush();
-    } else {*/
+      return false;
+    }
+
     contParaList[basic]->intPara = value;
-    //}
+    s->updateNode(f, basic);
+    return true;
   }
-  s->updateNode(f, basic);
+  return true;
 }
 
 double rsdgMission::getObj() { return objValue; }
 
-void rsdgMission::printToLog(int status, bool rc_performed) {
+void rsdgMission::printToLog(int status, bool rc_by_budget, bool rc_by_result) {
   if (status != 0) {
     // in the middle of execution or has ended, write the real cost
     logfile << ',' << realCost << ",,,,," << endl;
@@ -361,7 +366,7 @@ void rsdgMission::printToLog(int status, bool rc_performed) {
       logfile << "-";
     }
   }
-  logfile << ',' << rc_performed;
+  logfile << ',' << rc_by_budget << ',' << rc_by_result;
   logfile.flush();
 }
 
@@ -499,8 +504,9 @@ void rsdgMission::reconfig() {
   // updateModel(unitBetweenCheckPoints);
   checkPoint();
   updateModel(unitBetweenCheckPoints);
-  bool update = updateBudget();
-  if (startTime == -1 || update) {
+  bool update_by_budget = updateBudget();
+  bool update_by_result = false;
+  if (startTime == -1 || update_by_budget) {
     // first time or need to reconfig
     if (offline_search) {
       // offline reconfig
@@ -515,14 +521,14 @@ void rsdgMission::reconfig() {
         consultServer();
     }
     // apply result
-    applyResult();
+    update_by_result = applyResult();
     // check point again to ignore the overhead by RSDG
     checkPoint();
     total_reconfig_time += timeSinceLastCheckPoint;
-    num_of_reconfig++;
+    if (update_by_result) num_of_reconfig++;
   }
   int status = startTime == -1 ? 0 : 2;
-  printToLog(status, update);
+  printToLog(status, update_by_budget, update_by_result);
   if (startTime == -1)
     startTime = getCurrentTimeInMilli();
 }
@@ -1049,7 +1055,7 @@ void rsdgMission::logWarning(string msg) { cout << "RAPID-WARNING!:" + msg; }
 
 void rsdgMission::logDebug(string msg) {
   if (DEBUG)
-    cout << "RAPID-DEBUG:" + msg;
+    cout << "RAPID-DEBUG:" + msg <<endl;
 }
 
 void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
@@ -1062,9 +1068,9 @@ void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
  }
  }*/
 void rsdgMission::finish(bool FINISH) {
-  printToLog(1, false);                                       // finish
+  printToLog(1, false,false);                                       // finish
   long long total_used = getCurrentTimeInMilli() - startTime; // second
-  logfile << ",,," << to_string((double)total_reconfig_time) << ','
+  logfile << ",,,," << to_string((double)total_reconfig_time) << ','
           << to_string(num_of_reconfig) << "," << budget << "," << total_used
           << ',' << FINISH << endl;
   logfile.close();
