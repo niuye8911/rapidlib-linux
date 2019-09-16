@@ -4,6 +4,7 @@ import datetime
 import hashlib
 import os
 import random
+import pandas as pd
 import imp
 import signal
 import subprocess
@@ -974,39 +975,51 @@ class AppMethods():
         pass
 
     def parseLog(self):
-        name = "./mission_"+self.appName+"_log.csv"
+        name = "./mission_" + self.appName + "_log.csv"
         # go to the last line
-        with open('./mission.log') as logfile:
+        with open(name) as logfile:
             for line in logfile:
                 pass
             last_col = line.split(',')
             totTime = float(last_col[-5])
             totReconfig = int(last_col[-4])
             success = last_col[-1].rstrip()
-        return totTime, totReconfig, success
+        # find details
+        df = pd.read_csv(name)
+        triggered_by_budget = df['RC_by_budget'].sum()
+        return {
+            'totTime': totTime,
+            'totReconfig': totReconfig,
+            'success': success,
+            'rc_by_budget': triggered_by_budget
+        }
 
     def overheadMeasure(self, budget=0.5):
         print("measuring overhead")
-        self.runGT(True)
+        #self.runGT(True)
         budget = (self.min_cost + budget * (self.max_cost - self.min_cost)
                   ) * self.fullrun_units / 1000.0  #budget in the middle
         report = []
         # generate the possible units
-        units = list(range(1,11))+list(range(20,101,10))
+        units = list(range(1, 11)) + list(range(20, 101, 10))
         for unit in units:
-            if int(self.fullrun_units / unit)<1:
+            if int(self.fullrun_units / unit) < 1:
                 # finest granularity
                 continue
             cmd = self.getFullRunCommand(budget, UNIT=unit)
-            for i in range(1,5): # for each run, 5 times
-                print("running budget",str(budget),"itr",str(i))
+            for i in range(1, 3):  # for each run, 5 times
+                print("running budget", str(budget), "itr", str(i))
                 start_time = time.time()
                 os.system(" ".join(cmd))
                 elapsed_time = time.time() - start_time
                 mv = self.getQoS()
                 if type(mv) is list:
                     mv = mv[-1]  # use the default qos metric
-                totTime, totReconfig, success = self.parseLog()
+                logger = self.parseLog()
+                totTime = logger['totTime']
+                totReconfig = logger['totReconfig']
+                success = logger['success']
+                triggered_by_budget = logger['rc_by_budget']
                 report.append({
                     'Unit':
                     unit,
@@ -1019,7 +1032,7 @@ class AppMethods():
                     'Exec_Time':
                     elapsed_time,
                     'OverBudget':
-                    elapsed_time > 1.05*budget,
+                    elapsed_time > 1.05 * budget,
                     'RC_TIME':
                     totTime,
                     'RC_NUM':
@@ -1027,7 +1040,9 @@ class AppMethods():
                     'SUCCESS':
                     success,
                     'overhead_pctg':
-                    float(totTime)/(1000.0*float(elapsed_time))
+                    float(totTime) / (1000.0 * float(elapsed_time)),
+                    'RC_by_budget':
+                    triggered_by_budget
                 })
         return report
 
@@ -1039,7 +1054,7 @@ class AppMethods():
         for percentage in range(1, 11):
             budget = (self.min_cost + float(percentage) *
                       step_size) * self.fullrun_units / 1000.0
-            unit = self.fullrun_units / 10 # reconfig 10 times
+            unit = self.fullrun_units / 10  # reconfig 10 times
             print("RUNNING BUDGET:", str(budget))
             cmd = self.getFullRunCommand(budget, OFFLINE=OFFLINE)
             start_time = time.time()
