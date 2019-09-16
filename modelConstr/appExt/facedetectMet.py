@@ -70,7 +70,6 @@ class appMethods(AppMethods):
             "-u",
             str(unit)
         ]
-        print(" ".join(cmd))
         if OFFLINE:
             cmd = cmd + ['-offline']
         return cmd
