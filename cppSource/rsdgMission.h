@@ -73,13 +73,14 @@ public:
   bool local;
   bool rapidm;
   bool rapidm_started;
-  long long lastCheckPoint;
-  long long timeSinceLastCheckPoint = 0;
+  vector<long long> lastCheckPoints;
+  vector<long long> timeSinceLastCheckPoints;
   long long startTime = -1;
   bool TRAINING_MODE = false;
   int unitBetweenCheckPoints = 0;
   bool CONT = false;
   ofstream logfile;
+  ofstream inputDepFile;
   double cur_budget_per_unit = 0.1;
 
   // mission related;
@@ -161,7 +162,7 @@ public:
   void getRes(vector<string> &, string);
   double genProductProfile();
   double getObj();
-  void checkPoint();
+  void checkPoint(int index=0);
   void
   updateModel(int); // this function will be called everytime before reconfig
   void setUnitBetweenCheckpoints(int);

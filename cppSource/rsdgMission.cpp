@@ -23,7 +23,9 @@ rsdgMission::rsdgMission(string name) {
   rapidm_started = false;
   string test = "test";
   string log_name = "./mission_" + name + "_log.csv";
+  string input_dep_file = "./input_" + name + "_log.txt";
   logfile.open(log_name);
+  inputDepFile.open(input_dep_file);
   logfile << "Selection,RC_by_budget,RC_by_result,Real_Cost,RC_Time,"
              "RC_Num,Budget,Exec,SUCCESS\n";
 }
@@ -107,11 +109,15 @@ void rsdgMission::setupSolverFreq(int freq) { this->freq = freq; }
 void rsdgMission::setUnit(int u) { unit.set(u); }
 
 void rsdgMission::finish_one_unit() {
+  checkPoint(1);
+  double elapsed = timeSinceLastCheckPoints[1];
+  inputDepFile << elapsed << " ";
   (unit.set(unit.get() - 1));
   if (unit.get() == 0) {
     // mission is finished
     fact.close();
   }
+  checkPoint(1);
 }
 
 // helper func for libcurl
@@ -524,8 +530,9 @@ void rsdgMission::reconfig() {
     update_by_result = applyResult();
     // check point again to ignore the overhead by RSDG
     checkPoint();
-    total_reconfig_time += timeSinceLastCheckPoint;
-    if (update_by_result) num_of_reconfig++;
+    total_reconfig_time += timeSinceLastCheckPoints[0];
+    if (update_by_result)
+      num_of_reconfig++;
   }
   int status = startTime == -1 ? 0 : 2;
   printToLog(status, update_by_budget, update_by_result);
@@ -692,15 +699,15 @@ long long getCurrentTimeInMilli() {
 }
 
 // keep the current timestamp to calculate new budget or monitor usage
-void rsdgMission::checkPoint() {
+void rsdgMission::checkPoint(int index) {
   long long curTime = getCurrentTimeInMilli();
-  if (lastCheckPoint == 0) {
-    lastCheckPoint = curTime;
-    logDebug("Skipping checkpoint for first invocation");
-    return;
+  // check if last checkpoint exists
+  if (lastCheckPoints.size() < index + 1) {
+    lastCheckPoints.resize(index+1,startTime);
+    timeSinceLastCheckPoints.resize(index+1,startTime);
   }
-  timeSinceLastCheckPoint = curTime - lastCheckPoint;
-  lastCheckPoint = curTime;
+  timeSinceLastCheckPoints[index] = curTime - lastCheckPoints[index];
+  lastCheckPoints[index] = curTime;
 }
 
 void rsdgMission::setUnitBetweenCheckpoints(int unit) {
@@ -736,7 +743,7 @@ void rsdgMission::updateModel(int unitSinceLastCheckPoint) {
     realCost = 0.0;
     return;
   }
-  realCost = (double)timeSinceLastCheckPoint / (double)unitSinceLastCheckPoint;
+  realCost = (double)timeSinceLastCheckPoints[0] / (double)unitSinceLastCheckPoint;
 }
 
 vector<string> rsdgMission::getDep(string s) {
@@ -1055,7 +1062,7 @@ void rsdgMission::logWarning(string msg) { cout << "RAPID-WARNING!:" + msg; }
 
 void rsdgMission::logDebug(string msg) {
   if (DEBUG)
-    cout << "RAPID-DEBUG:" + msg <<endl;
+    cout << "RAPID-DEBUG:" + msg << endl;
 }
 
 void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
@@ -1068,11 +1075,12 @@ void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
  }
  }*/
 void rsdgMission::finish(bool FINISH) {
-  printToLog(1, false,false);                                       // finish
+  printToLog(1, false, false);                                // finish
   long long total_used = getCurrentTimeInMilli() - startTime; // second
   logfile << ",,,," << to_string((double)total_reconfig_time) << ','
           << to_string(num_of_reconfig) << "," << budget << "," << total_used
           << ',' << FINISH << endl;
   logfile.close();
+  inputDepFile.close();
   RAPIDS_SERVER::end("algaesim", app_name);
 }
