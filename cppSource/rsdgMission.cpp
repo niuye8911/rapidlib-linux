@@ -327,7 +327,8 @@ bool rsdgMission::updateThread(rsdgService *s, string basic, double value) {
   } else if (contParaList.find(basic) != contParaList.end()) {
     // only change if change is greater than 1%
     double origin_value = contParaList[basic]->intPara;
-    if (fabs(value - origin_value) / origin_value <= 0.01) {
+    if (fabs(value - origin_value) / max(0.0001,origin_value) <= 0.01) {
+      // in case origin value == 0
       logDebug("Insignificant Change Ignored");
       return false;
     }
