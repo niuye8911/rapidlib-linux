@@ -4,6 +4,7 @@ import pandas as pd
 import sys, os
 from collections import OrderedDict
 import matplotlib.pyplot as plt
+from qos_report import readMinMaxMV
 
 APP_DIRS = ['swaptions', 'ferret', 'bodytrack', 'facedetect', 'svm', 'nn']
 GRANULARITIES = list(range(1, 11)) + list(range(20, 101, 10))
@@ -16,6 +17,15 @@ APP_COLOR = {
     'nn': 'm',
     'facedetect': 'r'
 }
+
+
+def scale_mv(app, minmax, mv_col):
+    # comment this out when new experiments are done
+    min_mv = minmax[app]['min']
+    max_mv = minmax[app]['max']
+    scaled_mv = list(
+        map(lambda x: max(0.0, (x - min_mv) / (max_mv - min_mv)), mv_col))
+    return scaled_mv
 
 
 def getOverheadFile(app):
@@ -47,6 +57,7 @@ def genUtilization(app):
     for g in granularities:
         sub_df = getSubDF(df, g)
         util_col = (sub_df['Exec_Time'] / sub_df['Budget']).tolist()
+        mv_col = sub_df['Augmented_MV'].tolist()
         util_abs = (sub_df['Exec_Time'] - sub_df['Budget']).tolist()
         pos_util = [u for u in util_col if u < 1.05]
         over_util = [u for u in util_col if u >= 1.05]
@@ -54,16 +65,17 @@ def genUtilization(app):
             over_util) == 0 else sum(over_util) / len(over_util)
         rc_num_col = sub_df['RC_NUM'].tolist()
         rc_budget_col = sub_df['RC_by_budget'].tolist()
-        rc_num_mean = sum(rc_num_col)/len(rc_num_col)
-        rc_b_mean = sum(rc_budget_col)/len(rc_budget_col)
+        rc_num_mean = sum(rc_num_col) / len(rc_num_col)
+        rc_b_mean = sum(rc_budget_col) / len(rc_budget_col)
         utils[g] = {
             'avg': sum(pos_util) / len(pos_util),
             'max': max(util_col),
             'min': min(util_col),
             'over': over_mean * float(len(over_util)) / float(len(util_col)),
             'over_num': len(over_util),
-            'rc_num_mean':rc_num_mean,
-            'rc_b_mean':rc_b_mean
+            'rc_num_mean': rc_num_mean,
+            'rc_b_mean': rc_b_mean,
+            'mv': sum(mv_col) / len(mv_col)
         }
     # check the stopped granularities:
     if not len(granularities) == len(GRANULARITIES):
@@ -78,20 +90,18 @@ def draw_over(utils):
     plt.clf()
     x_axis = list(map(lambda x: str(x), GRANULARITIES))
     datas = []
-    over_nums = [0.0]*20
+    over_nums = [0.0] * 20
     for app, data in utils.items():
         over = list(map(lambda x: x['over'], data))
         over_num = list(map(lambda x: x['over_num'], data))
         datas.append(over)
-        for i in range(0,len(over_num)):
-            over_nums[i]+=over_num[i]
+        for i in range(0, len(over_num)):
+            over_nums[i] += over_num[i]
     over_cal = []
-    print(over_nums)
     for i in range(0, len(GRANULARITIES)):
         over_g = list(map(lambda x: x[i], datas))
         avg_g = sum(over_g)
         over_cal.append(avg_g)
-    print(over_cal)
     plt.bar(x_axis, over_cal)
     # draw the 100% limit
     #plt.plot(x_axis, full_line, 'r--', linewidth=0.3)
@@ -99,20 +109,21 @@ def draw_over(utils):
     plt.ylabel('Budget Violation (s)')
     plt.savefig('./overhead_vio.png')
 
+
 def draw_rc_num(utils):
     plt.clf()
     x_axis = list(map(lambda x: str(x), GRANULARITIES))
     datas = []
-    fig,ax = plt.subplots(nrows = 1, ncols = 2)
+    fig, ax = plt.subplots(nrows=1, ncols=2)
     ax0 = ax[0]
-    ax1=ax[1]
-    ax0.axis(ymin=0,ymax=40)
-    ax1.axis(ymin=0,ymax=40)
+    ax1 = ax[1]
+    ax0.axis(ymin=0, ymax=35)
+    ax1.axis(ymin=0, ymax=35)
     for app, data in utils.items():
         rc_num = list(map(lambda x: x['rc_num_mean'], data))
         rc_b = list(map(lambda x: x['rc_b_mean'], data))
-        ax0.plot(x_axis, rc_b, APP_COLOR[app],linewidth=1)
-        ax1.plot(x_axis, rc_num,APP_COLOR[app],label=app,linewidth=1)
+        ax0.plot(x_axis, rc_b, APP_COLOR[app], linewidth=1)
+        ax1.plot(x_axis, rc_num, APP_COLOR[app], label=app, linewidth=1)
 
     # draw the 100% limit
     #plt.plot(x_axis, full_line, 'r--', linewidth=0.3)
@@ -124,19 +135,59 @@ def draw_rc_num(utils):
                ncol=1,
                prop={'size': 10},
                frameon=False)
-    plt.setp(ax0.xaxis.get_majorticklabels(),rotation=90)
-    plt.setp(ax1.xaxis.get_majorticklabels(),rotation=90)
+    plt.setp(ax0.xaxis.get_majorticklabels(), rotation=90)
+    plt.setp(ax1.xaxis.get_majorticklabels(), rotation=90)
     ax0.set_title('After Budget Optimization')
     ax1.set_title('After Config Optimization')
-    fig.text(0.5,0.01, 'Monitor Frequency',ha='center',size=15)
-    fig.text(0.01,0.5, 'Performed Reconfiguration',rotation=90,va='center',size=15)
+    fig.text(0.5, 0.01, 'Monitor Frequency', ha='center', size=15)
+    fig.text(0.01,
+             0.5,
+             'Performed Reconfiguration',
+             rotation=90,
+             va='center',
+             size=15)
     fig.savefig('./overhead_rc.png')
 
-def draw_util(utils):
+
+def draw_mv(utils):
+    plt.clf()
     x_axis = list(map(lambda x: str(x), GRANULARITIES))
-    #full_line = [1.0] * len(x_axis)
+    minmax = readMinMaxMV()
+    avgs = [0.0] * len(x_axis)
+    for app, data in utils.items():
+        mv_col = list(map(lambda x: x['mv'], data))
+        mv = scale_mv(app, minmax, mv_col)
+        avgs = [sum(x) for x in zip(mv, avgs)]
+        #plt.errorbar(x_axis, mv, color=APP_COLOR[app], label=app)
+    # draw the avg
+    avgs = [x / len(utils.keys()) for x in avgs]
+    plt.errorbar(x_axis,
+                 avgs,
+                 color='black',
+                 linestyle=(0, (3, 1, 1, 1, 1, 1)),
+                 linewidth=1.0,
+                 label='*average')
+    plt.xlabel('Monitor Frequency', fontsize=15)
+    plt.ylabel('Normalized QoS', fontsize=15)
+    plt.axvline(x='1', color='grey', linestyle='--', linewidth=0.3)
+    plt.axvline(x='10', color='grey', linestyle='--', linewidth=0.3)
+    plt.axvline(x='100', color='grey', linestyle='--', linewidth=0.3)
+    plt.legend(loc='lower right',
+               bbox_to_anchor=(0.9, 0.01),
+               ncol=1,
+               prop={'size': 10},
+               frameon=False)
+    plt.savefig('./overhead_mv.png')
+
+
+def draw_util(utils):
+    plt.clf()
+    x_axis = list(map(lambda x: str(x), GRANULARITIES))
+    # calculate the average on 1/10/100
+    avgs = [0.0] * len(x_axis)
     for app, data in utils.items():
         avg = list(map(lambda x: x['avg'], data))
+        avgs = [sum(x) for x in zip(avg, avgs)]
         max = list(map(lambda x: x['max'], data))
         min = list(map(lambda x: x['min'], data))
         #max_d = [(i - j) if i>1.05 else 0.0 for i, j in zip(max, avg)]
@@ -150,15 +201,83 @@ def draw_util(utils):
             #yerr=yerr,
             #elinewidth=0.5,
             label=app)
-    # draw the 100% limit
-    #plt.plot(x_axis, full_line, 'r--', linewidth=0.3)
-    plt.xlabel('Monitor Frequency', fontsize=16)
-    plt.ylabel('Budget Utilization', fontsize=16)
-    plt.legend(loc='upper center',
-               bbox_to_anchor=(0.5, 1.15),
-               ncol=3,
-               prop={'size': 16})
-    plt.savefig('./overhead.png')
+    # draw the avg
+    avgs = [x / len(utils.keys()) for x in avgs]
+    plt.errorbar(
+        x_axis,
+        avgs,
+        color='black',
+        linestyle=(0, (3, 1, 1, 1, 1, 1)),
+        #yerr=yerr,
+        linewidth=1.0,
+        label='*average')
+    plt.xlabel('Monitor Frequency', fontsize=15)
+    plt.ylabel('Budget Utilization', fontsize=15)
+    plt.axvline(x='1', color='grey', linestyle='--', linewidth=0.3)
+    plt.axvline(x='10', color='grey', linestyle='--', linewidth=0.3)
+    plt.axvline(x='100', color='grey', linestyle='--', linewidth=0.3)
+    plt.legend(loc='lower right',
+               bbox_to_anchor=(0.9, 0.01),
+               ncol=1,
+               prop={'size': 10},
+               frameon=False)
+    plt.savefig('./overhead_util.png')
+
+
+def draw_util_mv(utils):
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+    ax0 = ax[0]
+    ax1 = ax[1]
+    ax0.axis(ymin=0.5, ymax=1.0)
+    ax1.axis(ymin=0, ymax=1.0)
+    x_axis = list(map(lambda x: str(x), GRANULARITIES))
+    # calculate the average on 1/10/100
+    avgs = [0.0] * len(x_axis)
+    for app, data in utils.items():
+        avg = list(map(lambda x: x['avg'], data))
+        avgs = [sum(x) for x in zip(avg, avgs)]
+        ax0.errorbar(x_axis, avg, color=APP_COLOR[app], label=app)
+    # draw the avg
+    avgs = [x / len(utils.keys()) for x in avgs]
+    ax0.errorbar(x_axis,
+                 avgs,
+                 color='black',
+                 linestyle=(0, (3, 1, 1, 1, 1, 1)),
+                 linewidth=1.0,
+                 label='*average')
+    ax0.axvline(x='1', color='grey', linestyle='--', linewidth=0.3)
+    ax0.axvline(x='10', color='grey', linestyle='--', linewidth=0.3)
+    ax0.axvline(x='100', color='grey', linestyle='--', linewidth=0.3)
+    # draw the second graph
+    minmax = readMinMaxMV()
+    avgs = [0.0] * len(x_axis)
+    for app, data in utils.items():
+        mv_col = list(map(lambda x: x['mv'], data))
+        mv = scale_mv(app, minmax, mv_col)
+        avgs = [sum(x) for x in zip(mv, avgs)]
+    # draw the avg
+    avgs = [x / len(utils.keys()) for x in avgs]
+    ax1.errorbar(x_axis,
+                 avgs,
+                 color='black',
+                 linestyle=(0, (3, 1, 1, 1, 1, 1)),
+                 linewidth=1.0,
+                 label='*average')
+    # set the graph style
+    ax0.legend(loc='lower right',
+               bbox_to_anchor=(1.05, -0.02),
+               ncol=1,
+               prop={'size': 10},
+               frameon=False)
+    ax1.axvline(x='1', color='grey', linestyle='--', linewidth=0.3)
+    ax1.axvline(x='10', color='grey', linestyle='--', linewidth=0.3)
+    ax1.axvline(x='100', color='grey', linestyle='--', linewidth=0.3)
+    plt.setp(ax0.xaxis.get_majorticklabels(), rotation=90)
+    plt.setp(ax1.xaxis.get_majorticklabels(), rotation=90)
+    ax0.set_title('Budget Utilization')
+    ax1.set_title('Average Normalized QoS')
+    fig.text(0.5, 0.01, 'Monitor Frequency', ha='center', size=15)
+    fig.savefig('./overhead_util_mv.png')
 
 
 def main(argv):
@@ -167,10 +286,11 @@ def main(argv):
     for app in APP_DIRS:
         util_app = genUtilization(app)
         utils[app] = util_app.values()
-    #draw_util(utils)
+    draw_util(utils)
     #draw_over(utils)
     draw_rc_num(utils)
-
+    draw_mv(utils)
+    draw_util_mv(utils)
     # analyze the number of reconfiguration
 
 
