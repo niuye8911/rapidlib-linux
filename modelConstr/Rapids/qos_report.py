@@ -1,5 +1,5 @@
 import pandas as pd
-import imp, os
+import imp, os, sys
 from matplotlib import pyplot as plt
 from collections import OrderedDict
 import plotly.graph_objects as go
@@ -66,6 +66,17 @@ def genMinMaxMV():
     output.write(minmax_json)
     output.close()
 
+def scale_mv(app, minmax, mv_col):
+    # comment this out when new experiments are done
+    if app == 'bodytrack':
+        mv_col = [x + 5.0 for x in mv_col]
+    min_mv = minmax[app]['min']
+    max_mv = minmax[app]['max']
+    scaled_mv = list(
+        map(
+            lambda x: max(0.0, (x - min_mv) / (max_mv - min_mv)
+                          ), mv_col))
+    return scaled_mv
 
 def genQoSReport(minmax):
     global apps, output_file
@@ -90,15 +101,7 @@ def genQoSReport(minmax):
                 if os.path.exists(file):
                     df = pd.read_csv(file)
                     mv_col = df['Augmented_MV'].tolist()
-                    # comment this out when new experiments are done
-                    if app == 'bodytrack':
-                        mv_col = [x + 5.0 for x in mv_col]
-                    min_mv = minmax[app]['min']
-                    max_mv = minmax[app]['max']
-                    scaled_mv = list(
-                        map(
-                            lambda x: max(0.0, (x - min_mv) / (max_mv - min_mv)
-                                          ), mv_col))
+                    scaled_mv = scale_mv(app,minmax, mv_col)
                     data = {}
                     data['App'] = app
                     data['Mode'] = mode_map[mode]
@@ -176,8 +179,12 @@ def draw(qos_file, output):
     fig.update_layout(legend_orientation='h',width=900)
     fig.write_image(output)
 
+def main(argv):
+    genMinMaxMV()
+    minmax = readMinMaxMV()
+    genQoSReport(minmax)
+    draw(output_file, 'qos_report.png')
 
-genMinMaxMV()
-minmax = readMinMaxMV()
-genQoSReport(minmax)
-draw(output_file, 'qos_report.png')
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
