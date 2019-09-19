@@ -327,7 +327,7 @@ bool rsdgMission::updateThread(rsdgService *s, string basic, double value) {
   } else if (contParaList.find(basic) != contParaList.end()) {
     // only change if change is greater than 1%
     double origin_value = contParaList[basic]->intPara;
-    if (fabs(value - origin_value) / max(0.0001,origin_value) <= 0.01) {
+    if (fabs(value - origin_value) / max(0.0001, origin_value) <= 0.01) {
       // in case origin value == 0
       logDebug("Insignificant Change Ignored");
       return false;
@@ -704,8 +704,8 @@ void rsdgMission::checkPoint(int index) {
   long long curTime = getCurrentTimeInMilli();
   // check if last checkpoint exists
   if (lastCheckPoints.size() < index + 1) {
-    lastCheckPoints.resize(index+1,startTime);
-    timeSinceLastCheckPoints.resize(index+1,startTime);
+    lastCheckPoints.resize(index + 1, startTime);
+    timeSinceLastCheckPoints.resize(index + 1, startTime);
   }
   timeSinceLastCheckPoints[index] = curTime - lastCheckPoints[index];
   lastCheckPoints[index] = curTime;
@@ -744,7 +744,8 @@ void rsdgMission::updateModel(int unitSinceLastCheckPoint) {
     realCost = 0.0;
     return;
   }
-  realCost = (double)timeSinceLastCheckPoints[0] / (double)unitSinceLastCheckPoint;
+  realCost =
+      (double)timeSinceLastCheckPoints[0] / (double)unitSinceLastCheckPoint;
 }
 
 vector<string> rsdgMission::getDep(string s) {
@@ -896,7 +897,13 @@ void rsdgMission::setUpdate(bool up) { update = up; }
 void rsdgMission::resetTimer() { startTime = getCurrentTimeInMilli(); }
 
 void rsdgMission::setLogger() { LOGGER = true; }
+
+inline bool is_config(const std::string &c) {
+  return (c.find_first_of("0123456789") == std::string::npos);
+}
+
 void rsdgMission::readMVProfile() {
+
   ifstream offline_profile;
   offline_profile.open("factmv.csv");
   string line;
@@ -913,13 +920,20 @@ void rsdgMission::readMVProfile() {
         lines.push_back(itm);
       }
       // get the result
+      bool last_is_config = false;
       for (int i = 0; i < lines.size() - 1; i++) {
+        bool cur_is_config = is_config(lines[i]);
+        if (!last_is_config && !cur_is_config) {
+          break;
+        }
+        last_is_config = cur_is_config;
         finalconfig += lines[i] + " ";
       }
       finalconfig = finalconfig.substr(0, finalconfig.size() - 1);
-      // get the cost
+      // get the mv
       mv = stod(lines.back());
       offlineMV[finalconfig] = mv;
+      cout << finalconfig << " with mv" << to_string(mv);
       logDebug(finalconfig + " with mv" + to_string(mv));
     }
     return;
