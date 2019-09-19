@@ -15,7 +15,7 @@ class appMethods(AppMethods):
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 1
+        self.training_units = 5
         self.fullrun_units = 10
         self.max_cost = 3126
         self.min_cost = 2597
