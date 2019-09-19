@@ -48,8 +48,7 @@ THRESHOLD = 0.05
 RS_THRESHOLD = 0.05
 
 RSRUN = False
-OVERHEAD_RUN_BUDGETS = [0.2, 0.5, 0.8]
-
+OVERHEAD_RUN_BUDGETS = [0.2, 0.5, 0.8, 1.1]
 
 def main(argv):
     global appInfo, config_file, groundTruth_profile, knob_samples, knobs, mode, model

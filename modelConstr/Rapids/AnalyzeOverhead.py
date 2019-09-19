@@ -1,13 +1,17 @@
 ''' Analyze the overhead measured '''
 
 import pandas as pd
-import sys, os
+import sys, os, imp, json
 from collections import OrderedDict
 import matplotlib.pyplot as plt
+from util import genOfflineFact
 from qos_report import readMinMaxMV
 
 APP_DIRS = ['swaptions', 'ferret', 'bodytrack', 'facedetect', 'svm', 'nn']
+#APP_DIRS = ['ferret']
+BUDGETS = [0.2, 0.5, 0.8, 1.1]
 GRANULARITIES = list(range(1, 11)) + list(range(20, 101, 10))
+BASELINE_FILE = './outputs/app_baseline.json'
 
 APP_COLOR = {
     'swaptions': 'b',
@@ -18,24 +22,51 @@ APP_COLOR = {
     'facedetect': 'r'
 }
 
+BUDGET_COLOR = {
+    0.2: 'b',
+    0.5: 'g',
+    0.8: 'c',
+    1.1: 'r'
+}
+
+
+def genBaseLine():
+    MET_PREFIX = "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/"
+    baseline = OrderedDict()
+    for app in APP_DIRS:
+        genOfflineFact(app)
+        baseline[app] = {}
+        module = imp.load_source("", MET_PREFIX + app + 'Met.py')
+        appMethod = module.appMethods(app, app)
+        for budget in BUDGETS:
+            # get the correspoinding budget
+            b = (appMethod.min_cost + budget * (appMethod.max_cost - appMethod.min_cost
+                          )) * appMethod.fullrun_units / 1000.0
+            cmd = appMethod.getFullRunCommand(budget=b, OFFLINE=True)
+            os.system(" ".join(cmd))
+            base_mv = appMethod.getQoS()
+            if type(base_mv) is list:
+                base_mv = base_mv[-1]
+            baseline[app][budget] = base_mv
+    base_json = json.dumps(baseline)
+    output = open(BASELINE_FILE, 'w')
+    output.write(base_json)
+    output.close()
+
 
 def scale_mv(app, minmax, mv_col):
     # comment this out when new experiments are done
     min_mv = minmax[app]['min']
     max_mv = minmax[app]['max']
     scaled_mv = list(
-        map(lambda x: max(0.0, (x - min_mv) / (max_mv - min_mv)), mv_col))
+        map(lambda x: min(1,(x - min_mv) / (max_mv - min_mv)), mv_col))
     return scaled_mv
 
 
-def getOverheadFile(app):
-    postfix = ['0.2', '0.5', '0.8']
+def getOverheadFiles(app):
     prefix = "/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/outputs/"
-    return list(
-        map(
-            lambda x: prefix + app + '/overhead_report_' + app + "_" + x +
-            '.csv', postfix))
-
+    return {b:prefix + app + '/overhead_report_' + app + "_" + str(b) +
+    '.csv' for b in BUDGETS}
 
 def getSubDF(df, unit):
     return df.loc[df['Unit'] == unit]
@@ -44,18 +75,26 @@ def getSubDF(df, unit):
 def getDFAverage(subdf, col):
     return subdf[col].mean()
 
+def getBaseLine():
+    baseline = {}
+    with open(BASELINE_FILE) as base_file:
+        data = json.load(base_file)
+    return data
 
 def genUtilization(app):
     all = []
-    for f in getOverheadFile(app):
+    df_ind = {} # data frame per budget
+    files = getOverheadFiles(app)
+    for b,f in files.items():
         if os.path.exists(f):
             df = pd.read_csv(f)
             all.append(df)
-    df = pd.concat(all, axis=0, ignore_index=True)
+            df_ind[b] = df
+    df_all = pd.concat(all, axis=0, ignore_index=True)
     granularities = sorted(df.Unit.unique())
     utils = OrderedDict()
     for g in granularities:
-        sub_df = getSubDF(df, g)
+        sub_df = getSubDF(df_all, g)
         util_col = (sub_df['Exec_Time'] / sub_df['Budget']).tolist()
         mv_col = sub_df['Augmented_MV'].tolist()
         util_abs = (sub_df['Exec_Time'] - sub_df['Budget']).tolist()
@@ -67,6 +106,12 @@ def genUtilization(app):
         rc_budget_col = sub_df['RC_by_budget'].tolist()
         rc_num_mean = sum(rc_num_col) / len(rc_num_col)
         rc_b_mean = sum(rc_budget_col) / len(rc_budget_col)
+        # get the per-budget mv
+        mv_ind = {}
+        for b,f in df_ind.items():
+            sub_ind_df = getSubDF(f,g)
+            mv_ind_col = sub_ind_df['Augmented_MV'].tolist()
+            mv_ind[b]=sum(mv_ind_col)/len(mv_ind_col)
         utils[g] = {
             'avg': sum(pos_util) / len(pos_util),
             'max': max(util_col),
@@ -75,7 +120,8 @@ def genUtilization(app):
             'over_num': len(over_util),
             'rc_num_mean': rc_num_mean,
             'rc_b_mean': rc_b_mean,
-            'mv': sum(mv_col) / len(mv_col)
+            'mv': sum(mv_col) / len(mv_col),
+            'mv_per_b':mv_ind
         }
     # check the stopped granularities:
     if not len(granularities) == len(GRANULARITIES):
@@ -223,8 +269,85 @@ def draw_util(utils):
                frameon=False)
     plt.savefig('./overhead_util.png')
 
-
 def draw_util_mv(utils):
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+    ax0 = ax[0]
+    ax1 = ax[1]
+    ax0.axis(ymin=0.5, ymax=1.0)
+    ax1.axis(ymin=0.4, ymax=1.0)
+    x_axis = list(map(lambda x: str(x), GRANULARITIES))
+    # calculate the average on 1/10/100
+    avgs = [0.0] * len(x_axis)
+    for app, data in utils.items():
+        if app=='bodytrack' or app=='facedetect':
+            continue
+        avg = list(map(lambda x: x['avg'], data))
+        avgs = [sum(x) for x in zip(avg, avgs)]
+        ax0.errorbar(x_axis, avg, color=APP_COLOR[app], label=app)
+    # draw the avg
+    avgs = [x / len(utils.keys()) for x in avgs]
+    ax0.errorbar(x_axis,
+                 avgs,
+                 color='black',
+                 linestyle=(0, (3, 1, 1, 1, 1, 1)),
+                 linewidth=1.0,
+                 label='*average')
+    ax0.axvline(x='1', color='grey', linestyle='--', linewidth=0.3)
+    ax0.axvline(x='10', color='grey', linestyle='--', linewidth=0.3)
+    ax0.axvline(x='100', color='grey', linestyle='--', linewidth=0.3)
+    # draw the second graph
+    minmax = readMinMaxMV()
+    avgs = {}
+    for b in BUDGETS:
+        avgs[b]=[0.0]*len(x_axis)
+        for app, data in utils.items():
+            mv_b_col = list(map(lambda x: x['mv_per_b'][b], data))
+            mv = scale_mv(app, minmax, mv_b_col)
+            avgs[b] = [sum(x) for x in zip(mv, avgs[b])]
+        avgs[b] = [x / len(utils.keys()) for x in avgs[b]]
+    # draw the avg
+    for b, avg_b in avgs.items():
+        ax1.errorbar(x_axis,
+                     avg_b,
+                     color=BUDGET_COLOR[b],
+                     linestyle=(0, (3, 1, 1, 1, 1, 1)),
+                     linewidth=1.0,
+                     label=str(b))
+    # draw the baseline
+    base_line = getBaseLine()
+    # scale the mv
+    for app,value in base_line.items():
+        for b,v in value.items():
+            base_line[app][b] = scale_mv(app,minmax,[v])[0]
+    for b in BUDGETS:
+        mvs = list(map(lambda x:x[str(b)],base_line.values()))
+        b_avg = sum(mvs)/len(mvs)
+
+        ax1.errorbar(x_axis,
+                    [b_avg]*len(x_axis),
+                    color=BUDGET_COLOR[b])
+    # set the graph style
+    ax0.legend(loc='lower right',
+               bbox_to_anchor=(1.05, -0.02),
+               ncol=1,
+               prop={'size': 10},
+               frameon=False)
+    ax1.legend(loc='lower right',
+               bbox_to_anchor=(1.05, -0.02),
+               ncol=1,
+               prop={'size': 10},
+               frameon=False)
+    ax1.axvline(x='1', color='grey', linestyle='--', linewidth=0.3)
+    ax1.axvline(x='10', color='grey', linestyle='--', linewidth=0.3)
+    ax1.axvline(x='100', color='grey', linestyle='--', linewidth=0.3)
+    plt.setp(ax0.xaxis.get_majorticklabels(), rotation=90)
+    plt.setp(ax1.xaxis.get_majorticklabels(), rotation=90)
+    ax0.set_title('Budget Utilization')
+    ax1.set_title('Average Normalized QoS')
+    fig.text(0.5, 0.01, 'Monitor Frequency', ha='center', size=15)
+    fig.savefig('./overhead_util_mv.png')
+
+def draw_util_mv_deprecated(utils):
     fig, ax = plt.subplots(nrows=1, ncols=2)
     ax0 = ax[0]
     ax1 = ax[1]
@@ -282,6 +405,8 @@ def draw_util_mv(utils):
 
 def main(argv):
     # analyze utilization
+    #genBaseLine()
+    #exit(1)
     utils = OrderedDict()
     for app in APP_DIRS:
         util_app = genUtilization(app)
