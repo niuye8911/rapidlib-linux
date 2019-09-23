@@ -9,25 +9,25 @@ from Classes import AppMethods  # import the parent class and other classes
 
 class appMethods(AppMethods):
     image_index_path = "/home/liuliu/Research/mara_bench/mara_face/pics" \
-                       "/pic_index/training50.txt"
+                       "/pic_index/training100.txt"
     image_index_full_path = "/home/liuliu/Research/mara_bench/mara_face" \
                             "/pics" \
-                            "/pic_index/full.txt"
+                            "/pic_index/full400.txt"
     pic_path = "/home/liuliu/Research/mara_bench/mara_face/pics/"
     evaluation_obj_path = "/home/liuliu/Research/mara_bench/mara_face" \
                           "/evaluation/evaluate"
     full_grond_truth_path = "/home/liuliu/Research/mara_bench/mara_face/pics" \
-                       "/pic_index/full_result.txt"
+                       "/pic_index/full400_result.txt"
     train_grond_truth_path = "/home/liuliu/Research/mara_bench/mara_face/pics" \
-                       "/pic_index/training50_result.txt"
+                       "/pic_index/training100_result.txt"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 50
-        self.fullrun_units = 861
+        self.training_units = 100
+        self.fullrun_units = 400
         self.max_cost = 1000
         self.min_cost = 30
         self.min_mv = 0
@@ -140,5 +140,5 @@ class appMethods(AppMethods):
             return [0.0, 0.0, 0.0]
         return [
             precision, recall,
-            100.0 * 1.04 * precision * recall / (0.04 * precision + recall)
+            100.0 * 1.09 * precision * recall / (0.09 * precision + recall)
         ]
