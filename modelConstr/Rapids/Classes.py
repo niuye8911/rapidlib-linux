@@ -1001,7 +1001,7 @@ class AppMethods():
                   ) * self.fullrun_units / 1000.0  #budget in the middle
         report = []
         # generate the possible units
-        units = list(range(1, 11)) + list(range(20, 101, 10))
+        units = list(range(1, 20)) + list(range(20, 101, 10))
         for unit in units:
             if int(self.fullrun_units / unit) < 1:
                 # finest granularity
@@ -1141,7 +1141,7 @@ class AppMethods():
             configs = configuration.retrieve_configs(
             )  # extract the configurations
             # assembly the command
-            command = self.getCommand(configs)
+            command = self.getCommand(configs,fullRun=False)
 
             if not appInfo.isTrained():
                 # 1) COST Measuremnt
