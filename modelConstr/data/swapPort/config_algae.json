@@ -6,8 +6,8 @@
   "withQoS": 1,
   "RS": 0,
   "qosRun": 0,
-  "withSys": 0,
-  "withPerf": 0,
-  "withMModel":0,
-  "overheadRun":1
+  "withSys": 1,
+  "withPerf": 1,
+  "withMModel":1,
+  "overheadRun":0
 }
