@@ -159,7 +159,7 @@ class Stresser:
         configuration = random.choice(self.apps[app]['configs'])
         cmd = self.apps[app]['appMethods'].getCommand(
             configuration.retrieve_configs(),
-            True)  #set to true to return the full run command
+            qosRun=False,fullRun=True)  #set to true to return the full run command
         return {
             'app': app,
             'configuration': configuration.printSelf('-'),
@@ -1246,7 +1246,7 @@ class AppMethods():
         result to a file.
         """
         print("GENERATING GROUND TRUTH for " + self.appName)
-        command = self.getCommand(None, qosRun)
+        command = self.getCommand(None, qosRun, fullRun=False)
         os.system(" ".join(command))
         self.afterGTRun()
 
@@ -1255,7 +1255,7 @@ class AppMethods():
                       orig_cost,
                       env_commands=[],
                       withMModel=False):
-        app_command = self.getCommand(configuration.retrieve_configs())
+        app_command = self.getCommand(configuration.retrieve_configs(),fullRun=False,qosRun=False)
         env = SysArgs()
         slowdownTable = SlowDown(configuration)
         m_slowdownTable = SlowDown(configuration)
@@ -1366,7 +1366,6 @@ class AppMethods():
         if withSys:
             # reassemble the command with pcm calls
             # sudo ./pcm.x -csv=results.csv
-
             command = self.PCM_PREFIX + command
         os.system(" ".join(command))
         time2 = time.time()
@@ -1374,6 +1373,9 @@ class AppMethods():
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
+            #if total_time<1000:
+                # the time is too small for parsetmpcsv
+
             metric_value = AppMethods.parseTmpCSV()
             while metric_value is None:
                 print("rerun", " ".join(command))
