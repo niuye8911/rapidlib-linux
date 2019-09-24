@@ -1,4 +1,4 @@
-class quadRSDG:
+class QuadRSDG:
     """A RSDG calculated based on quadratic regression model
     """
 
