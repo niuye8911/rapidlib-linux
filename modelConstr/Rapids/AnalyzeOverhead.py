@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 from util import genOfflineFact
 from qos_report import readMinMaxMV
 
-APP_DIRS = ['swaptions', 'ferret', 'bodytrack', 'facedetect', 'svm', 'nn']
+APP_DIRS = ['swaptions', 'ferret', 'bodytrack', 'svm', 'nn']
 #APP_DIRS = ['ferret']
 BUDGETS = [0.2, 0.5, 0.8, 1.1]
-GRANULARITIES = list(range(1, 11)) + list(range(20, 101, 10))
+GRANULARITIES = list(range(1, 11)) + list(range(11,20))+list(range(20, 101, 10))
 BASELINE_FILE = './outputs/app_baseline.json'
 
 APP_COLOR = {
@@ -59,14 +59,15 @@ def scale_mv(app, minmax, mv_col):
     min_mv = minmax[app]['min']
     max_mv = minmax[app]['max']
     scaled_mv = list(
-        map(lambda x: min(1,(x - min_mv) / (max_mv - min_mv)), mv_col))
+        map(lambda x: max(0,min(1,(x - min_mv) / (max_mv - min_mv))), mv_col))
     return scaled_mv
 
 
 def getOverheadFiles(app):
     prefix = "/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/outputs/"
-    return {b:prefix + app + '/overhead_report_' + app + "_" + str(b) +
+    two_five_eight={b:prefix + app + '/overhead_report_' + app + "_" + str(b) +
     '.csv' for b in BUDGETS}
+    return two_five_eight
 
 def getSubDF(df, unit):
     return df.loc[df['Unit'] == unit]
@@ -98,6 +99,8 @@ def genUtilization(app):
         util_col = (sub_df['Exec_Time'] / sub_df['Budget']).tolist()
         mv_col = sub_df['Augmented_MV'].tolist()
         util_abs = (sub_df['Exec_Time'] - sub_df['Budget']).tolist()
+        rc_time_col = (sub_df['RC_TIME'] / sub_df['Exec_Time']).tolist()
+        rc_time_mean = sum(rc_time_col) / len(rc_time_col)
         pos_util = [u for u in util_col if u < 1.05]
         over_util = [u for u in util_col if u >= 1.05]
         over_mean = 0.0 if len(
@@ -121,7 +124,8 @@ def genUtilization(app):
             'rc_num_mean': rc_num_mean,
             'rc_b_mean': rc_b_mean,
             'mv': sum(mv_col) / len(mv_col),
-            'mv_per_b':mv_ind
+            'mv_per_b':mv_ind,
+            'rc_time_mean':rc_time_mean/1000.0
         }
     # check the stopped granularities:
     if not len(granularities) == len(GRANULARITIES):
@@ -155,6 +159,24 @@ def draw_over(utils):
     plt.ylabel('Budget Violation (s)')
     plt.savefig('./overhead_vio.png')
 
+def draw_time(utils):
+    plt.clf()
+    x_axis = list(map(lambda x: str(x), GRANULARITIES))
+    datas = []
+    for app, data in utils.items():
+        rc_time = list(map(lambda x: x['rc_time_mean'], data))
+        datas.append(rc_time)
+    over_cal = []
+    for i in range(0, len(GRANULARITIES)):
+        time_g = list(map(lambda x: x[i], datas))
+        avg_g = sum(time_g)/len(time_g)
+        over_cal.append(avg_g*100.0)
+    plt.plot(x_axis, over_cal,'r')
+    # draw the 100% limit
+    #plt.plot(x_axis, full_line, 'r--', linewidth=0.3)
+    plt.xlabel('Monitor Frequency')
+    plt.ylabel('Reconfiguration Overhead(%)')
+    plt.savefig('./overhead_time.png')
 
 def draw_rc_num(utils):
     plt.clf()
@@ -204,7 +226,7 @@ def draw_mv(utils):
         mv_col = list(map(lambda x: x['mv'], data))
         mv = scale_mv(app, minmax, mv_col)
         avgs = [sum(x) for x in zip(mv, avgs)]
-        #plt.errorbar(x_axis, mv, color=APP_COLOR[app], label=app)
+        plt.errorbar(x_axis, mv, color=APP_COLOR[app], label=app)
     # draw the avg
     avgs = [x / len(utils.keys()) for x in avgs]
     plt.errorbar(x_axis,
@@ -279,8 +301,6 @@ def draw_util_mv(utils):
     # calculate the average on 1/10/100
     avgs = [0.0] * len(x_axis)
     for app, data in utils.items():
-        if app=='bodytrack' or app=='facedetect':
-            continue
         avg = list(map(lambda x: x['avg'], data))
         avgs = [sum(x) for x in zip(avg, avgs)]
         ax0.errorbar(x_axis, avg, color=APP_COLOR[app], label=app)
@@ -406,13 +426,13 @@ def draw_util_mv_deprecated(utils):
 def main(argv):
     # analyze utilization
     #genBaseLine()
-    #exit(1)
     utils = OrderedDict()
     for app in APP_DIRS:
         util_app = genUtilization(app)
         utils[app] = util_app.values()
     draw_util(utils)
     #draw_over(utils)
+    draw_time(utils)
     draw_rc_num(utils)
     draw_mv(utils)
     draw_util_mv(utils)
