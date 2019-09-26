@@ -4,7 +4,7 @@ import time
 import os
 import subprocess
 import signal
-from Classes import AppMethods
+
 from Machine_Trainer.MachineProfile import MachineProfile
 from time import sleep
 
