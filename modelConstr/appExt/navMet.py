@@ -1,4 +1,4 @@
-from Classes import *
+from Rapids_Classes.AppMethods import AppMethods
 
 
 class appMethods(AppMethods):

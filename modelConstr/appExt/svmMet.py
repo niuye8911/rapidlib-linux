@@ -5,7 +5,7 @@ This is an example file for prepraing SVM for RAPID(C)
 import pickle
 import os
 import numpy as np
-from Classes import *
+from Rapids_Classes.AppMethods import AppMethods
 from cs231n.classifiers import LinearSVM
 from cs231n.data_utils import load_CIFAR10
 

@@ -2,7 +2,7 @@
 This is an example file for prepraing Swaptions for RAPID(C)
 """
 
-from Classes import *  # import the parent class and other classes from the
+from Rapids_Classes.AppMethods import AppMethods  # import the parent class and other classes from the
 import os
 
 # file Classes.py

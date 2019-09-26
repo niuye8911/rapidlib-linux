@@ -1,7 +1,7 @@
 import pickle
 
 import numpy as np
-from Classes import *
+from Rapids_Classes.AppMethods import AppMethods
 from cs231n.classifiers.neural_net import TwoLayerNet
 from cs231n.data_utils import load_CIFAR10
 
