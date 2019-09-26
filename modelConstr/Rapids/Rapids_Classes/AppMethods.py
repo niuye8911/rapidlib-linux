@@ -5,8 +5,9 @@ implementations to
 1) get the groundtruth of the app by running the app in default mode.
 2) get the training data by running the app in different configurations
 """
-import os, time, csv, functools
+import os, time, csv, functools, subprocess, signal
 from Rapids_Classes.SysUsageTable import SysUsageTable
+from Rapids_Classes.SlowDown import SlowDown
 from Rapids_Classes.SysArgs import SysArgs
 from Rapids_Classes.Stresser import Stresser
 from Rapids_Classes.KDG import *
@@ -384,8 +385,14 @@ class AppMethods():
                                            preexec_fn=os.setsid)
 
             total_time, cost, metric = self.getCostAndSys(
-                app_command, self.training_units, True,
-                configuration.printSelf('-'))
+                app_command, self.training_units, True)
+            if metric is None:
+                # too fast
+                app_command = self.getCommand(configuration.retrieve_configs(),
+                                              fullRun=False,
+                                              qosRun=True)
+                total_time_not_used, cost, metric = self.getCostAndSys(
+                    app_command, self.fullrun_units, True)
             # end the env
             os.killpg(os.getpgid(env_creater.pid), signal.SIGKILL)
             # write the measurement to file
@@ -411,8 +418,7 @@ class AppMethods():
                                            shell=True,
                                            preexec_fn=os.setsid)
             total_time, cost, total_metric = self.getCostAndSys(
-                app_command, self.training_units, True,
-                configuration.printSelf('-'))
+                app_command, self.training_units, True)
             # end the env
             os.killpg(os.getpgid(env_creater.pid), signal.SIGKILL)
             # write the measurement to file
@@ -428,10 +434,7 @@ class AppMethods():
         return self.name
 
     # some utilities might be useful
-    def getCostAndSys(self,
-                      command,
-                      work_units=1,
-                      withSys=False):
+    def getCostAndSys(self, command, work_units=1, withSys=False):
         """ return the execution time of running a single work unit using
         func in milliseconds
         To measure the cost of running the application with a configuration,
@@ -458,9 +461,9 @@ class AppMethods():
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
-            if total_time<1:
-            # the time is too small for parsetmpcsv
-                print('TOTAL TIME < 1s',total_time)
+            if total_time < 1:
+                # the time is too small for parsetmpcsv
+                print('TOTAL TIME < 1s', total_time)
                 metric_value = None
             else:
                 metric_value = AppMethods.parseTmpCSV()

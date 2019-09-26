@@ -1,4 +1,5 @@
 # Slowdown Class with write table function
+import hashlib
 
 class SlowDown:
     def __init__(self, configuration):
