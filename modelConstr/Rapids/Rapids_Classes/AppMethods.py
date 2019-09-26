@@ -5,7 +5,7 @@ implementations to
 1) get the groundtruth of the app by running the app in default mode.
 2) get the training data by running the app in different configurations
 """
-import os, time
+import os, time, csv, functools
 from Rapids_Classes.SysUsageTable import SysUsageTable
 from Rapids_Classes.SysArgs import SysArgs
 from Rapids_Classes.Stresser import Stresser
@@ -226,8 +226,12 @@ class AppMethods():
             if not appInfo.isTrained():
                 # 1) COST Measuremnt
                 total_time, cost, metric = self.getCostAndSys(
-                    command, self.training_units, withSys,
-                    configuration.printSelf('-'))
+                    command, self.training_units, withSys)
+                if withSys and metric is None:
+                    # the total runtime is too small for measuring the metric
+                    command = self.getCommand(configs, fullRun=True)
+                    total_time_not_used, cost, metric = self.getCostAndSys(
+                        command, self.fullrun_units, withSys)
                 training_time_record[configuration.printSelf('-')] = total_time
                 # write the cost to file
                 AppMethods.writeConfigMeasurementToFile(
@@ -427,8 +431,7 @@ class AppMethods():
     def getCostAndSys(self,
                       command,
                       work_units=1,
-                      withSys=False,
-                      configuration=''):
+                      withSys=False):
         """ return the execution time of running a single work unit using
         func in milliseconds
         To measure the cost of running the application with a configuration,
@@ -455,16 +458,18 @@ class AppMethods():
         avg_time = (time2 - time1) * 1000.0 / work_units
         # parse the csv
         if withSys:
-            #if total_time<1000:
+            if total_time<1:
             # the time is too small for parsetmpcsv
-
-            metric_value = AppMethods.parseTmpCSV()
-            while metric_value is None:
-                print("rerun", " ".join(command))
-                # rerun
-                os.system('rm tmp.csv')
-                os.system(" ".join(command))
+                print('TOTAL TIME < 1s',total_time)
+                metric_value = None
+            else:
                 metric_value = AppMethods.parseTmpCSV()
+                while metric_value is None:
+                    print("rerun", " ".join(command))
+                    # rerun
+                    os.system('rm tmp.csv')
+                    os.system(" ".join(command))
+                    metric_value = AppMethods.parseTmpCSV()
         return total_time, avg_time, metric_value
 
     @staticmethod
