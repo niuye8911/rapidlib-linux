@@ -4,10 +4,12 @@ import optparse
 import os
 import sys
 
-import Classes
 import representset
 import xmlgen
 import csv
+from Rapids_Classes.Profile import Profile
+from Rapids_Classes.AppMethods import AppMethods
+from Rapids_Classes.KDG import *
 from App.AppSummary import AppSummary
 from Parsing_Util.readFact import readFact
 from optimality import findOptimal
@@ -35,8 +37,8 @@ remote = False
 
 # Training Objs
 appInfo = None  # an object of class AppSummary
-groundTruth_profile = Classes.Profile()
-knobs = Classes.Knobs()
+groundTruth_profile = Profile()
+knobs = Knobs()
 knob_samples = {}
 
 # Training Options
