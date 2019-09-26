@@ -1,22 +1,19 @@
 from os import system
-
-from Classes import *
+from Rapids_Classes.QuadRSDG import QuadRSDG
 from psd import *
 
 
 def populateQuadRSDG(observed, quad):
     # get the segments
     paras, quadpara = genQuadContProblem(observed, quad, True)  # Ture = cost
-    system(
-        "gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
-        "ResultFile=./debug/max.sol ./debug/fitting.lp")
+    system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
+           "ResultFile=./debug/max.sol ./debug/fitting.lp")
     costrsdg = getContRSDG(paras, quadpara, quad, True)
     system("mv ./debug/max.sol ./debug/maxcost.sol")
     system("mv ./debug/fitting.lp ./debug/fittingcost.lp")
     paras, quadpara = genQuadContProblem(observed, quad, False)  # Ture = quad
-    system(
-        "gurobi_cl BarHomogeneous=1 OutputFlag=0 LogToFile=gurobi.log "
-        "ResultFile=./debug/max.sol ./debug/fitting.lp")
+    system("gurobi_cl BarHomogeneous=1 OutputFlag=0 LogToFile=gurobi.log "
+           "ResultFile=./debug/max.sol ./debug/fitting.lp")
     mvrsdg = getContRSDG(paras, quadpara, quad, False)
     system("mv ./debug/max.sol ./debug/maxmv.sol")
     system("mv ./debug/fitting.lp ./debug/fittingmv.lp")
@@ -59,7 +56,7 @@ def genBounds(errors, paras):
 
 def getContRSDG(paras, quadparas, quad, COST):
     result = open("./debug/max.sol", 'r')
-    rsdg = quadRSDG()
+    rsdg = QuadRSDG()
     for line in result:
         col = line.split()
         if not (len(col) == 2):
@@ -316,8 +313,8 @@ def readContFactAndGenModConstraint(fact):
                 # append the quadconstraint to constraint
                 constraint += quadconstraint
                 # greater_constraint = constraint + " >= "+str(cost-0.1)+"\n"
-                smaller_constraint = constraint + " <= " + str(
-                    cost + 0.1) + "\n"
+                smaller_constraint = constraint + " <= " + str(cost +
+                                                               0.1) + "\n"
                 # constraints.append(greater_constraint)
                 constraints.append(smaller_constraint)
                 # clear the constraint
@@ -350,6 +347,7 @@ def readContFactAndGenModConstraint(fact):
         num += 1
 
     return constraints, num, paras
+
 
 # if i == length-1:
 #                #the last column which is the cost

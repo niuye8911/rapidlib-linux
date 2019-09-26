@@ -1,4 +1,5 @@
 # a fake stress tool instance generator
+import random
 
 class SysArgs:
     def __init__(self):

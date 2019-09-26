@@ -1,4 +1,7 @@
 import itertools
+from Rapids_Classes.KDG import *
+from Rapids_Classes.Profile import Profile
+
 
 # stage_1 generate valid training set from constraints
 def genTrainingSet(cfg_file):
@@ -10,7 +13,6 @@ def genTrainingSet(cfg_file):
     # flat the all_training
     flatted = flatAll(all_training)
     # filter out the invalid configs
-    from Classes import Profile,Configuration,Knobs
     flatted_all_training = Profile()
     flatted_blackbox_training = Profile()
     invalid = 0
@@ -37,7 +39,6 @@ def genTrainingSet(cfg_file):
 
 # read in a description file
 def processFile(cfg_file):
-    from Classes import Knob, Constraint
     knobs = set()
     and_constriants = set()
     or_constraints = set()
@@ -96,7 +97,6 @@ def flatAll(listOfTuples):
 # product - a cross product containing bunch of Configurations
 # knob_samples - a disctionary contains all sampled configs
 def genAllTraining(knobs):
-    from Classes import Config
     final_sets = set()
     knob_samples = {}
     for knob in knobs:

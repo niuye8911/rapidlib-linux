@@ -3,7 +3,7 @@ from os import system
 from contigous import *
 from psd import *
 from stage_1.training import *
-from Classes import *
+from Rapids_Classes.PieceRSDG import PieceRSDG
 
 
 def populatePieceWiseRSDG(observed, partitions, KDG, RS):
@@ -315,7 +315,7 @@ def solveAndPopulateRSDG(segments,
     system("gurobi_cl OutputFlag=0 LogToFile=gurobi.log "
            "ResultFile=./debug/max.sol ./debug/fitting.lp > licenseinfo")
     result = open("./debug/max.sol", 'r')
-    rsdg = pieceRSDG()
+    rsdg = PieceRSDG()
     # setup the knob table
     for knob in segments:
         rsdg.addKnob(knob)

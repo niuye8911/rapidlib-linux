@@ -1,7 +1,5 @@
 import imp
 
-from Classes import AppMethods
-
 
 def recoverTimeRecord(appInfo, units):
     ''' estimate the total training time from a trained cost profile '''

@@ -1,6 +1,7 @@
 # generate a new real-app stresser
-import imp, os
+import imp, os, random
 from App.AppSummary import AppSummary
+from stage_1.training import genTrainingSet
 
 class Stresser:
     APP_FILES = {
@@ -37,8 +38,8 @@ class Stresser:
         app = random.choice(list(self.apps.keys()))
         configuration = random.choice(self.apps[app]['configs'])
         cmd = self.apps[app]['appMethods'].getCommand(
-            configuration.retrieve_configs(),
-            qosRun=False,fullRun=True)  #set to true to return the full run command
+            configuration.retrieve_configs(), qosRun=False,
+            fullRun=True)  #set to true to return the full run command
         return {
             'app': app,
             'configuration': configuration.printSelf('-'),

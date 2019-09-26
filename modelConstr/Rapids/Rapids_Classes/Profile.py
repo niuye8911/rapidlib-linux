@@ -1,4 +1,5 @@
 # a RAPIDS profile
+import random
 
 class Profile:
     """ a profile table, could be observed, or ground truth

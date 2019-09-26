@@ -1,4 +1,4 @@
-from Classes import *
+from Rapids_Classes.KDG import *
 
 
 def is_float(str):
