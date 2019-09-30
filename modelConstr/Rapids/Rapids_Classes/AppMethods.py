@@ -223,7 +223,7 @@ class AppMethods():
             )  # extract the configurations
             # assembly the command
             command = self.getCommand(configs, fullRun=False)
-
+            metric = None
             if not appInfo.isTrained():
                 # 1) COST Measuremnt
                 total_time, cost, metric = self.getCostAndSys(
@@ -244,6 +244,14 @@ class AppMethods():
                     AppMethods.writeConfigMeasurementToFile(
                         mvFact, configuration, mv)
             if not appInfo.isPerfTrained():
+                if withSys and metric is None:
+                    total_time, cost, metric = self.getCostAndSys(
+                        command, self.training_units, withSys)
+                    if metric is None:
+                        # the total runtime is too small for measuring the metric
+                        command = self.getCommand(configs, fullRun=True)
+                        total_time_not_used, cost, metric = self.getCostAndSys(
+                            command, self.fullrun_units, withSys)
                 # 3) SYS Profile Measurement
                 if withSys:
                     self.recordSysUsage(configuration, metric)
@@ -389,8 +397,8 @@ class AppMethods():
             if metric is None:
                 # too fast
                 app_command = self.getCommand(configuration.retrieve_configs(),
-                                              fullRun=False,
-                                              qosRun=True)
+                                              fullRun=True,
+                                              qosRun=False)
                 total_time_not_used, cost, metric = self.getCostAndSys(
                     app_command, self.fullrun_units, True)
             # end the env
