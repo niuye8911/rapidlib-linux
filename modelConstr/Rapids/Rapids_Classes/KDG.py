@@ -108,6 +108,30 @@ class Configuration:
         #    result += " " + config.knob.set_name + " " + str(config.val)
         # return result
 
+class Constraint:
+    """ a continuous constraint with source and sink
+    The syntax of a constraint is:
+    if sink_min <= sink <= sink_max, then source_min <= source <= source_max
+    """
+
+    def __init__(self, type, source, sink, source_min, source_max, sink_min,
+                 sink_max):
+        """ Initialization
+        :param type: AND or OR, in string
+        :param source: string
+        :param sink: string
+        :param source_min: lower bound of source
+        :param source_max: upper bound of source
+        :param sink_min: lower bound of sink
+        :param sink_max: upper bound of sink
+        """
+        self.type = type
+        self.source = source
+        self.sink = sink
+        self.source_min = int(source_min)
+        self.source_max = int(source_max)
+        self.sink_min = int(sink_min)
+        self.sink_max = int(sink_max)
 
 class Segment:
     """ a segment of a knob
