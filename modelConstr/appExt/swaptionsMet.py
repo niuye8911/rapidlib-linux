@@ -23,7 +23,7 @@ class appMethods(AppMethods):
         self.training_units = 10
         self.fullrun_units = 100
         self.max_cost = 2204
-        self.min_cost = 22
+        self.min_cost = 220
         self.min_mv = 85.67
         self.max_mv = 100
         self.gt_path = "./training_outputs/swap-gt.txt"

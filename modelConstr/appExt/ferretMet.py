@@ -3,7 +3,7 @@ This is an example file for prepraing Bodytrack for RAPID(C)
 """
 
 from Rapids_Classes.AppMethods import AppMethods  # import the parent class and other classes from the
-
+import os
 # file Classes.py
 
 
