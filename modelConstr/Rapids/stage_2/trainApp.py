@@ -24,7 +24,7 @@ def genFact(appInfo, config_table, bb_profile, numOfFixedEnv):
     module = imp.load_source("", appInfo.METHODS_PATH)
     appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
     # if the training has been done, use the trained data
-    if appInfo.isTrained():
+    if appInfo.isTrained() and appInfo.isPerfTrained():
         # construct the time_record
         time_record = recoverTimeRecord(appInfo, appMethods.training_units)
         # upload to server
