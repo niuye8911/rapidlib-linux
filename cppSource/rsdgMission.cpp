@@ -151,20 +151,20 @@ void rsdgMission::getRes(vector<string> &holder, string response) {
 
 void rsdgMission::consultServer_M() {
   // consult the server with RAPID_M option
+  RAPIDS_SERVER::Response result;
   if (!rapidm_started) {
-    string register_result =
-        RAPIDS_SERVER::start("algaesim", app_name, curBudget);
-    if (register_result != "1") {
-      cout << "app cannot be registered to be started, msg:" << register_result
-           << endl;
-    };
+    result = RAPIDS_SERVER::start("algaesim", app_name, curBudget);
+  } else {
+    result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
   }
-  string response = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
-  cout << response << std::endl;
-  RAPIDS_SERVER::Response result = RAPIDS_SERVER::parse_response(response);
-  updateSelection(result.configs);
+  if (!result.found) {
+    finish(false);
+    exit(0);
+  }
+  updateSelection(result.best_config);
   slowdown = result.slowdown;
   bucket = result.bucket;
+  candidate_configs = result.configs;
 }
 
 void rsdgMission::consultServer() {

@@ -109,6 +109,7 @@ public:
   //    RAPID_M related
   double slowdown = 0.0;
   string bucket;
+  vector<string> candidate_configs;
 
   // thread+runnable list
   vector<void *(*)(void *)> runnableList;
@@ -162,7 +163,7 @@ public:
   void getRes(vector<string> &, string);
   double genProductProfile();
   double getObj();
-  void checkPoint(int index=0);
+  void checkPoint(int index = 0);
   void
   updateModel(int); // this function will be called everytime before reconfig
   void setUnitBetweenCheckpoints(int);

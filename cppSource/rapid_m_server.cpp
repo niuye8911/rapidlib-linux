@@ -19,7 +19,7 @@ int strToInt(std::string str);
 // Function implementations
 
 /*
- *
+ * return true if initialization is successed
  */
 bool init(std::string machineID, std::string appID, FILE *buckets,
           FILE *pModel) {
@@ -30,16 +30,17 @@ bool init(std::string machineID, std::string appID, FILE *buckets,
   std::string postParams =
       "buckets=" + bucketsFileText + "&p_model=" + pModelFileText;
 
-  std::string result =
+  std::string response =
       queryServer(std::string("init.php"), getParams, postParams);
 
-  return result.empty();
+  return true;
 }
 
 /*
- *
+ * return the whole Response including config,bucket,slowdown
  */
-std::string start(std::string machineID, std::string appID, int budget) {
+RAPIDS_SERVER::Response start(std::string machineID, std::string appID,
+                              int budget) {
 
   std::string getParams = "machine=" + machineID + "&app=" + appID;
   std::string postParams = "budget=" + std::to_string(budget);
@@ -47,20 +48,34 @@ std::string start(std::string machineID, std::string appID, int budget) {
   std::string result =
       queryServer(std::string("start.php"), getParams, postParams);
 
-  return result;
+  return parse_response(result);
 }
 
 /*
- *
+ * return the whole Response including config,bucket,slowdown
  */
-std::string get(std::string machineID, std::string appID, int budget) {
+RAPIDS_SERVER::Response get(std::string machineID, std::string appID,
+                            int budget) {
   std::string getParams = "machine=" + machineID + "&app=" + appID;
   std::string postParams = "budget=" + budget;
 
   std::string result =
       queryServer(std::string("get.php"), getParams, postParams);
 
-  return result;
+  return parse_response(result);
+}
+
+/*
+ * return true if config buckets stay the same
+ */
+bool check(std::string machineID, std::string appID, std::string bucket_name) {
+  std::string getParams = "machine=" + machineID + "&app=" + appID;
+  std::string postParams = "cur_bucket=" + bucket_name;
+
+  std::string result =
+      queryServer(std::string("check.php"), getParams, postParams);
+  RAPIDS_SERVER::Response r = parse_response(result);
+  return !r.changed; // if changed, then check success
 }
 
 /*
@@ -72,8 +87,8 @@ bool end(std::string machineID, std::string appID) {
 
   std::string result =
       queryServer(std::string("end.php"), getParams, postParams);
-
-  return result=="SUCCESS";
+  RAPIDS_SERVER::Response r = parse_response(result);
+  return true;
 }
 
 int strToInt(std::string str) {
@@ -155,6 +170,7 @@ std::vector<std::string> process_string(std::string config) {
   return result;
 }
 
+// local method to parse the result based on different calling endpoint
 Response parse_response(std::string response) {
   Json::Value res;
   Json::Reader reader;
@@ -166,11 +182,16 @@ Response parse_response(std::string response) {
   }
   std::string bucket = res.get("bucket", "bucket does not exist").asString();
   std::string sd = res.get("slowdown", "slowdown does not exist").asString();
+  std::string best_config_str =
+      res.get("config", "best config does not exist").asString();
+  std::vector<std::string> best_config = process_string(best_config_str);
   std::string config_str =
-      res.get("config", "config does not exist").asString();
-  std::vector<std::string> config = process_string(config_str);
+      res.get("configs", "config does not exist").asString();
+  std::vector<std::string> configs = process_string(config_str);
   double slowdown = std::atof(sd.c_str());
-  result = {config, bucket, slowdown};
+  bool changed = res.get("changed", "true").asString() == "true";
+  bool success = res.get("found", "true").asString() == "true";
+  result = {configs, bucket, best_config, slowdown, changed, success};
   return result;
 }
 
