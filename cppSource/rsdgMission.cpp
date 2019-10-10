@@ -150,21 +150,56 @@ void rsdgMission::getRes(vector<string> &holder, string response) {
 }
 
 void rsdgMission::consultServer_M() {
-  // consult the server with RAPID_M option
   RAPIDS_SERVER::Response result;
+  // if it's first time starting
   if (!rapidm_started) {
     result = RAPIDS_SERVER::start("algaesim", app_name, curBudget);
-  } else {
-    result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
+    rapidm_started = true;
+    updateSelection(result.best_config);
+    slowdown = result.slowdown;
+    bucket = result.bucket;
+    candidate_configs = result.configs;
+    if (!result.found) {
+      finish(false);
+      exit(0);
+    }
   }
-  if (!result.found) {
-    finish(false);
-    exit(0);
+  // already started
+  else {
+    // check if current bucket valids
+    auto check_result = RAPIDS_SERVER::check("algaesim", app_name, bucket);
+    bool cur_bucket_valid = std::get<0>(check_result);
+    result = std::get<1>(check_result);
+    if (cur_bucket_valid) {
+      slowdown = result.slowdown;
+      vector<string> result_config = searchProfile(candidate_configs);
+      // check if needs to contact server for new bucket
+      if (result_config.size() == 0) {
+        // needs new buckets
+        result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
+        updateSelection(result.best_config);
+        slowdown = result.slowdown;
+        bucket = result.bucket;
+        candidate_configs = result.configs;
+        if (!result.found) {
+          finish(false);
+          exit(0);
+        }
+      } else {
+        // no need to contact server
+        updateSelection(result_config);
+        return;
+      }
+    } else {
+      // bucket has changed
+      candidate_configs = result.configs;
+      bucket = result.bucket;
+      slowdown = result.slowdown;
+      // still needs to find locally
+      vector<string> result_config = searchProfile(candidate_configs);
+      updateSelection(result_config);
+    }
   }
-  updateSelection(result.best_config);
-  slowdown = result.slowdown;
-  bucket = result.bucket;
-  candidate_configs = result.configs;
 }
 
 void rsdgMission::consultServer() {
@@ -1011,16 +1046,29 @@ void rsdgMission::readCostProfile() {
 /**
  * Search through the offline profile
  */
-vector<string> rsdgMission::searchProfile() {
+vector<string> rsdgMission::searchProfile(vector<string> candidates) {
   vector<string> resultConfig;
   double curMaxMV = -100;
   string maxConfig = "";
   for (auto it = offlineCost.begin(); it != offlineCost.end(); it++) {
+    string curconfig = it->first;
+    if (candidates.size() != 0) {
+      // check if the config exists in the candidates
+      bool in_candidate = false;
+      for (auto it = candidates.begin(); it!=candidates.end(); it++){
+        if (*it == curconfig){
+          in_candidate = true;
+          break;
+        }
+      }
+      if (!in_candidate){
+        continue;
+      }
+    }
     double curcost = it->second;
-    if (curcost > curBudget) {
+    if (curcost * slowdown > curBudget) {
       continue;
     }
-    string curconfig = it->first;
     // this config is valid
     if (offlineMV[curconfig] > curMaxMV) {
       maxConfig = curconfig;
@@ -1046,6 +1094,14 @@ vector<string> rsdgMission::searchProfile() {
   while (configs >> tmp)
     resultConfig.push_back(tmp);
   return resultConfig;
+}
+
+/**
+ * Search through the entire offline profile
+ */
+vector<string> rsdgMission::searchProfile() {
+  vector<string> candidates;
+  return rsdgMission::searchProfile(candidates);
 }
 
 void rsdgMission::setOfflineSearch() { offline_search = true; }

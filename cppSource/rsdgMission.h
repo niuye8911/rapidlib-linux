@@ -107,7 +107,7 @@ public:
   double minEnergy;
   bool solvable = true;
   //    RAPID_M related
-  double slowdown = 0.0;
+  double slowdown = 1.0;
   string bucket;
   vector<string> candidate_configs;
 
@@ -183,6 +183,7 @@ public:
   void readMVProfile();
   void readCostProfile();
   vector<string> searchProfile();
+  vector<string> searchProfile(vector<string>);
   void setOfflineSearch();
   void readContTrainingSet();
   void setDebug();
