@@ -12,7 +12,6 @@ typedef struct {
   std::string bucket;
   std::vector<std::string> best_config;
   double slowdown;
-  bool changed;
   bool found;
 } Response;
 
@@ -20,7 +19,7 @@ bool init(std::string machineID, std::string appID, FILE *buckets,
           FILE *pModel);
 Response start(std::string machineID, std::string appID, int budget);
 Response get(std::string machineID, std::string appID, int budget);
-bool check(std::string machineID, std::string appID, std::string bucket_name);
+std::tuple<bool,Response> check(std::string machineID, std::string appID, std::string bucket_name);
 bool end(std::string machineID, std::string appID);
 Response parse_response(std::string response);
 } // namespace RAPIDS_SERVER
