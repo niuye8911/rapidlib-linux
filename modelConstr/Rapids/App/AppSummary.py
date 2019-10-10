@@ -31,10 +31,16 @@ class AppSummary:
             'M_FILE_PATH'] = self.OUTPUT_DIR_PREFIX + name + "-mperf.csv"
         # create the training status
         self.STATUS = {}
-        self.STATUS['STANDARD_TRAINED'] = os.path.exists(
+        self.STATUS['COST_TRAINED'] = os.path.exists(
             self.FILE_PATHS['COST_FILE_PATH'])
-        self.STATUS['STRESS_TRAINED'] = os.path.exists(
+        self.STATUS['MV_TRAINED'] = os.path.exists(
+            self.FILE_PATHS['MV_FILE_PATH'])
+        self.STATUS['PREF_TRAINED'] = os.path.exists(
             self.FILE_PATHS['PERF_FILE_PATH'])
+        self.STATUS['SYS_TRAINED'] = os.path.exists(
+            self.FILE_PATHS['SYS_FILE_PATH'])
+        self.STATUS['MMODEL_TRAINED'] = os.path.exists(
+            self.FILE_PATHS['M_FILE_PATH'])
         # create the training cfg for current run
         self.TRAINING_CFG = self.readFromCFG(cfg_file)
 
@@ -79,17 +85,29 @@ class AppSummary:
         # return pointers to all trained files
         return self.FILE_PATHS
 
-    def setTrained(self):
-        self.STATUS['STANDARD_TRAINED'] = True
+    def setTrained(self, cost=True, mv=True):
+        self.STATUS['COST_TRAINED'] = cost
+        self.STATUS['MV_TRAINED'] = mv
 
-    def setPerfTrained(self):
-        self.STATUS['STRESS_TRAINED'] = True
+    def setPerfTrained(self, sys=True, perf=True, mmodel=True):
+        self.STATUS['SYS_TRAINED'] = sys
+        self.STATUS['PERF_TRAINED'] = perf
+        self.STATUS['MMODEL_TRAINED'] = mmodel
 
-    def isTrained(self):
-        return self.STATUS['STANDARD_TRAINED']
+    def isCostTrained(self):
+        return self.STATUS['COST_TRAINED']
+
+    def isMVTrained(self):
+        return self.STATUS['MV_TRAINED']
 
     def isPerfTrained(self):
-        return self.STATUS['STRESS_TRAINED']
+        return self.STATUS['PERF_TRAINED']
+
+    def isSysTrained(self):
+        return self.STATUS['SYS_TRAINED']
+
+    def isMModelTrained(self):
+        return self.STATUS['MMODEL_TRAINED']
 
     def printSummary(self):
         with open(self.OUTPUT_DIR_PREFIX + "summary.json", 'w') as output:

@@ -1,3 +1,5 @@
+from Rapids_Classes.InterCoeff import InterCoeff
+
 class PieceRSDG:
     """A RSDG calculated based on piece-wise linear regression model
     """

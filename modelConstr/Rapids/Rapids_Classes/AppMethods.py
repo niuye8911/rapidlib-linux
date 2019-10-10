@@ -6,12 +6,14 @@ implementations to
 2) get the training data by running the app in different configurations
 """
 import os, time, csv, functools, subprocess, signal
+import pandas as pd
 from Rapids_Classes.SysUsageTable import SysUsageTable
 from Rapids_Classes.SlowDown import SlowDown
 from Rapids_Classes.SysArgs import SysArgs
 from Rapids_Classes.Stresser import Stresser
 from Rapids_Classes.KDG import *
 from Rapids_Classes.Metric import *
+from util import recoverTimeRecord
 
 
 class AppMethods():
@@ -181,11 +183,13 @@ class AppMethods():
         configurations_bb = bb_profile.configurations
         # configurations in the table
         train_conf = appInfo.TRAINING_CFG
-        withMV = train_conf['withQoS']
-        withSys = train_conf['withSys']
-        withPerf = train_conf['withPerf']
-        withMModel = train_conf['withMModel']
-        costFact = open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'w')
+        withCost = not appInfo.isCostTrained()
+        withMV = train_conf['withQoS'] and not appInfo.isMVTrained()
+        withSys = train_conf['withSYS'] and not appInfo.isSysTrained()
+        withPerf = train_conf['withPerf'] and not appInfo.isPerfTrained()
+        withMModel = train_conf['withMModel'] and not appInfo.isMModelTrained()
+        if withCost:
+            costFact = open(appInfo.FILE_PATHS['COST_FILE_PATH'], 'w')
         if withMV:
             mvFact = open(appInfo.FILE_PATHS['MV_FILE_PATH'], 'w')
         if withSys:
@@ -214,7 +218,7 @@ class AppMethods():
         total = len(configurations_bb)
         current = 1
         for configuration in configurations_bb:
-            print("*****RUNNING:" + str(current) + "/" + str(total) + "*****")
+            print("*****TRAINING:" + str(current) + "/" + str(total) + "*****")
             current += 1
             # the purpose of each iteration is to fill in the two values below
             cost = 0.0
@@ -224,7 +228,8 @@ class AppMethods():
             # assembly the command
             command = self.getCommand(configs, fullRun=False)
             metric = None
-            if not appInfo.isTrained():
+            # basic run or with sys
+            if not appInfo.isCostTrained() or withSys or withMV:
                 # 1) COST Measuremnt
                 total_time, cost, metric = self.getCostAndSys(
                     command, self.training_units, withSys)
@@ -243,18 +248,21 @@ class AppMethods():
                     # write the mv to file
                     AppMethods.writeConfigMeasurementToFile(
                         mvFact, configuration, mv)
-            if not appInfo.isPerfTrained():
-                if withSys and metric is None:
+                # 3) SYS Profile Measurement
+                if withSys:
+                    self.recordSysUsage(configuration, metric)
+            # running with others
+            if withPerf or withMModel:
+                # get the standalone sys
+                if metric is None:
                     total_time, cost, metric = self.getCostAndSys(
-                        command, self.training_units, withSys)
+                        command, self.training_units, True)
                     if metric is None:
                         # the total runtime is too small for measuring the metric
                         command = self.getCommand(configs, fullRun=True)
                         total_time_not_used, cost, metric = self.getCostAndSys(
-                            command, self.fullrun_units, withSys)
-                # 3) SYS Profile Measurement
-                if withSys:
-                    self.recordSysUsage(configuration, metric)
+                            command, self.fullrun_units, True)
+
                 # 4) Performance Measurement
                 if withPerf:
                     # examine the execution time slow-down
@@ -272,16 +280,13 @@ class AppMethods():
                             m_slowdownProfile.write('\n')
                         slowdownHeader = True
                     slowdownTable.writeSlowDownTable(slowdownProfile)
+                    # 5) M-Model Performance Measurement
                     if withMModel:
                         m_slowdownTable.writeSlowDownTable(m_slowdownProfile)
-                # 5) train the slowdown given a known environment
-                #if withMModel:
-                #print("START MModel Testing")
-                #m_slowdownTable = self.runMModelTest(configuration, cost)
-                #m_slowdownTable.writeSlowDownTable(m_slowdownProfile)
             self.cleanUpAfterEachRun(configs)
         # write the metric to file
-        costFact.close()
+        if withCost:
+            costFact.close()
         if withMV:
             mvFact.close()
         if withSys:
@@ -294,8 +299,13 @@ class AppMethods():
             print("preparing to upload to server")
             self.uploadToServer(appInfo)
         # udpate the status
-        appInfo.setTrained()
-        appInfo.setPerfTrained()
+        appInfo.setTrained(cost=True, mv=train_conf['withQoS'])
+        appInfo.setPerfTrained(train_conf['withSYS'], train_conf['withPerf'],
+                               train_conf['withMModel'])
+        # if training time record has been done before, recover it
+        if not withCost:
+            training_time_record = recoverTimeRecord(appInfo,
+                                                     self.training_units)
         return training_time_record
 
     # Send the system profile up to the RAPID_M server
