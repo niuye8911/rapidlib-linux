@@ -147,7 +147,7 @@ class appMethods(AppMethods):
         X_test, y_test = self._get_test_data()
 
         input_size = 32 * 32 * 3
-        hidden_size = 50
+        hidden_size = 110
         num_classes = 10
 
         net = TwoLayerNet(input_size, hidden_size, num_classes)
