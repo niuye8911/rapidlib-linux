@@ -23,8 +23,8 @@ class appMethods(AppMethods):
         self.max_mv = 18.3
 
     def cleanUpAfterEachRun(self, configs=None):
-        learningRate = 100 * 1e-7
-        regular = 1e-5
+        learningRate = 100 * 1e-5
+        regular = 0.05
         batch = 500
         if configs is not None:
             for config in configs:
@@ -32,7 +32,7 @@ class appMethods(AppMethods):
                 if name == "learningRate":
                     learningRate = float(config.val) * 1e-5
                 elif name == "regular":
-                    regular = config.val * 1e-5  # retrieve the setting for each
+                    regular = config.val * 0.05  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(2, config.val - 1)  # retrieve the setting
@@ -74,23 +74,29 @@ class appMethods(AppMethods):
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun:
             return ['ls']
-        learningRate = 100 * 1e-7
-        regular = 1e-5
+        learningRate = 100 * 1e-5
+        regular = 0.05
         batch = 500
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "learningRate":
-                    learningRate = float(config.val) * 1e-7
+                    learningRate = float(config.val) * 1e-5
                 elif name == "regular":
                     regular = float(
-                        config.val) * 1e-5  # retrieve the setting for each
+                        config.val) * 0.05  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(
                         2,
                         int(config.val) - 1)  # retrieve the setting for each
                     # knob
+        print(" ".join([
+            self.obj_path, "--lr",
+            str(learningRate), "--reg",
+            str(regular), "--batch",
+            str(batch), "" if (qosRun or fullRun) else "-train"
+        ]))
         return [
             self.obj_path, "--lr",
             str(learningRate), "--reg",
@@ -158,4 +164,5 @@ class appMethods(AppMethods):
             test_accuracy = (net.predict(X_test) == y_test).mean()
         except:
             test_accuracy = 0.0
+        print("qos",str(test_accuracy))
         return test_accuracy * 100.0

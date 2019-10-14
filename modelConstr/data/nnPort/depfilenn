@@ -1,4 +1,4 @@
 nn
 learningRate learning 1 100
-regularization regular 1 100
+regularization regular 1 5
 batchSize batch 1 5
