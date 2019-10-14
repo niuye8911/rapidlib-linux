@@ -68,15 +68,15 @@ RAPIDS_SERVER::Response get(std::string machineID, std::string appID,
 /*
  * return true if config buckets stay the same
  */
-std::tuple<bool,Response> check(std::string machineID, std::string appID, std::string bucket_name) {
+std::tuple<bool, Response> check(std::string machineID, std::string appID,
+                                 std::string bucket_name) {
   std::string getParams = "machine=" + machineID + "&app=" + appID;
-  //std::string postParams = "cur_bucket=" + bucket_name;
+  // std::string postParams = "cur_bucket=" + bucket_name;
 
-  std::string result =
-      queryServer(std::string("check.php"), getParams, "");
+  std::string result = queryServer(std::string("check.php"), getParams, "");
   RAPIDS_SERVER::Response r = parse_response(result);
   bool changed = !(r.bucket == bucket_name);
-  return std::make_tuple(changed,r); // if changed, then check success
+  return std::make_tuple(changed, r); // if changed, then check success
 }
 
 /*
@@ -190,7 +190,7 @@ Response parse_response(std::string response) {
       res.get("configs", "config does not exist").asString();
   std::vector<std::string> configs = process_string(config_str);
   double slowdown = std::atof(sd.c_str());
-  //bool changed = res.get("changed", "true").asString() == "true";
+  // bool changed = res.get("changed", "true").asString() == "true";
   bool success = res.get("found", "true").asString() == "true";
   result = {configs, bucket, best_config, slowdown, success};
   return result;

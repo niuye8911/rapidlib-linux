@@ -5,7 +5,10 @@
 #include "string.h"
 #include <ctime>
 #include <curl/curl.h>
+#include <fstream>
 #include <iostream>
+#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/value.h>
 #include <math.h>
 #include <signal.h>
 #include <sstream>
@@ -14,20 +17,64 @@
 #include <vector>
 
 /////rsdgMission////
-rsdgMission::rsdgMission(string name) {
-  RS_fact.open("observed.csv");
-  app_name = name;
+rsdgMission::rsdgMission(string name, bool from_config) {
+  /*** setup the mission
+   if from_config is set to true, then 'name' is the path to the config file
+   else, it's the application's name
+  ***/
   numThreads = 0;
   budget = 0;
   curBudget = 0;
   rapidm_started = false;
-  string test = "test";
-  string log_name = "./mission_" + name + "_log.csv";
-  string input_dep_file = "./input_" + name + "_log.txt";
-  logfile.open(log_name);
-  inputDepFile.open(input_dep_file);
-  logfile << "Selection,RC_by_budget,RC_by_result,Real_Cost,RC_Time,"
-             "RC_Num,Budget,Exec,SUCCESS\n";
+  logfile.open("./mission_" + name + "_log.csv"); // mission log
+  inputDepFile.open("./input_" + name +
+                    "_log.txt"); // input dependency analysis
+  logfile << LOG_HEADER;
+  if (!from_config) {
+    app_name = name;
+  } else {
+    parseRunConfig(name);
+  }
+}
+
+void rsdgMission::parseRunConfig(string config_path) {
+  // setup the entire mission using a config file
+  Json::Value config_json;
+  std::ifstream config_file(config_path, std::ifstream::binary);
+  config_file >> config_json;
+  // parse the json config file
+  //// basic info
+  string app_name = config_json["basic"]["app_name"].asString();
+  string cost_path = config_json["basic"]["cost_path"].asString();
+  string mv_path = config_json["basic"]["mv_path"].asString();
+  string xml_path = config_json["basic"]["defaultXML"].asString();
+  //// mission related
+  double budget = config_json["mission"]["budget"].asDouble();
+  int UNIT_PER_CHECK = config_json["mission"].get("UNIT_PER_CHECK", 1).asInt();
+  bool OFFLINE_SEARCH = config_json["mission"].get("offline", false).asBool();
+  bool USE_REMOTE = config_json["mission"].get("OFFLINE_SEARCH", false).asBool()
+                        ? REMOTE
+                        : LOCAL;
+  bool RAPID_M = config_json["mission"].get("RAPID_M", false).asBool();
+  bool USE_GUROBI =
+      config_json["mission"].get("GUROBI", true).asBool() ? GUROBI : LP_SOLVE;
+  bool IS_CONT = config_json["mission"].get("CONT", true).asBool();
+  bool MISSION_LOG = config_json["mission"].get("MISSION_LOG", true).asBool();
+  bool IS_DEBUG = config_json["mission"].get("DEBUG", true).asBool();
+  // setup the mission
+  setSolver(USE_GUROBI, USE_REMOTE, RAPID_M);
+  generateProb(xml_path);
+  setUnitBetweenCheckpoints(UNIT_PER_CHECK);
+  setBudget(budget * 1000); // second to milli second
+  CONT = IS_CONT;
+  DEBUG = IS_DEBUG;
+  if (MISSION_LOG)
+    setLogger();
+  if (OFFLINE_SEARCH || RAPID_M) {
+    setOfflineSearch();
+    readProfile(cost_path, true);
+    readProfile(mv_path, false);
+  }
 }
 
 rsdgService *rsdgMission::getService(string name) {
@@ -109,6 +156,8 @@ void rsdgMission::setupSolverFreq(int freq) { this->freq = freq; }
 void rsdgMission::setUnit(int u) { unit.set(u); }
 
 void rsdgMission::finish_one_unit() {
+  finished_unit++;
+  cout << finished_unit << " " << unitBetweenCheckPoints << endl;
   checkPoint(1);
   double elapsed = timeSinceLastCheckPoints[1];
   inputDepFile << elapsed << " ";
@@ -118,6 +167,10 @@ void rsdgMission::finish_one_unit() {
     fact.close();
   }
   checkPoint(1);
+  if (finished_unit % unitBetweenCheckPoints == 0 && unit.get() != 0) {
+    cout << "reconfiguration" << endl;
+    reconfig();
+  }
 }
 
 // helper func for libcurl
@@ -531,7 +584,6 @@ void rsdgMission::reconfig_updating() {
   curUpdatingId++;
   if (curUpdatingId == RS.size()) {
     logDebug("Updating Model Done");
-    RS_fact.close();
     // now we have the observation file, update the model
     updateRSDG();
     update = false;
@@ -605,11 +657,10 @@ double rsdgMission::genProductProfile() {
 }
 
 void rsdgMission::start() {
-  /*dummy code to start */
   reconfig();
-  if (freq == 0)
+  /*if (freq == 0)
     return;
-  pthread_create(&monitor, NULL, startSolver, this);
+  pthread_create(&monitor, NULL, startSolver, this);*/
 }
 
 void rsdgMission::stopSolver() {
@@ -937,12 +988,11 @@ inline bool is_config(const std::string &c) {
   return (c.find_first_of("0123456789") == std::string::npos);
 }
 
-void rsdgMission::readMVProfile() {
-
+void rsdgMission::readProfile(string file_path, bool COST) {
   ifstream offline_profile;
-  offline_profile.open("factmv.csv");
+  offline_profile.open(file_path);
   string line;
-  double mv;
+  double value;
   string svcname;
   int svclvl;
   if (CONT) {
@@ -965,18 +1015,22 @@ void rsdgMission::readMVProfile() {
         finalconfig += lines[i] + " ";
       }
       finalconfig = finalconfig.substr(0, finalconfig.size() - 1);
-      // get the mv
-      mv = stod(lines.back());
-      offlineMV[finalconfig] = mv;
-      cout << finalconfig << " with mv" << to_string(mv);
-      logDebug(finalconfig + " with mv" + to_string(mv));
+      // get the value
+      value = stod(lines.back());
+      if (COST) {
+        offlineCost[finalconfig] = value;
+      } else {
+        offlineMV[finalconfig] = value;
+      }
+      logDebug(finalconfig + (COST ? " with cost" : "with mv") +
+               to_string(value));
     }
     return;
   }
 
   while (getline(offline_profile, line)) {
     istringstream nodes(line);
-    nodes >> mv;
+    nodes >> value;
     string finalConfig = "";
     while (nodes >> svcname) {
       nodes >> svclvl;
@@ -988,58 +1042,13 @@ void rsdgMission::readMVProfile() {
         finalConfig += " ";
       }
     }
-    offlineMV[finalConfig] = mv;
-    logDebug(finalConfig + " with mv" + to_string(mv));
-  }
-}
-
-/**
- * Read the offline profile for exhaustive search
- */
-void rsdgMission::readCostProfile() {
-  ifstream offline_profile;
-  offline_profile.open("factcost.csv");
-  string line;
-  double cost;
-  string svcname;
-  int svclvl;
-  if (CONT) {
-    while (getline(offline_profile, line)) {
-      istringstream nodes(line);
-      string finalconfig = "";
-      vector<string> lines;
-      string itm;
-      while (nodes >> itm) {
-        lines.push_back(itm);
-      }
-      // get the result
-      for (int i = 0; i < lines.size() - 1; i++) {
-        finalconfig += lines[i] + " ";
-      }
-      finalconfig = finalconfig.substr(0, finalconfig.size() - 1);
-      // get the cost
-      cost = stod(lines.back());
-      offlineCost[finalconfig] = cost;
-      logDebug(finalconfig + " with cost" + to_string(cost));
+    if (COST) {
+      offlineCost[finalConfig] = value;
+    } else {
+      offlineMV[finalConfig] = value;
     }
-    return;
-  }
-
-  while (getline(offline_profile, line)) {
-    istringstream nodes(line);
-    nodes >> cost;
-    string finalConfig = "";
-    while (nodes >> svcname) {
-      nodes >> svclvl;
-      rsdgService *svc = getService(svcname);
-      vector<string> &node_list = svc->getList();
-      if (svc != NULL) {
-        string nodename = node_list[svclvl - 1];
-        finalConfig += nodename;
-        finalConfig += " ";
-      }
-    }
-    offlineCost[finalConfig] = cost;
+    logDebug(finalConfig + (COST ? " with cost" : "with mv") +
+             to_string(value));
   }
 }
 
@@ -1055,13 +1064,13 @@ vector<string> rsdgMission::searchProfile(vector<string> candidates) {
     if (candidates.size() != 0) {
       // check if the config exists in the candidates
       bool in_candidate = false;
-      for (auto it = candidates.begin(); it!=candidates.end(); it++){
-        if (*it == curconfig){
+      for (auto it = candidates.begin(); it != candidates.end(); it++) {
+        if (*it == curconfig) {
           in_candidate = true;
           break;
         }
       }
-      if (!in_candidate){
+      if (!in_candidate) {
         continue;
       }
     }
@@ -1153,5 +1162,6 @@ void rsdgMission::finish(bool FINISH) {
           << ',' << FINISH << endl;
   logfile.close();
   inputDepFile.close();
-  RAPIDS_SERVER::end("algaesim", app_name);
+  if (rapidm)
+    RAPIDS_SERVER::end("algaesim", app_name);
 }

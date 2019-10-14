@@ -4,9 +4,10 @@
 extern "C" {
 
 // C-wrapper for constructor
-void *newRAPIDMission(char* name) {
+void *newRAPIDMission(char *name, int from_file) {
   string app_name(name);
-  rsdgMission *mission = new rsdgMission(app_name);
+  bool from_config = from_file == 1;
+  rsdgMission *mission = new rsdgMission(app_name, from_config);
   return (void *)mission;
 }
 
@@ -146,21 +147,12 @@ void setOfflineSearch(void *mission) {
   target->setOfflineSearch();
 }
 
-void readMVProfile(void *mission) {
-  rsdgMission *target = (rsdgMission *)mission;
-  target->readMVProfile();
-}
-
-void readCostProfile(void *mission) {
-  rsdgMission *target = (rsdgMission *)mission;
-  target->readCostProfile();
-}
 void readContTrainingSet(void *mission) {
   rsdgMission *target = (rsdgMission *)mission;
   target->readContTrainingSet();
 }
-void finish(void *mission){
-  rsdgMission *target = (rsdgMission *) mission;
+void finish(void *mission) {
+  rsdgMission *target = (rsdgMission *)mission;
   target->finish();
 }
 } // extern "C"

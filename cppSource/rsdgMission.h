@@ -23,21 +23,13 @@ extern string RSDG_TAG;
 class rsdgMission {
 public:
   const static bool LP_SOLVE = true;
-
-public:
   const static bool GUROBI = false;
-
-public:
   const static bool LOCAL = true;
-
-public:
   const static bool REMOTE = false;
-
-public:
   const static bool RAPIDS = false;
-
-public:
   const static bool RAPIDM = true;
+  const string LOG_HEADER = "Selection,RC_by_budget,RC_by_result,Real_"
+                            "Cost,RC_Time,RC_Num,Budget,Exec,SUCCESS\n";
 
   string app_name;
   bool DEBUG = false; // set to true if debug info is needed
@@ -78,6 +70,7 @@ public:
   long long startTime = -1;
   bool TRAINING_MODE = false;
   int unitBetweenCheckPoints = 0;
+  int finished_unit = 0;
   bool CONT = false;
   ofstream logfile;
   ofstream inputDepFile;
@@ -117,8 +110,32 @@ public:
 
   void genAllConfigs(int, vector<string>);
 
-public:
-  rsdgMission(string name);
+private: // private member functions
+  void parseRunConfig(string config_path);
+  void consultServer();
+  void consultServer_M();
+  void updateSelection(vector<string> &result);
+  bool applyResult();
+  bool updateThread(rsdgService *s, string basicNode, double value);
+  vector<string> getDep(string);
+  void setOutput(string);
+  void getRes(vector<string> &, string);
+  void logWarning(string msg);
+  void logDebug(string msg);
+  void logInfo(string msg);
+  void printToLog(int, bool, bool);
+  void checkPoint(int index = 0);
+  void updateModel(int);
+  void readProfile(string file_path, bool COST);
+  vector<string> searchProfile();
+  vector<string> searchProfile(vector<string>);
+  void filterConfigs();
+  void readRS(string);
+  void updateRSDG();
+  void resetTimer();
+
+public: // public API's
+  rsdgMission(string config_file_name, bool from_config = false);
   rsdgService *getService(string name);
   void regService(string, string, void *(*)(void *), bool,
                   pair<rsdgPara *, int>);
@@ -127,11 +144,6 @@ public:
   void regContService(string, string, void *(*)(void *), rsdgPara *);
   void setupSolverFreq(int);
   void setUnit(int);
-  void consultServer();
-  void consultServer_M();
-  void updateSelection(vector<string> &result);
-  bool applyResult();
-  bool updateThread(rsdgService *s, string basicNode, double value);
   void start();
   void generateProb(string);
   void setBudget(int);
@@ -148,7 +160,6 @@ public:
   void stopSolver();
   void cancel();
   virtual bool updateBudget();
-  vector<string> getDep(string);
   void reset() {
     selected.clear();
     for (auto it = serviceMap.begin(); it != serviceMap.end(); it++) {
@@ -159,37 +170,20 @@ public:
   void addConstraint(string, bool);
   void addConstraint(string, string, bool);
   vector<string> localSolve();
-  void setOutput(string);
-  void getRes(vector<string> &, string);
   double genProductProfile();
   double getObj();
-  void checkPoint(int index = 0);
-  void
-  updateModel(int); // this function will be called everytime before reconfig
+  void setUpdate(bool);
   void setUnitBetweenCheckpoints(int);
-  void printToLog(int, bool, bool);
   void setTraining();
   void genFact();
   void reconfig_training();
   void reconfig_updating();
   bool validate(vector<string> &);
-  void filterConfigs();
   bool isFailed();
-  void readRS(string);
-  void updateRSDG();
-  void setUpdate(bool);
-  void resetTimer();
   void setLogger();
-  void readMVProfile();
-  void readCostProfile();
-  vector<string> searchProfile();
-  vector<string> searchProfile(vector<string>);
   void setOfflineSearch();
   void readContTrainingSet();
   void setDebug();
-  void logWarning(string msg);
-  void logDebug(string msg);
-  void logInfo(string msg);
   void finish(bool FINISH = true);
   double getFreq();
 };

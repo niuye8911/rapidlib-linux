@@ -2,7 +2,7 @@
 extern "C" {
 #endif
 
-void *newRAPIDMission(char *);
+void *newRAPIDMission(char *, int);
 void *newRAPIDPara();
 
 int getParaVal(void *);
@@ -23,8 +23,6 @@ void addConstraint(void *, char *, int);
 void setTraining(void *);
 int isFailed(void *);
 void setLogger(void *);
-void readMVProfile(void *);
-void readCostProfile(void *);
 void setOfflineSearch(void *);
 void readContTrainingSet(void *);
 void setDebug(void *);
