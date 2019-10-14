@@ -213,7 +213,6 @@ class AppMethods():
                 env_commands.append(single_env.getRandomStresser())
                 env_commands.append(multi_env.getRandomEnv())
         training_time_record = {}
-
         # iterate through configurations
         total = len(configurations_bb)
         current = 1
@@ -350,7 +349,8 @@ class AppMethods():
         """
         print("GENERATING GROUND TRUTH for " + self.appName)
         command = self.getCommand(None, qosRun, fullRun=False)
-        os.system(" ".join(command))
+        if not len(command)==0:
+            os.system(" ".join(command))
         self.afterGTRun()
 
     def runStressTest(self,

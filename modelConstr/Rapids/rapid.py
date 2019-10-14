@@ -19,7 +19,8 @@ from stage_2.trainApp import genFact, genFactWithRSDG
 from stage_4.constructRSDG import constructRSDG, populate
 from Machine_Trainer.MachineTrainer import MachineTrainer
 from xmlgen import completeXML
-from util import genOfflineFact
+from util import genOfflineFact, updateAppMinMax
+from collections import OrderedDict
 
 # CMD line Parmeters
 stage = -1
@@ -320,7 +321,28 @@ def main(argv):
         # write the generated RSDG back to desc file
         if not model == "offline":
             with open('./' + appInfo.APP_NAME + "_run.config", 'w') as runFile:
-                run_config = {}
+                run_config = OrderedDict()
+                # for missions
+                run_config['basic']={}
+                basic_config = run_config['basic']
+                basic_config['app_name'] = appInfo.APP_NAME
+                basic_config['cost_path'] = os.path.abspath(appInfo.FILE_PATHS['COST_FILE_PATH'])
+                basic_config['mv_path'] = os.path.abspath(appInfo.FILE_PATHS['MV_FILE_PATH'])
+                basic_config['defaultXML'] = os.path.abspath(default_xml_path)
+                    # some extra
+                run_config['mission']={}
+                mission_config = run_config['mission']
+                mission_config['budget'] = 0.0
+                mission_config['UNIT_PER_CHECK'] = 0
+                mission_config['OFFLINE_SEARCH'] = False
+                mission_config['REMOTE'] = False
+                mission_config['GUROBI'] = True
+                mission_config['CONT'] = True
+                mission_config['RAPID_M'] = False
+                mission_config['MISSION_LOG'] = True
+                mission_config['budget'] = 0.0
+
+                # for custom qos
                 run_config['cost_rsdg'] = os.path.abspath(cost_path)
                 run_config['mv_rsdgs'] = list(
                     map(lambda x: os.path.abspath(x), mv_paths[0:-1]))
@@ -332,7 +354,7 @@ def main(argv):
                 run_config['desc'] = os.path.abspath(appInfo.DESC)
                 run_config['preferences'] = list(
                     map(lambda x: 1.0, mv_paths[0:-1]))
-                json.dump(run_config, runFile, indent=2, sort_keys=True)
+                json.dump(run_config, runFile, indent=2)
                 runFile.close()
 
         if (stage == 4):
@@ -343,6 +365,8 @@ def main(argv):
             appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
             if model == 'offline':
                 genOfflineFact(appInfo.APP_NAME)
+            # update the min/max value
+            updateAppMinMax(appInfo, appMethods)
             report = appMethods.qosRun(OFFLINE=model == "offline")
             output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_" + model + ".csv"
             columns = [

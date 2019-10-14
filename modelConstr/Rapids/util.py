@@ -1,6 +1,30 @@
 # A utility file providing all helper functions
 from shutil import copyfile
+import os
 
+def __get_minmax(file):
+    min_v = 999999.0
+    max_v = -999999.0
+    with open(file, 'r') as f:
+        for line in f:
+            col = line.rstrip().split(' ')
+            v = float(col[-1])
+            min_v = min(min_v, v)
+            max_v = max(max_v, v)
+    return min_v, max_v
+
+
+def updateAppMinMax(appInfo, appMethod):
+    cost_file = appInfo.FILE_PATHS['COST_FILE_PATH']
+    mv_file = appInfo.FILE_PATHS['MV_FILE_PATH']
+    if os.path.exists(cost_file):
+        min_cost, max_cost = __get_minmax(cost_file)
+        appMethod.min_cost = min_cost
+        appMethod.max_cost = max_cost
+    if os.path.exists(mv_file):
+        min_mv, max_mv = __get_minmax(mv_file)
+        appMethod.min_mv = min_mv
+        appMethod.max_mv = max_mv
 
 def recoverTimeRecord(appInfo, units):
     ''' estimate the total training time from a trained cost profile '''
