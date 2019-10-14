@@ -35,7 +35,7 @@ class AppSummary:
             self.FILE_PATHS['COST_FILE_PATH'])
         self.STATUS['MV_TRAINED'] = os.path.exists(
             self.FILE_PATHS['MV_FILE_PATH'])
-        self.STATUS['PREF_TRAINED'] = os.path.exists(
+        self.STATUS['PERF_TRAINED'] = os.path.exists(
             self.FILE_PATHS['PERF_FILE_PATH'])
         self.STATUS['SYS_TRAINED'] = os.path.exists(
             self.FILE_PATHS['SYS_FILE_PATH'])
