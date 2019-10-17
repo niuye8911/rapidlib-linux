@@ -1,6 +1,6 @@
 CC = g++-7
-CFLAGS =  -std=c++11 -pthread -Wall -Wno-sign-compare -g -c
-TFLAGS =  -std=c++11 -pthread -Wall -g
+CFLAGS =  -pthread -Wall -Wno-sign-compare -g -c
+TFLAGS =  -pthread -Wall -g
 
 INCLUDE = -I/usr/include/curl
 LDLIBS = -lcurl
