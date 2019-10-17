@@ -47,7 +47,7 @@ class AppSummary:
     def readFromCFG(self, config_file):
         # read additional app info from user-provided Config file
         config_dict = {
-            'withSYS': False,
+            'withSys': False,
             'withQoS': False,
             'withPerf': False,
             'withMModel': False,
