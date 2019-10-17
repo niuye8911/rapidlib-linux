@@ -5,7 +5,7 @@ implementations to
 1) get the groundtruth of the app by running the app in default mode.
 2) get the training data by running the app in different configurations
 """
-import os, time, csv, functools, subprocess, signal
+import os, time, csv, functools, subprocess, signal, json
 import pandas as pd
 from Rapids_Classes.SysUsageTable import SysUsageTable
 from Rapids_Classes.SlowDown import SlowDown
@@ -14,6 +14,7 @@ from Rapids_Classes.Stresser import Stresser
 from Rapids_Classes.KDG import *
 from Rapids_Classes.Metric import *
 from util import recoverTimeRecord
+from collections import OrderedDict
 
 
 class AppMethods():
@@ -31,6 +32,7 @@ class AppMethods():
         self.sys_usage_table = SysUsageTable()
         self.training_units = 1
         self.fullrun_units = 1
+        self.run_config = ''
 
     def setTrainingUnits(self, unit):
         self.training_units = unit
@@ -76,6 +78,21 @@ class AppMethods():
             'success': success,
             'rc_by_budget': triggered_by_budget
         }
+
+    def updateRunConfig(self, unit, budget, offline_search=False,remote=True,gurobi=True,cont=True,rapid_m = False,mission_log = True):
+        # update the run_config
+        if os.path.isfile(self.run_config):
+            with open(self.run_config) as config_json:
+                config = json.load(config_json, object_pairs_hook=OrderedDict)
+                config['mission']['budget']=budget
+                config['mission']['UNIT_PER_CHECK']=unit
+                config['mission']['OFFLINE_SEARCH']=offline_search
+                config['mission']['REMOTE']=remote
+                config['mission']['GUROBI']=gurobi
+                config['mission']['CONT']=cont
+                config['mission']['RAPID_M']=rapid_m
+                config['mission']['MISSION_LOG']=mission_log
+                json.dump(config, config_json, indent=2)
 
     def overheadMeasure(self, budget=0.5):
         print("measuring overhead")
@@ -185,7 +202,7 @@ class AppMethods():
         train_conf = appInfo.TRAINING_CFG
         withCost = not appInfo.isCostTrained()
         withMV = train_conf['withQoS'] and not appInfo.isMVTrained()
-        withSys = train_conf['withSYS'] and not appInfo.isSysTrained()
+        withSys = train_conf['withSys'] and not appInfo.isSysTrained()
         withPerf = train_conf['withPerf'] and not appInfo.isPerfTrained()
         withMModel = train_conf['withMModel'] and not appInfo.isMModelTrained()
         if withCost:
@@ -239,8 +256,8 @@ class AppMethods():
                         command, self.fullrun_units, withSys)
                 training_time_record[configuration.printSelf('-')] = total_time
                 # write the cost to file
-                AppMethods.writeConfigMeasurementToFile(
-                    costFact, configuration, cost)
+                if withCost:
+                    AppMethods.writeConfigMeasurementToFile(costFact, configuration, cost)
                 # 2) MV Measurement
                 if withMV:
                     mv = self.getQoS()
@@ -299,7 +316,7 @@ class AppMethods():
             self.uploadToServer(appInfo)
         # udpate the status
         appInfo.setTrained(cost=True, mv=train_conf['withQoS'])
-        appInfo.setPerfTrained(train_conf['withSYS'], train_conf['withPerf'],
+        appInfo.setPerfTrained(train_conf['withSys'], train_conf['withPerf'],
                                train_conf['withMModel'])
         # if training time record has been done before, recover it
         if not withCost:
