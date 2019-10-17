@@ -23,6 +23,7 @@ class appMethods(AppMethods):
         self.min_mv = 65.69
         self.max_mv = 100
         self.gt_path = "./training_outputs/body-gt.txt"
+        self.run_config_file = "./outputs/bodytrack/bodytrack_run.config"
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location

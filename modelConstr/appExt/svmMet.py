@@ -25,10 +25,11 @@ class appMethods(AppMethods):
         self.min_cost = 2529
         self.min_mv = 20.56
         self.max_mv = 33.78
+        self.run_config = './outputs/svm/svm_run.config'
 
     def cleanUpAfterEachRun(self, configs=None):
-        learningRate = 100 * 1e-7
-        regular = 1e-5
+        learningRate = 100 * 1e-5
+        regular = 0.05
         batch = 500
         if configs is None:
             # no ground truth
@@ -36,11 +37,11 @@ class appMethods(AppMethods):
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
-                if name == "learningRate":
-                    learningRate = float(config.val) * 1e-7
+                if name == "learning":
+                    learningRate = float(config.val) * 1e-5
                 elif name == "regular":
                     regular = float(
-                        config.val) * 1e-5  # retrieve the setting for each
+                        config.val) * 0.05  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(
@@ -60,15 +61,10 @@ class appMethods(AppMethods):
             unit = 10000  # arbiturary large, then no reconfig
         else:
             unit = max(1, int(self.fullrun_units / UNIT))
+        self.updateRunConfig(unit,budget,offline_search=OFFLINE)
         cmd = [
-            self.obj_path, "-rsdg", "-cont", "-b",
-            str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
-            "-u",
-            str(unit), '> /dev/null'
+            self.obj_path, "-rsdg", self.run_config
         ]
-        if OFFLINE:
-            cmd = cmd + ['-offline']
-        cmd = cmd + ['> /dev/null']
         return cmd
 
     # helper function to assembly the command
@@ -76,16 +72,16 @@ class appMethods(AppMethods):
         if qosRun:
             return ['ls']
         learningRate = 100 * 1e-5
-        regular = 1e-5
+        regular = 0.05
         batch = 500
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
-                if name == "learningRate":
+                if name == "learning":
                     learningRate = float(config.val) * 1e-5
                 elif name == "regular":
                     regular = float(
-                        config.val) * 1e-5  # retrieve the setting for each
+                        config.val) * 0.05  # retrieve the setting for each
                     # knob
                 elif name == "batch":
                     batch = 64 * pow(

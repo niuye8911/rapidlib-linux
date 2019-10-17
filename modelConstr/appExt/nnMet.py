@@ -29,7 +29,7 @@ class appMethods(AppMethods):
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
-                if name == "learningRate":
+                if name == "learning":
                     learningRate = float(config.val) * 1e-5
                 elif name == "regular":
                     regular = config.val * 0.05  # retrieve the setting for each
@@ -73,14 +73,14 @@ class appMethods(AppMethods):
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun:
-            return ['ls']
+            return []
         learningRate = 100 * 1e-5
         regular = 0.05
         batch = 500
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
-                if name == "learningRate":
+                if name == "learning":
                     learningRate = float(config.val) * 1e-5
                 elif name == "regular":
                     regular = float(
