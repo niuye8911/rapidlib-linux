@@ -44,7 +44,7 @@ knob_samples = {}
 
 # Training Options
 PLOT = False
-NUM_OF_FIXED_ENV = 10  # -1:random environment N:N fixed environments
+NUM_OF_FIXED_ENV = 6  # -1:random environment N:N fixed environments
 targetMax = 0.1
 targetMean = 0.05
 THRESHOLD = 0.05
@@ -320,7 +320,7 @@ def main(argv):
 
         # write the generated RSDG back to desc file
         if not model == "offline":
-            with open('./' + appInfo.APP_NAME + "_run.config", 'w') as runFile:
+            with open(appInfo.OUTPUT_DIR_PREFIX + appInfo.APP_NAME + "_run.config", 'w') as runFile:
                 run_config = OrderedDict()
                 # for missions
                 run_config['basic']={}
@@ -360,13 +360,14 @@ def main(argv):
         if (stage == 4):
             return
 
+        module = imp.load_source("", appInfo.METHODS_PATH)
+        appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
+        # update the min/max value
+        updateAppMinMax(appInfo, appMethods)
+
         if appInfo.TRAINING_CFG['qosRun']:
-            module = imp.load_source("", appInfo.METHODS_PATH)
-            appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
             if model == 'offline':
                 genOfflineFact(appInfo.APP_NAME)
-            # update the min/max value
-            updateAppMinMax(appInfo, appMethods)
             report = appMethods.qosRun(OFFLINE=model == "offline")
             output_name = './outputs/' + appname + "/qos_report_" + appInfo.APP_NAME + "_" + model + ".csv"
             columns = [
@@ -379,9 +380,6 @@ def main(argv):
                     writer.writerow(data)
 
         if appInfo.TRAINING_CFG['overheadRun'] and model == 'piecewise':
-            # only run this for piecewise
-            module = imp.load_source("", appInfo.METHODS_PATH)
-            appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
             for budget in OVERHEAD_RUN_BUDGETS:
                 report = appMethods.overheadMeasure(budget)
                 #output_name = './outputs/' + appname + "/overhead_report_" + appInfo.APP_NAME + "_" + str(budget) + ".csv"
