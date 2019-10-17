@@ -155,4 +155,8 @@ void finish(void *mission) {
   rsdgMission *target = (rsdgMission *)mission;
   target->finish();
 }
+void start(void *mission) {
+  rsdgMission *target = (rsdgMission *)mission;
+  target->start();
+}
 } // extern "C"

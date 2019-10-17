@@ -27,6 +27,7 @@ void setOfflineSearch(void *);
 void readContTrainingSet(void *);
 void setDebug(void *);
 void finish(void *);
+void start(void *);
 #ifdef __cplusplus
 }
 #endif
