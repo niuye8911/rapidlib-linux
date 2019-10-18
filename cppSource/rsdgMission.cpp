@@ -71,9 +71,9 @@ void rsdgMission::parseRunConfig(string config_path) {
   if (MISSION_LOG)
     setLogger();
   if (OFFLINE_SEARCH || RAPID_M) {
-    setOfflineSearch();
     readProfile(cost_path, true);
     readProfile(mv_path, false);
+    if (OFFLINE_SEARCH) setOfflineSearch();
   }
 }
 
@@ -606,13 +606,14 @@ void rsdgMission::reconfig() {
       // offline reconfig
       consultServer();
     } else {
-      // rsdg reconfig
-      graph->minmax = MAX;
-      printProb(outfileName);
       if (rapidm)
         consultServer_M();
-      else
+      else{
+        // rsdg reconfig
+        graph->minmax = MAX;
+        printProb(outfileName);
         consultServer();
+      }
     }
     // apply result
     update_by_result = applyResult();
