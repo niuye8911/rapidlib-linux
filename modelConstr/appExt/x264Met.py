@@ -43,20 +43,27 @@ class appMethods(AppMethods):
     def afterGTRun(self):
         pass
 
-    def getFullRunCommand(self, budget, xml='', OFFLINE=False, UNIT=-1):
-        xml_path = xml if xml != '' else "./outputs/" + self.appName + "-default.xml"
-        if UNIT == -1:
-            unit = 10000  # arbiturary large, then no reconfig
-        else:
-            unit = max(1, int(self.fullrun_units / UNIT))
+    def getRapidsCommand(self):
+        if not os.path.exists(self.run_config):
+            print("no config file exists:",self.appName,self.run_config)
+            return []
         cmd = [
-            self.obj_path, self.input_path, "4", '261', '4000', '5', '4', '1',
-            "-rsdg", "-cont", "-b",
-            str(budget), "-u",
-            str(unit), "-xml", xml_path
+            self.obj_path,
+            '--qp 20',
+            '--partitions b8x8,i4x4',
+            '--ref 5',
+            '--direct auto',
+            '--weightb --mixed-refs --no-fast-pskip',
+            '--me umh',
+            '--subme 7',
+            '--analyse b8x8,i4x4',
+            '--threads 1',
+            '-o',
+            self.output_file_name,
+            '--rsdg',
+            self.run_config,
+            self.input
         ]
-        if OFFLINE:
-            cmd = cmd + ['-offline']
         return cmd
 
     # helper function to assembly the command
@@ -73,7 +80,8 @@ class appMethods(AppMethods):
             self.input = self.full_path
         else:
             self.input = self.train_path
-        return [
+
+        cmd = [
             self.obj_path,
             '--qp 20',
             '--partitions b8x8,i4x4',
@@ -90,6 +98,8 @@ class appMethods(AppMethods):
             str(control_rate),
             self.input
         ]
+        print(" ".join(cmd))
+        return cmd
 
     def getQoS(self):
         result = open('./summary.txt', 'r')

@@ -46,19 +46,14 @@ class appMethods(AppMethods):
             output_path = self.input_path + "poses.txt"
             self.moveFile(output_path, self.gt_path)
 
-    def getFullRunCommand(self, budget, xml='', OFFLINE=False,UNIT=-1):
-        xml_path = xml if xml != '' else "./outputs/" + self.appName + "-default.xml"
-        if UNIT==-1:
-            unit = 10000 # arbiturary large, then no reconfig
-        else:
-            unit = max(1,int(self.fullrun_units / UNIT))
+    def getRapidsCommand(self):
+        if not os.path.exists(self.run_config):
+            print("no config file exists:",self.appName,self.run_config)
+            return []
         cmd = [
             self.obj_path, self.input_path, "4", '261', '4000', '5', '4', '1',
-            "-rsdg", "-cont", "-b",
-            str(budget), "-u", str(unit), "-xml", xml_path
+            "-rsdg", self.run_config
         ]
-        if OFFLINE:
-            cmd = cmd + ['-offline']
         return cmd
 
     # helper function to assembly the command

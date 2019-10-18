@@ -55,20 +55,13 @@ class appMethods(AppMethods):
 #str(float(learningRate) * 1e-7) + "_" +
 #str(int(regular)) + "_" + str(int(batch)) + ".p")
 
-    def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
-        if UNIT==-1:
-            unit = 10000 # arbiturary large, then no reconfig
-        else:
-            unit = max(1,int(self.fullrun_units / UNIT))
+    def getRapidsCommand(self):
+        if not os.path.exists(self.run_config):
+            print("no config file exists:",self.appName,self.run_config)
+            return []
         return [
-            self.obj_path, "-rsdg", "-cont", "-b",
-            str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
-            "-u", str(unit),'> /dev/null'
+            self.obj_path, "-rsdg", self.run_config
         ]
-        if OFFLINE:
-            cmd = cmd + ['-offline']
-        cmd = cmd+['> /dev/null']
-        return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):

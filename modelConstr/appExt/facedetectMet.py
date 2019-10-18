@@ -57,21 +57,15 @@ class appMethods(AppMethods):
     def afterGTRun(self):
         pass
 
-    def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
+    def getRapidsCommand(self):
         self.gt_path = self.full_grond_truth_path
-        if UNIT == -1:
-            unit = 10000  # arbiturary large, then no reconfig
-        else:
-            unit = max(1, int(self.fullrun_units / UNIT))
+        if not os.path.exists(self.run_config):
+            print("no config file exists:",self.appName,self.run_config)
+            return []
         cmd = [
             self.obj_path, "-index", self.image_index_full_path, "-rsdg",
-            "-cont", "-b",
-            str(budget), "-xml", "./outputs/" + self.appName + "-default.xml",
-            "-u",
-            str(unit)
+            self.run_config
         ]
-        if OFFLINE:
-            cmd = cmd + ['-offline']
         return cmd
 
     # helper function to assembly the command

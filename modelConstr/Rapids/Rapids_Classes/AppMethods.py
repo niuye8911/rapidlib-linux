@@ -22,6 +22,7 @@ class AppMethods():
         '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns', '2>/dev/null',
         '-csv=tmp.csv', '--'
     ]
+    NO_RECONFIG = -1
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
@@ -56,7 +57,8 @@ class AppMethods():
         """
         return ""
 
-    def getFullRunCommand(self, budget):
+    def getRapidsCommand(self):
+        """ Developer needs to implement this """
         pass
 
     def parseLog(self):
@@ -79,20 +81,41 @@ class AppMethods():
             'rc_by_budget': triggered_by_budget
         }
 
-    def updateRunConfig(self, unit, budget, offline_search=False,remote=True,gurobi=True,cont=True,rapid_m = False,mission_log = True):
+    def setRunConfigFile(self, config_file_path):
+        self.run_config = config_file_path
+
+    def updateRunConfig(self,
+                        budget,
+                        unit=-1,
+                        offline_search=False,
+                        remote=True,
+                        gurobi=True,
+                        cont=True,
+                        rapid_m=False,
+                        mission_log=True):
         # update the run_config
+        '''
+        unit: UNIT_PER_CHECK, if not set, use default 10 reconfigs
+        ...
+        '''
+        if unit == -1:
+            unit = self.fullrun_units / 10
+        elif unit == self.NO_RECONFIG:
+            unit = 999999
+        config = None
         if os.path.isfile(self.run_config):
             with open(self.run_config) as config_json:
                 config = json.load(config_json, object_pairs_hook=OrderedDict)
-                config['mission']['budget']=budget
-                config['mission']['UNIT_PER_CHECK']=unit
-                config['mission']['OFFLINE_SEARCH']=offline_search
-                config['mission']['REMOTE']=remote
-                config['mission']['GUROBI']=gurobi
-                config['mission']['CONT']=cont
-                config['mission']['RAPID_M']=rapid_m
-                config['mission']['MISSION_LOG']=mission_log
-                json.dump(config, config_json, indent=2)
+                config['mission']['budget'] = budget
+                config['mission']['UNIT_PER_CHECK'] = unit
+                config['mission']['OFFLINE_SEARCH'] = offline_search
+                config['mission']['REMOTE'] = remote
+                config['mission']['GUROBI'] = gurobi
+                config['mission']['CONT'] = cont
+                config['mission']['RAPID_M'] = rapid_m
+                config['mission']['MISSION_LOG'] = mission_log
+        config_json = open(self.run_config,'w')
+        json.dump(config, config_json, indent=2)
 
     def overheadMeasure(self, budget=0.5):
         print("measuring overhead")
@@ -257,7 +280,8 @@ class AppMethods():
                 training_time_record[configuration.printSelf('-')] = total_time
                 # write the cost to file
                 if withCost:
-                    AppMethods.writeConfigMeasurementToFile(costFact, configuration, cost)
+                    AppMethods.writeConfigMeasurementToFile(
+                        costFact, configuration, cost)
                 # 2) MV Measurement
                 if withMV:
                     mv = self.getQoS()
@@ -366,7 +390,7 @@ class AppMethods():
         """
         print("GENERATING GROUND TRUTH for " + self.appName)
         command = self.getCommand(None, qosRun, fullRun=False)
-        if not len(command)==0:
+        if not len(command) == 0:
             os.system(" ".join(command))
         self.afterGTRun()
 

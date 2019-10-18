@@ -28,6 +28,7 @@ class appMethods(AppMethods):
         self.min_mv = 58.69
         self.max_mv = 100
         self.gt_path = './training_outputs/ferret-gt.txt'
+        self.run_config = ''
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -53,20 +54,15 @@ class appMethods(AppMethods):
             output_path = "output.txt"
             self.moveFile(output_path, self.gt_path)
 
-    def getFullRunCommand(self, budget, OFFLINE=False, UNIT=-1):
-        xml_path = "./outputs/" + self.appName + "-default.xml"
-        if UNIT==-1:
-            unit = 10000 # arbiturary large, then no reconfig
-        else:
-            unit = max(1,int(self.fullrun_units / UNIT))
+    def getRapidsCommand(self):
+        if not os.path.exists(self.run_config):
+            print("no config file exists:",self.appName,self.run_config)
+            return []
         cmd = [
             self.obj_path, self.database_path, self.table,
             self.fullrun_query_path, "50", "20", "1", "output.txt", "-rsdg",
-            "-cont", "-b",
-            str(budget), "-xml", xml_path, "-u", str(unit)
+            self.run_config
         ]
-        if OFFLINE:
-            cmd = cmd + ['-offline']
         return cmd
 
     # helper function to assembly the command
