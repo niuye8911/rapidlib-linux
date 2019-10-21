@@ -91,6 +91,7 @@ class appMethods(AppMethods):
             input_size = os.path.getsize(self.input_path) / 1000.0
             if self.training:
                 input_size = input_size * self.training_units / self.fullrun_units
+            compress_rate = input_size / output_size
             for line in result:
                 col = line.split(':')
                 if 'SSIM' in col[0]:
