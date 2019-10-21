@@ -241,6 +241,7 @@ void rsdgMission::consultServer_M() {
           exit(0);
         }
       } else {
+        logDebug("changes to new bucket");
         // no need to contact server
         updateSelection(result_config);
         return;
@@ -772,6 +773,10 @@ bool rsdgMission::updateBudget() {
   logDebug("Unit left = " + to_string(unit_left));
   logDebug("New Budget per Unit = " + to_string(new_budget_per_unit));
   setBudget(new_budget_per_unit);
+  if (rapidm) {
+    // if it's using rapid_M, then it has to check with server every time
+    return true;
+  }
   if (abs(new_budget_per_unit - cur_budget_per_unit) / cur_budget_per_unit <=
       0.05) {
     return false;
@@ -1063,7 +1068,6 @@ vector<string> rsdgMission::searchProfile(vector<string> candidates) {
   string maxConfig = "";
   for (auto it = offlineCost.begin(); it != offlineCost.end(); it++) {
     string curconfig = it->first;
-    std::cout << "curconfig:" << curconfig << endl;
     if (candidates.size() != 0) {
       // check if the config exists in the candidates
       bool in_candidate = false;

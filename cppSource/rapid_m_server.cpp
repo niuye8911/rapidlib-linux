@@ -88,7 +88,6 @@ bool end(std::string machineID, std::string appID) {
 
   std::string result =
       queryServer(std::string("end.php"), getParams, postParams);
-  RAPIDS_SERVER::Response r = parse_response(result);
   return true;
 }
 
@@ -163,7 +162,7 @@ std::vector<std::string> process_string(std::string config,
     config.erase(0, pos + 1);
   }
   // add the last part
-  result.back() = result.back() + " " + config;
+  result.push_back(config);
   return result;
 }
 
@@ -181,7 +180,7 @@ Response parse_response(std::string response) {
   std::string sd = res.get("slowdown", "slowdown does not exist").asString();
   std::string best_config_str =
       res.get("config", "best config does not exist").asString();
-  std::vector<std::string> best_config = process_string(best_config_str, " ");
+  std::vector<std::string> best_config = process_string(best_config_str, "$");
   std::string config_str =
       res.get("configs", "config does not exist").asString();
   std::vector<std::string> configs = process_string(config_str, "$");
