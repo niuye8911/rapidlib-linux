@@ -10,18 +10,17 @@ import numpy as np
 class appMethods(AppMethods):
     base_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
                  "/x264/"
-    train_path = base_path + "inputs/eledream_640x360_128.y4m"
-    full_path = base_path + "inputs/eledream_1920x1080_512.y4m"
+    input_path = base_path + "inputs/eledream_1920x1080_512.y4m"
     output_file_name = "eledream.264"
+    training = False
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 128
+        self.training_units = 100
         self.fullrun_units = 512
-        self.input = self.train_path
         self.max_cost = 0
         self.min_cost = 0
         self.min_mv = 0
@@ -45,24 +44,15 @@ class appMethods(AppMethods):
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
+        self.training = False
         cmd = [
-            self.obj_path,
-            '--qp 20',
-            '--partitions b8x8,i4x4',
-            '--ref 5',
-            '--direct auto',
-            '--weightb --mixed-refs --no-fast-pskip',
-            '--me umh',
-            '--subme 7',
-            '--analyse b8x8,i4x4',
-            '--threads 1',
-            '-o',
-            self.output_file_name,
-            '--rsdg',
-            self.run_config,
-            self.input
+            self.obj_path, '--qp 20', '--partitions b8x8,i4x4', '--ref 5',
+            '--direct auto', '--weightb --mixed-refs --no-fast-pskip',
+            '--me umh', '--subme 7', '--analyse b8x8,i4x4', '--threads 1',
+            '-o', self.output_file_name, '--rsdg', self.run_config,
+            self.input_path
         ]
         return cmd
 
@@ -76,29 +66,20 @@ class appMethods(AppMethods):
                 name = config.knob.set_name
                 if name == "rate":
                     control_rate = config.val  # retrieve the setting for each knob
-        if qosRun or fullRun:
-            self.input = self.full_path
+        if fullRun or qosRun:
+            total_frame = self.fullrun_units
+            self.training = False
         else:
-            self.input = self.train_path
-
+            self.training = True
+            total_frame = self.training_units
         cmd = [
-            self.obj_path,
-            '--qp 20',
-            '--partitions b8x8,i4x4',
-            '--ref 5',
-            '--direct auto',
-            '--weightb --mixed-refs --no-fast-pskip',
-            '--me umh',
-            '--subme 7',
-            '--analyse b8x8,i4x4',
-            '--threads 1',
-            '-o',
-            self.output_file_name,
+            self.obj_path, '--qp 20', '--frames ' + str(total_frame),
+            '--partitions b8x8,i4x4', '--ref 5', '--direct auto',
+            '--weightb --mixed-refs --no-fast-pskip', '--me umh', '--subme 7',
+            '--analyse b8x8,i4x4', '--threads 1', '-o', self.output_file_name,
             '--rate',
-            str(control_rate),
-            self.input
+            str(control_rate), self.input_path
         ]
-        print(" ".join(cmd))
         return cmd
 
     def getQoS(self):
@@ -107,8 +88,9 @@ class appMethods(AppMethods):
         try:
             # check the file size
             output_size = os.path.getsize(self.output_file_name) / 1000.0
-            input_size = os.path.getsize(self.input) / 1000.0
-            compress_rate = output_size / input_size
+            input_size = os.path.getsize(self.input_path) / 1000.0
+            if self.training:
+                input_size = input_size * self.training_units / self.fullrun_units
             for line in result:
                 col = line.split(':')
                 if 'SSIM' in col[0]:
@@ -116,5 +98,5 @@ class appMethods(AppMethods):
                 if 'PSNR' in col[0]:
                     psnr = float(col[1])
         except:
-            return [0.0,0.0,0.0,0.0]
+            return [0.0, 0.0, 0.0, 0.0]
         return [ssim, psnr, compress_rate, psnr]
