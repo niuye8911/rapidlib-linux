@@ -75,8 +75,8 @@ std::tuple<bool, Response> check(std::string machineID, std::string appID,
 
   std::string result = queryServer(std::string("check.php"), getParams, "");
   RAPIDS_SERVER::Response r = parse_response(result);
-  bool changed = !(r.bucket == bucket_name);
-  return std::make_tuple(changed, r); // if changed, then check success
+  bool still_valid = r.bucket == bucket_name;
+  return std::make_tuple(still_valid, r); // if changed, then check success
 }
 
 /*
@@ -150,8 +150,8 @@ std::string queryServer(std::string path, std::string getParams,
   return readBuffer;
 }
 
-std::vector<std::string> process_string(std::string config) {
-  std::string delimiter = "-";
+std::vector<std::string> process_string(std::string config,
+                                        std::string delimiter) {
   std::vector<std::string> result;
   size_t pos = 0;
   std::string token;
@@ -159,11 +159,7 @@ std::vector<std::string> process_string(std::string config) {
   while ((pos = config.find(delimiter)) != std::string::npos) {
     cur_id += 1;
     token = config.substr(0, pos);
-    if (cur_id % 2 != 0) { // complete config
-      result.push_back(token);
-    } else {
-      result.back() = result.back() + " " + token;
-    }
+    result.push_back(token);
     config.erase(0, pos + 1);
   }
   // add the last part
@@ -185,10 +181,10 @@ Response parse_response(std::string response) {
   std::string sd = res.get("slowdown", "slowdown does not exist").asString();
   std::string best_config_str =
       res.get("config", "best config does not exist").asString();
-  std::vector<std::string> best_config = process_string(best_config_str);
+  std::vector<std::string> best_config = process_string(best_config_str, " ");
   std::string config_str =
       res.get("configs", "config does not exist").asString();
-  std::vector<std::string> configs = process_string(config_str);
+  std::vector<std::string> configs = process_string(config_str, "$");
   double slowdown = std::atof(sd.c_str());
   // bool changed = res.get("changed", "true").asString() == "true";
   bool success = res.get("found", "true").asString() == "true";

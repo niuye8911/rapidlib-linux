@@ -44,7 +44,7 @@ void rsdgMission::parseRunConfig(string config_path) {
   config_file >> config_json;
   // parse the json config file
   //// basic info
-  string app_name = config_json["basic"]["app_name"].asString();
+  string appName = config_json["basic"]["app_name"].asString();
   string cost_path = config_json["basic"]["cost_path"].asString();
   string mv_path = config_json["basic"]["mv_path"].asString();
   string xml_path = config_json["basic"]["defaultXML"].asString();
@@ -73,8 +73,10 @@ void rsdgMission::parseRunConfig(string config_path) {
   if (OFFLINE_SEARCH || RAPID_M) {
     readProfile(cost_path, true);
     readProfile(mv_path, false);
-    if (OFFLINE_SEARCH) setOfflineSearch();
+    if (OFFLINE_SEARCH)
+      setOfflineSearch();
   }
+  app_name = appName;
 }
 
 rsdgService *rsdgMission::getService(string name) {
@@ -157,7 +159,6 @@ void rsdgMission::setUnit(int u) { unit.set(u); }
 
 void rsdgMission::finish_one_unit() {
   finished_unit++;
-  cout << finished_unit << " " << unitBetweenCheckPoints << endl;
   checkPoint(1);
   double elapsed = timeSinceLastCheckPoints[1];
   inputDepFile << elapsed << " ";
@@ -168,7 +169,6 @@ void rsdgMission::finish_one_unit() {
   }
   checkPoint(1);
   if (finished_unit % unitBetweenCheckPoints == 0 && unit.get() != 0) {
-    cout << "reconfiguration" << endl;
     reconfig();
   }
 }
@@ -225,9 +225,11 @@ void rsdgMission::consultServer_M() {
     result = std::get<1>(check_result);
     if (cur_bucket_valid) {
       slowdown = result.slowdown;
+      logDebug("old bucket valid, new slowdown:" + to_string(slowdown));
       vector<string> result_config = searchProfile(candidate_configs);
       // check if needs to contact server for new bucket
       if (result_config.size() == 0) {
+        logDebug("no selection found with new slowdown");
         // needs new buckets
         result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
         updateSelection(result.best_config);
@@ -249,8 +251,7 @@ void rsdgMission::consultServer_M() {
       bucket = result.bucket;
       slowdown = result.slowdown;
       // still needs to find locally
-      vector<string> result_config = searchProfile(candidate_configs);
-      updateSelection(result_config);
+      updateSelection(result.best_config);
     }
   }
 }
@@ -608,7 +609,7 @@ void rsdgMission::reconfig() {
     } else {
       if (rapidm)
         consultServer_M();
-      else{
+      else {
         // rsdg reconfig
         graph->minmax = MAX;
         printProb(outfileName);
@@ -1062,6 +1063,7 @@ vector<string> rsdgMission::searchProfile(vector<string> candidates) {
   string maxConfig = "";
   for (auto it = offlineCost.begin(); it != offlineCost.end(); it++) {
     string curconfig = it->first;
+    std::cout << "curconfig:" << curconfig << endl;
     if (candidates.size() != 0) {
       // check if the config exists in the candidates
       bool in_candidate = false;
