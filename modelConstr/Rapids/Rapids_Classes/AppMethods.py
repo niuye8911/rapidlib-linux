@@ -63,14 +63,25 @@ class AppMethods():
 
     def parseLog(self):
         name = "./mission_" + self.appName + "_log.csv"
+        fail_result = {
+            'totTime': -1,
+            'totReconfig': -1,
+            'success': False,
+            'rc_by_budget': -1
+        }
         # go to the last line
+        if os.stat(name).st_size == 0:
+            return fail_result
         with open(name) as logfile:
             for line in logfile:
                 pass
-            last_col = line.split(',')
-            totTime = float(last_col[-5])
-            totReconfig = int(last_col[-4])
-            success = last_col[-1].rstrip()
+            try:
+                last_col = line.split(',')
+                totTime = float(last_col[-5])
+                totReconfig = int(last_col[-4])
+                success = last_col[-1].rstrip()
+            except:
+                return fail_result
         # find details
         df = pd.read_csv(name)
         triggered_by_budget = df['RC_by_budget'].sum()
@@ -92,7 +103,8 @@ class AppMethods():
                         gurobi=True,
                         cont=True,
                         rapid_m=False,
-                        mission_log=True):
+                        mission_log=True,
+                        debug=False):
         # update the run_config
         '''
         unit: UNIT_PER_CHECK, if not set, use default 10 reconfigs
@@ -112,9 +124,10 @@ class AppMethods():
                 config['mission']['REMOTE'] = remote
                 config['mission']['GUROBI'] = gurobi
                 config['mission']['CONT'] = cont
+                config['mission']['DEBUG'] = debug
                 config['mission']['RAPID_M'] = rapid_m
                 config['mission']['MISSION_LOG'] = mission_log
-        config_json = open(self.run_config,'w')
+        config_json = open(self.run_config, 'w')
         json.dump(config, config_json, indent=2)
 
     def overheadMeasure(self, budget=0.5):
@@ -129,7 +142,16 @@ class AppMethods():
             if int(self.fullrun_units / unit) < 1:
                 # finest granularity
                 continue
-            cmd = self.getFullRunCommand(budget, UNIT=unit)
+            self.updateRunConfig(self,
+                                 budget,
+                                 unit=unit,
+                                 offline_search=False,
+                                 remote=False,
+                                 gurobi=True,
+                                 cont=True,
+                                 rapid_m=False,
+                                 mission_log=True)
+            cmd = self.getRapidsCommand()
             for i in range(1, 3):  # for each run, 5 times
                 print("running budget", str(budget), "itr", str(i))
                 start_time = time.time()
@@ -179,7 +201,16 @@ class AppMethods():
                       step_size) * self.fullrun_units / 1000.0
             unit = self.fullrun_units / 10  # reconfig 10 times
             print("RUNNING BUDGET:", str(budget))
-            cmd = self.getFullRunCommand(budget, OFFLINE=OFFLINE)
+            self.updateRunConfig(self,
+                                 budget,
+                                 unit=unit,
+                                 offline_search=OFFLINE,
+                                 remote=False,
+                                 gurobi=True,
+                                 cont=True,
+                                 rapid_m=False,
+                                 mission_log=True)
+            cmd = self.getRapidsCommand()
             start_time = time.time()
             os.system(" ".join(cmd))
             elapsed_time = time.time() - start_time
