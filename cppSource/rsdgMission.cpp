@@ -26,15 +26,20 @@ rsdgMission::rsdgMission(string name, bool from_config) {
   budget = 0;
   curBudget = 0;
   rapidm_started = false;
-  logfile.open("./mission_" + name + "_log.csv"); // mission log
-  inputDepFile.open("./input_" + name +
-                    "_log.txt"); // input dependency analysis
-  logfile << LOG_HEADER;
   if (!from_config) {
     app_name = name;
   } else {
     parseRunConfig(name);
   }
+  logfile.open("mission_"+app_name+"_log.csv"); // mission log
+  inputDepFile.open("input_"+app_name+"_log.csv"); // input dependency analysis
+  if (logfile.is_open())
+  {
+    logInfo("log file successfully created");
+  }else{
+    logInfo("log file cannot be created");
+  }
+  logfile << LOG_HEADER;
 }
 
 void rsdgMission::parseRunConfig(string config_path) {
@@ -241,7 +246,6 @@ void rsdgMission::consultServer_M() {
           exit(0);
         }
       } else {
-        logDebug("changes to new bucket");
         // no need to contact server
         updateSelection(result_config);
         return;
@@ -602,7 +606,7 @@ void rsdgMission::reconfig() {
   updateModel(unitBetweenCheckPoints);
   bool update_by_budget = updateBudget();
   bool update_by_result = false;
-  if (startTime == -1 || update_by_budget) {
+  if (startTime == -1 || update_by_budget || rapidm) {
     // first time or need to reconfig
     if (offline_search) {
       // offline reconfig
@@ -773,10 +777,6 @@ bool rsdgMission::updateBudget() {
   logDebug("Unit left = " + to_string(unit_left));
   logDebug("New Budget per Unit = " + to_string(new_budget_per_unit));
   setBudget(new_budget_per_unit);
-  if (rapidm) {
-    // if it's using rapid_M, then it has to check with server every time
-    return true;
-  }
   if (abs(new_budget_per_unit - cur_budget_per_unit) / cur_budget_per_unit <=
       0.05) {
     return false;
@@ -1029,8 +1029,8 @@ void rsdgMission::readProfile(string file_path, bool COST) {
       } else {
         offlineMV[finalconfig] = value;
       }
-      logDebug(finalconfig + (COST ? " with cost" : "with mv") +
-               to_string(value));
+      //logDebug(finalconfig + (COST ? " with cost" : "with mv") +
+        //       to_string(value));
     }
     return;
   }
