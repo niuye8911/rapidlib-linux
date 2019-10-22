@@ -61,7 +61,7 @@ class appMethods(AppMethods):
             print("no config file exists:",self.appName,self.run_config)
             return []
         cmd = [
-            self.obj_path, "-rsdg", self.run_config
+            self.obj_path, "-rsdg", self.run_config,'1>/dev/null'
         ]
         return cmd
 

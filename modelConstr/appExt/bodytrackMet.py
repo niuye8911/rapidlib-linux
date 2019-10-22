@@ -22,7 +22,7 @@ class appMethods(AppMethods):
         self.min_cost = 25
         self.min_mv = 65.69
         self.max_mv = 100
-        self.gt_path = "./training_outputs/body-gt.txt"
+        self.gt_path = "/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/training_outputs/body-gt.txt"
         self.run_config_file = "./outputs/bodytrack/bodytrack_run.config"
 
     def cleanUpAfterEachRun(self, configs=None):
@@ -52,7 +52,7 @@ class appMethods(AppMethods):
             return []
         cmd = [
             self.obj_path, self.input_path, "4", '261', '4000', '5', '4', '1',
-            "-rsdg", self.run_config
+            "-rsdg", self.run_config, '1>/dev/null'
         ]
         return cmd
 

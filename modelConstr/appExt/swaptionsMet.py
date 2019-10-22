@@ -26,7 +26,7 @@ class appMethods(AppMethods):
         self.min_cost = 220
         self.min_mv = 85.67
         self.max_mv = 100
-        self.gt_path = "./training_outputs/swap-gt.txt"
+        self.gt_path = "/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/training_outputs/swap-gt.txt"
 
     def cleanUpAfterEachRun(self, configs=None):
         num = 1000000
@@ -46,11 +46,11 @@ class appMethods(AppMethods):
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
         cmd = [
             self.obj_path, "-ns",
-            str(self.fullrun_units), "-sm", "100", "-rsdg", self.run_config
+            str(self.fullrun_units), "-sm", "100", "-rsdg", self.run_config,'1>/dev/null'
         ]
         return cmd
 

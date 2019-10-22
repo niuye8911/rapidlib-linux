@@ -27,7 +27,7 @@ class appMethods(AppMethods):
         self.min_cost = 68
         self.min_mv = 58.69
         self.max_mv = 100
-        self.gt_path = './training_outputs/ferret-gt.txt'
+        self.gt_path = '/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/training_outputs/ferret-gt.txt'
         self.run_config = ''
 
     def cleanUpAfterEachRun(self, configs=None):
@@ -61,7 +61,7 @@ class appMethods(AppMethods):
         cmd = [
             self.obj_path, self.database_path, self.table,
             self.fullrun_query_path, "50", "20", "1", "output.txt", "-rsdg",
-            self.run_config
+            self.run_config,'1>/dev/null'
         ]
         return cmd
 
