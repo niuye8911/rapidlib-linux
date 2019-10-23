@@ -44,10 +44,10 @@ RAPIDS_SERVER::Response start(std::string machineID, std::string appID,
 
   std::string getParams = "machine=" + machineID + "&app=" + appID;
   std::string postParams = "budget=" + std::to_string(budget);
-
-  std::string result =
-      queryServer(std::string("start.php"), getParams, postParams);
-
+  std::string result = "null";
+  while (result == "null") {
+    result = queryServer(std::string("start.php"), getParams, postParams);
+  }
   return parse_response(result);
 }
 
@@ -58,10 +58,10 @@ RAPIDS_SERVER::Response get(std::string machineID, std::string appID,
                             int budget) {
   std::string getParams = "machine=" + machineID + "&app=" + appID;
   std::string postParams = "budget=" + budget;
-
-  std::string result =
-      queryServer(std::string("get.php"), getParams, postParams);
-
+  std::string result = "null";
+  while (result == "null") {
+    result = queryServer(std::string("get.php"), getParams, postParams);
+  }
   return parse_response(result);
 }
 

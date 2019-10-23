@@ -31,12 +31,12 @@ rsdgMission::rsdgMission(string name, bool from_config) {
   } else {
     parseRunConfig(name);
   }
-  logfile.open("mission_"+app_name+"_log.csv"); // mission log
-  inputDepFile.open("input_"+app_name+"_log.csv"); // input dependency analysis
-  if (logfile.is_open())
-  {
+  logfile.open("mission_" + app_name + "_log.csv"); // mission log
+  inputDepFile.open("input_" + app_name +
+                    "_log.csv"); // input dependency analysis
+  if (logfile.is_open()) {
     logInfo("log file successfully created");
-  }else{
+  } else {
     logInfo("log file cannot be created");
   }
   logfile << LOG_HEADER;
@@ -234,17 +234,22 @@ void rsdgMission::consultServer_M() {
       vector<string> result_config = searchProfile(candidate_configs);
       // check if needs to contact server for new bucket
       if (result_config.size() == 0) {
-        logDebug("no selection found with new slowdown");
+        logDebug("no selection found with new slowdown, consult server with "
+                 "budget " +to_string(curBudget));
         // needs new buckets
         result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
+        if (!result.found) {
+          logDebug("Server can't get new solution either, mission failed");
+          finish(false);
+          exit(0);
+        } else {
+          logDebug("Server found new solution");
+        }
         updateSelection(result.best_config);
         slowdown = result.slowdown;
         bucket = result.bucket;
         candidate_configs = result.configs;
-        if (!result.found) {
-          finish(false);
-          exit(0);
-        }
+
       } else {
         // no need to contact server
         updateSelection(result_config);
@@ -255,6 +260,10 @@ void rsdgMission::consultServer_M() {
       candidate_configs = result.configs;
       bucket = result.bucket;
       slowdown = result.slowdown;
+      if (!result.found) {
+        finish(false);
+        exit(0);
+      }
       // still needs to find locally
       updateSelection(result.best_config);
     }
@@ -334,12 +343,13 @@ void rsdgMission::updateSelection(vector<string> &result) {
   for (i = 0; i < (int)result.size(); i++) {
     string currentNode = result[i];
     string curNode = currentNode;
-    logDebug("getting node : " + currentNode);
+    // logDebug("getting node : " + currentNode);
     std::size_t found = curNode.find(" ");
     // this might be a cont service
     if (found != std::string::npos) {
       string nodeName = "";
       int i = 0;
+      logDebug("found Node:"+currentNode);
       while (currentNode[i] != ' ')
         nodeName += currentNode[i++];
       double value = stof(currentNode.substr(i));
@@ -1029,8 +1039,8 @@ void rsdgMission::readProfile(string file_path, bool COST) {
       } else {
         offlineMV[finalconfig] = value;
       }
-      //logDebug(finalconfig + (COST ? " with cost" : "with mv") +
-        //       to_string(value));
+      // logDebug(finalconfig + (COST ? " with cost" : "with mv") +
+      //       to_string(value));
     }
     return;
   }
@@ -1054,8 +1064,8 @@ void rsdgMission::readProfile(string file_path, bool COST) {
     } else {
       offlineMV[finalConfig] = value;
     }
-    logDebug(finalConfig + (COST ? " with cost" : "with mv") +
-             to_string(value));
+    // logDebug(finalConfig + (COST ? " with cost" : "with mv") +
+    //       to_string(value));
   }
 }
 
@@ -1082,7 +1092,7 @@ vector<string> rsdgMission::searchProfile(vector<string> candidates) {
       }
     }
     double curcost = it->second;
-    if (curcost * slowdown > curBudget) {
+    if (curcost * slowdown > 1.05 * curBudget) {
       continue;
     }
     // this config is valid
@@ -1149,7 +1159,7 @@ void rsdgMission::logWarning(string msg) { cout << "RAPID-WARNING!:" + msg; }
 
 void rsdgMission::logDebug(string msg) {
   if (DEBUG)
-    cout << "RAPID-DEBUG:" + msg << endl;
+    cout << "RAPID-DEBUG-" + app_name + ":" + msg << endl;
 }
 
 void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
