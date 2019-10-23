@@ -33,6 +33,7 @@ class appMethods(AppMethods):
         self.min_mv = 0
         self.max_mv = 142
         self.gt_path = self.train_grond_truth_path  # default is training
+        self.run_config_file = ''
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -51,7 +52,8 @@ class appMethods(AppMethods):
                     eyes = config.val  # retrieve the setting for each knob
 
         self.moveFile(
-            "./result.txt", "./training_outputs/result_" + str(pyramid) + "_" +
+            self.run_dir + "result.txt",
+            self.run_dir + "training_outputs/result_" + str(pyramid) + "_" +
             str(selectivity) + "_" + str(eyes) + ".txt")
 
     def afterGTRun(self):
@@ -60,7 +62,7 @@ class appMethods(AppMethods):
     def getRapidsCommand(self):
         self.gt_path = self.full_grond_truth_path
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
         cmd = [
             self.obj_path, "-index", self.image_index_full_path, "-rsdg",
@@ -117,13 +119,14 @@ class appMethods(AppMethods):
         else:
             indexfile = self.image_index_path
         evaluate_cmd = [
-            self.evaluation_obj_path, '-a', self.gt_path, '-d', './result.txt',
-            '-f', '0', '-i', self.pic_path, '-l', indexfile, '-z', '.jpg'
+            self.evaluation_obj_path, '-a', self.gt_path, '-d',
+            self.run_dir + 'result.txt', '-f', '0', '-i', self.pic_path, '-l',
+            indexfile, '-z', '.jpg'
         ]
         try:
             os.system(" ".join(evaluate_cmd))
             # get the precision and recall
-            result = open('./tempDiscROC.txt', 'r')
+            result = open(self.run_dir + 'tempDiscROC.txt', 'r')
             # call evaluate routine
             for line in result:
                 col = line.split()

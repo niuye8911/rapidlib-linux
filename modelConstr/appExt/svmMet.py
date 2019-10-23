@@ -25,7 +25,7 @@ class appMethods(AppMethods):
         self.min_cost = 2529
         self.min_mv = 20.56
         self.max_mv = 33.78
-        self.run_config = './outputs/svm/svm_run.config'
+        self.run_config = ''
 
     def cleanUpAfterEachRun(self, configs=None):
         learningRate = 100 * 1e-5
@@ -58,17 +58,19 @@ class appMethods(AppMethods):
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
         cmd = [
-            self.obj_path, "-rsdg", self.run_config,'1>/dev/null'
+            self.obj_path,
+            "-rsdg",
+            self.run_config  #,'1>/dev/null'
         ]
         return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun:
-            return ['ls']
+            return []
         learningRate = 100 * 1e-5
         regular = 0.05
         batch = 500
@@ -106,7 +108,8 @@ class appMethods(AppMethods):
         X_test = np.hstack([X_test, np.ones((X_test.shape[0], 1))])
         svm = LinearSVM()
         try:
-            svm.W = pickle.load(open("./model_svm.p", "rb"), encoding='latin1')
+            svm.W = pickle.load(open(self.run_dir + "model_svm.p", "rb"),
+                                encoding='latin1')
             y_test_pred = svm.predict(X_test)
             test_accuracy = np.mean(y_test == y_test_pred)
         except:

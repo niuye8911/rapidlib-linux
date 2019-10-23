@@ -23,7 +23,7 @@ class appMethods(AppMethods):
         self.min_mv = 65.69
         self.max_mv = 100
         self.gt_path = "/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/training_outputs/body-gt.txt"
-        self.run_config_file = "./outputs/bodytrack/bodytrack_run.config"
+        self.run_config_file = ''
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
@@ -38,8 +38,9 @@ class appMethods(AppMethods):
                     layer = config.val  # retrieve the setting for each knob
 
         self.moveFile(
-            self.input_path + "poses.txt", "./training_outputs/output_" +
-            str(layer) + "_" + str(particle) + ".txt")
+            self.input_path + "poses.txt",
+            self.run_dir + "training_outputs/output_" + str(layer) + "_" +
+            str(particle) + ".txt")
 
     def afterGTRun(self):
         if not os.path.exists(self.gt_path):
@@ -48,18 +49,26 @@ class appMethods(AppMethods):
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
         cmd = [
-            self.obj_path, self.input_path, "4", '261', '4000', '5', '4', '1',
-            "-rsdg", self.run_config, '1>/dev/null'
+            self.obj_path,
+            self.input_path,
+            "4",
+            '261',
+            '4000',
+            '5',
+            '4',
+            '1',
+            "-rsdg",
+            self.run_config  #, '1>/dev/null'
         ]
         return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun and os.path.exists(self.gt_path):
-            return ['ls']
+            return []
         particle = 4000
         layer = 5
         if not configs == None:
@@ -121,7 +130,7 @@ class appMethods(AppMethods):
             ]
             dist = np.mean(dist) / mag
             totDistortion.append(dist)
-        return 5-np.mean(totDistortion)
+        return 5 - np.mean(totDistortion)
 
     # helper function to evaluate the QoS
     def getQoS_DEPRECATED(self):

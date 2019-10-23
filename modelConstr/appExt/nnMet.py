@@ -57,10 +57,12 @@ class appMethods(AppMethods):
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
         return [
-            self.obj_path, "-rsdg", self.run_config,'1>/dev/null'
+            self.obj_path,
+            "-rsdg",
+            self.run_config  #,'1>/dev/null'
         ]
 
     # helper function to assembly the command
@@ -145,17 +147,21 @@ class appMethods(AppMethods):
 
         net = TwoLayerNet(input_size, hidden_size, num_classes)
         try:
-            net.params['W1'] = pickle.load(open("model_nn_w1.p", "rb"),
+            net.params['W1'] = pickle.load(open(self.run_dir + "model_nn_w1.p",
+                                                "rb"),
                                            encoding='latin1')
-            net.params['b1'] = pickle.load(open("model_nn_b1.p", "rb"),
+            net.params['b1'] = pickle.load(open(self.run_dir + "model_nn_b1.p",
+                                                "rb"),
                                            encoding='latin1')
-            net.params['W2'] = pickle.load(open("model_nn_w2.p", "rb"),
+            net.params['W2'] = pickle.load(open(self.run_dir + "model_nn_w2.p",
+                                                "rb"),
                                            encoding='latin1')
-            net.params['b2'] = pickle.load(open("model_nn_b2.p", "rb"),
+            net.params['b2'] = pickle.load(open(self.run_dir + "model_nn_b2.p",
+                                                "rb"),
                                            encoding='latin1')
 
             test_accuracy = (net.predict(X_test) == y_test).mean()
         except:
             test_accuracy = 0.0
-        print("qos",str(test_accuracy))
+        print("qos", str(test_accuracy))
         return test_accuracy * 100.0

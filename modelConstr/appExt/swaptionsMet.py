@@ -36,28 +36,34 @@ class appMethods(AppMethods):
                 if name == "num":
                     num = config.val  # retrieve the setting for each knob
         # backup the generated output to another location
-        self.moveFile("./output.txt",
-                      "./training_outputs/output" + str(int(num)) + ".txt")
+        self.moveFile(
+            self.run_dir + "output.txt",
+            self.run_dir + "training_outputs/output" + str(int(num)) + ".txt")
 
     def afterGTRun(self):
         # generate the ground truth
         if not os.path.exists(self.gt_path):
-            self.moveFile("./output.txt", self.gt_path)
+            self.moveFile(self.run_dir + "output.txt", self.gt_path)
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
             print("no config file exists:", self.appName, self.run_config)
             return []
         cmd = [
-            self.obj_path, "-ns",
-            str(self.fullrun_units), "-sm", "100", "-rsdg", self.run_config,'1>/dev/null'
+            self.obj_path,
+            "-ns",
+            str(self.fullrun_units),
+            "-sm",
+            "100",
+            "-rsdg",
+            self.run_config  #,'1>/dev/null'
         ]
         return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun and os.path.exists(self.gt_path):
-            return ['ls']  # return dummy command
+            return []  # return dummy command
         num = 1000000
         if qosRun or fullRun:
             units = self.fullrun_units
@@ -83,7 +89,7 @@ class appMethods(AppMethods):
         :return: a double value describing the QoS ( 0.0 ~ 100.0 )
         """
         gt_output = open(self.gt_path, "r")
-        mission_output = open("./output.txt", "r")
+        mission_output = open(self.run_dir + "output.txt", "r")
         truth_map = {}
         mission_map = {}
         totalRound = 0

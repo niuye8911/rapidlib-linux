@@ -12,17 +12,17 @@ class appMethods(AppMethods):
                     "/ferret/run/corelnative/"
     table = "lsh"
     query_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps" \
-                 "/ferret/run/queries"
+                 "/ferret/run/queries50"
     fullrun_query_path = "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs" \
-                         "/apps/ferret/run/queries500"
+                         "/apps/ferret/run/queries1000"
 
     def __init__(self, name, obj_path):
         """ Initialization with app name
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 20
-        self.fullrun_units = 500  # two are . and ..
+        self.training_units = 50
+        self.fullrun_units = 1000  # two are . and ..
         self.max_cost = 99
         self.min_cost = 68
         self.min_mv = 58.69
@@ -46,29 +46,37 @@ class appMethods(AppMethods):
                     itr = config.val  # retrieve the setting for each knob
 
         self.moveFile(
-            "output.txt", "./training_outputs/output_" + str(hash) + "_" +
+            self.run_dir + "output.txt",
+            self.run_dir + "training_outputs/output_" + str(hash) + "_" +
             str(probe) + "_" + str(itr) + ".txt")
 
     def afterGTRun(self):
         if not os.path.exists(self.gt_path):
-            output_path = "output.txt"
+            output_path = self.run_dir + "output.txt"
             self.moveFile(output_path, self.gt_path)
 
     def getRapidsCommand(self):
         if not os.path.exists(self.run_config):
-            print("no config file exists:",self.appName,self.run_config)
+            print("no config file exists:", self.appName, self.run_config)
             return []
         cmd = [
-            self.obj_path, self.database_path, self.table,
-            self.fullrun_query_path, "50", "20", "1", "output.txt", "-rsdg",
-            self.run_config,'1>/dev/null'
+            self.obj_path,
+            self.database_path,
+            self.table,
+            self.fullrun_query_path,
+            "50",
+            "20",
+            "1",
+            self.run_dir + "output.txt",
+            "-rsdg",
+            self.run_config  #,'1>/dev/null'
         ]
         return cmd
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
         if qosRun and os.path.exists(self.gt_path):
-            return ['ls']  # return dummy command
+            return []  # return dummy command
         itr = 25
         hash = 8
         probe = 20
@@ -87,7 +95,7 @@ class appMethods(AppMethods):
             query_path = self.query_path
         return [
             self.obj_path, self.database_path, self.table, query_path, "50",
-            "20", "1", "./output.txt", '-l',
+            "20", "1", self.run_dir + "output.txt", '-l',
             str(hash), '-t',
             str(probe), '-itr',
             str(itr)
@@ -126,7 +134,7 @@ class appMethods(AppMethods):
     # helper function to evaluate the QoS
     def getQoS(self):
         truth = open(self.gt_path, "r")
-        mission = open("./output.txt", "r")
+        mission = open(self.run_dir + "output.txt", "r")
         truthmap = {}
         missionmap = {}
         truth_res = []

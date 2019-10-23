@@ -34,6 +34,10 @@ class AppMethods():
         self.training_units = 1
         self.fullrun_units = 1
         self.run_config = ''
+        self.run_dir = './' # default working dir
+
+    def setRunDir(self,rundir):
+        self.run_dir = rundir
 
     def setTrainingUnits(self, unit):
         self.training_units = unit
@@ -62,7 +66,7 @@ class AppMethods():
         pass
 
     def parseLog(self):
-        name = "./mission_" + self.appName + "_log.csv"
+        name = self.run_dir+"mission_" + self.appName + "_log.csv"
         fail_result = {
             'totTime': -1,
             'totReconfig': -1,
@@ -537,8 +541,8 @@ class AppMethods():
         :return: the average execution time for each work unit
         """
         # remove csv if exists
-        if os.path.isfile('./tmp.csv'):
-            os.system('rm tmp.csv')
+        if os.path.isfile(self.run_dir+'tmp.csv'):
+            os.system('rm '+self.run_dir+'tmp.csv')
         time1 = time.time()
         metric_value = None
         if withSys:
