@@ -57,23 +57,25 @@ RAPIDS_SERVER::Response start(std::string machineID, std::string appID,
 RAPIDS_SERVER::Response get(std::string machineID, std::string appID,
                             int budget) {
   std::string getParams = "machine=" + machineID + "&app=" + appID;
-  std::string postParams = "budget=" + budget;
+  std::string postParams = "budget=" + std::to_string(budget);
   std::string result = "null";
   while (result == "null") {
+    std::cout << "response if NULL, retrying consulting server" << std::endl;
     result = queryServer(std::string("get.php"), getParams, postParams);
   }
   return parse_response(result);
 }
 
 /*
- * return true if config buckets stay the same
+ * return true if config buckets stay the same, and update the budget
  */
 std::tuple<bool, Response> check(std::string machineID, std::string appID,
-                                 std::string bucket_name) {
+                                 std::string bucket_name, int budget) {
   std::string getParams = "machine=" + machineID + "&app=" + appID;
   // std::string postParams = "cur_bucket=" + bucket_name;
-
-  std::string result = queryServer(std::string("check.php"), getParams, "");
+  std::string postParams = "budget=" + std::to_string(budget);
+  std::string result =
+      queryServer(std::string("check.php"), getParams, postParams);
   RAPIDS_SERVER::Response r = parse_response(result);
   bool still_valid = r.bucket == bucket_name;
   return std::make_tuple(still_valid, r); // if changed, then check success

@@ -20,7 +20,7 @@ bool init(std::string machineID, std::string appID, FILE *buckets,
 Response start(std::string machineID, std::string appID, int budget);
 Response get(std::string machineID, std::string appID, int budget);
 std::tuple<bool, Response> check(std::string machineID, std::string appID,
-                                 std::string bucket_name);
+                                 std::string bucket_name, int budget);
 bool end(std::string machineID, std::string appID);
 Response parse_response(std::string response);
 } // namespace RAPIDS_SERVER

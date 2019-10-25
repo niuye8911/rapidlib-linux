@@ -160,7 +160,10 @@ void rsdgMission::regService(string sName, string bName, void *(*func)(void *),
 
 void rsdgMission::setupSolverFreq(int freq) { this->freq = freq; }
 
-void rsdgMission::setUnit(int u) { unit.set(u); }
+void rsdgMission::setUnit(int u) {
+  total_unit = u;
+  unit.set(u);
+}
 
 void rsdgMission::finish_one_unit() {
   finished_unit++;
@@ -207,7 +210,7 @@ void rsdgMission::getRes(vector<string> &holder, string response) {
   return;
 }
 
-void rsdgMission::consultServer_M() {
+bool rsdgMission::consultServer_M() {
   RAPIDS_SERVER::Response result;
   // if it's first time starting
   if (!rapidm_started) {
@@ -218,24 +221,28 @@ void rsdgMission::consultServer_M() {
     bucket = result.bucket;
     candidate_configs = result.configs;
     if (!result.found) {
+      reject = true;
       finish(false);
       exit(0);
     }
+    return true;
   }
   // already started
   else {
     // check if current bucket valids
-    auto check_result = RAPIDS_SERVER::check("algaesim", app_name, bucket);
+    auto check_result =
+        RAPIDS_SERVER::check("algaesim", app_name, bucket, curBudget);
     bool cur_bucket_valid = std::get<0>(check_result);
     result = std::get<1>(check_result);
     if (cur_bucket_valid) {
       slowdown = result.slowdown;
-      logDebug("old bucket valid, new slowdown:" + to_string(slowdown));
+      update_slowdown_if_almost_done();
       vector<string> result_config = searchProfile(candidate_configs);
       // check if needs to contact server for new bucket
       if (result_config.size() == 0) {
         logDebug("no selection found with new slowdown, consult server with "
-                 "budget " +to_string(curBudget));
+                 "budget " +
+                 to_string(curBudget));
         // needs new buckets
         result = RAPIDS_SERVER::get("algaesim", app_name, curBudget);
         if (!result.found) {
@@ -245,15 +252,17 @@ void rsdgMission::consultServer_M() {
         } else {
           logDebug("Server found new solution");
         }
-        updateSelection(result.best_config);
         slowdown = result.slowdown;
         bucket = result.bucket;
         candidate_configs = result.configs;
-
+        update_slowdown_if_almost_done();
+        vector<string> result_config = searchProfile(candidate_configs);
+        updateSelection(result_config);
+        return true;
       } else {
         // no need to contact server
         updateSelection(result_config);
-        return;
+        return false;
       }
     } else {
       // bucket has changed
@@ -265,9 +274,47 @@ void rsdgMission::consultServer_M() {
         exit(0);
       }
       // still needs to find locally
-      updateSelection(result.best_config);
+      update_slowdown_if_almost_done();
+      vector<string> result_config = searchProfile(candidate_configs);
+      updateSelection(result_config);
+      return true;
     }
   }
+}
+
+void rsdgMission::update_slowdown_if_almost_done() {
+  /*** NEW FEATURE:
+  if
+  1) it's already 70% finished
+  2) the budget usage is not that enough (within 5%)
+  use a more aggresive slowdown
+  ***/
+  if (float(unit.get()) / float(total_unit) <= 0.3) {
+    // if no config can be found using the slowdown already, return
+    vector<string> result_config = searchProfile(candidate_configs);
+    if (result_config.size() == 0) {
+      return;
+    }
+    // there's a config in the current bucket
+    double orig_slowdown = slowdown;
+    // if the current budget is not 5% more than the predicted cost, update the
+    // slowdown
+    if (curBudget / predicted_cost <= 1.1) {
+      double slowdown_scale = 1.5; // iterate from 1.5 to 1.0
+      // while there's a solution, find the maximum slowdown from 1.5
+      while (slowdown_scale > 1.0) {
+        slowdown = orig_slowdown * slowdown_scale;
+        if (searchProfile(candidate_configs).size() != 0)
+          break;
+        slowdown_scale -= 0.1;
+      }
+      slowdown = orig_slowdown * slowdown_scale;
+      if (slowdown_scale > 1.0)
+        slowdown_scale_up++;
+    }
+    return;
+  }
+  return;
 }
 
 void rsdgMission::consultServer() {
@@ -349,7 +396,7 @@ void rsdgMission::updateSelection(vector<string> &result) {
     if (found != std::string::npos) {
       string nodeName = "";
       int i = 0;
-      logDebug("found Node:"+currentNode);
+      logDebug("found Node:" + currentNode);
       while (currentNode[i] != ' ')
         nodeName += currentNode[i++];
       double value = stof(currentNode.substr(i));
@@ -446,10 +493,11 @@ bool rsdgMission::updateThread(rsdgService *s, string basic, double value) {
 
 double rsdgMission::getObj() { return objValue; }
 
-void rsdgMission::printToLog(int status, bool rc_by_budget, bool rc_by_result) {
+void rsdgMission::printToLog(int status, bool rc_by_budget, bool rc_by_result,
+                             bool rc_by_rapidm) {
   if (status != 0) {
     // in the middle of execution or has ended, write the real cost
-    logfile << ',' << realCost << ",,,,," << endl;
+    logfile << ',' << realCost << ",,,,,," << endl;
     if (status == 1) {
       // end
       return;
@@ -477,7 +525,7 @@ void rsdgMission::printToLog(int status, bool rc_by_budget, bool rc_by_result) {
       logfile << "-";
     }
   }
-  logfile << ',' << rc_by_budget << ',' << rc_by_result;
+  logfile << ',' << rc_by_budget << ',' << rc_by_result << ',' << rc_by_rapidm;
   logfile.flush();
 }
 
@@ -616,6 +664,7 @@ void rsdgMission::reconfig() {
   updateModel(unitBetweenCheckPoints);
   bool update_by_budget = updateBudget();
   bool update_by_result = false;
+  bool update_by_rapidm = false;
   if (startTime == -1 || update_by_budget || rapidm) {
     // first time or need to reconfig
     if (offline_search) {
@@ -623,7 +672,7 @@ void rsdgMission::reconfig() {
       consultServer();
     } else {
       if (rapidm)
-        consultServer_M();
+        update_by_rapidm = consultServer_M();
       else {
         // rsdg reconfig
         graph->minmax = MAX;
@@ -640,7 +689,7 @@ void rsdgMission::reconfig() {
       num_of_reconfig++;
   }
   int status = startTime == -1 ? 0 : 2;
-  printToLog(status, update_by_budget, update_by_result);
+  printToLog(status, update_by_budget, update_by_result, update_by_rapidm);
   if (startTime == -1)
     startTime = getCurrentTimeInMilli();
 }
@@ -1099,6 +1148,7 @@ vector<string> rsdgMission::searchProfile(vector<string> candidates) {
     if (offlineMV[curconfig] > curMaxMV) {
       maxConfig = curconfig;
       curMaxMV = offlineMV[curconfig];
+      predicted_cost = curcost;
     }
   }
   if (maxConfig == "")
@@ -1172,11 +1222,17 @@ void rsdgMission::logInfo(string msg) { cout << "RAPID-INFO:" + msg; }
  }
  }*/
 void rsdgMission::finish(bool FINISH) {
-  printToLog(1, false, false);                                // finish
+  printToLog(1, false, false, false);                         // finish
   long long total_used = getCurrentTimeInMilli() - startTime; // second
+  // check if it's rejection of execution at the beginning
+  int exit_code = 0; // default: failure
+  if (FINISH)
+    exit_code = 1;
+  if (reject)
+    exit_code = 2;
   logfile << ",,,," << to_string((double)total_reconfig_time) << ','
           << to_string(num_of_reconfig) << "," << budget << "," << total_used
-          << ',' << FINISH << endl;
+          << ',' << exit_code << "," << slowdown_scale_up << endl;
   logfile.close();
   inputDepFile.close();
   if (rapidm)

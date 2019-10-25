@@ -28,8 +28,9 @@ public:
   const static bool REMOTE = false;
   const static bool RAPIDS = false;
   const static bool RAPIDM = true;
-  const string LOG_HEADER = "Selection,RC_by_budget,RC_by_result,Real_"
-                            "Cost,RC_Time,RC_Num,Budget,Exec,SUCCESS\n";
+  const string LOG_HEADER =
+      "Selection,RC_by_budget,RC_by_result,RC_by_rapidm,Real_"
+      "Cost,RC_Time,RC_Num,Budget,Exec,SUCCESS,SCALE_UP\n";
 
   string app_name;
   bool DEBUG = false; // set to true if debug info is needed
@@ -75,6 +76,7 @@ public:
   ofstream logfile;
   ofstream inputDepFile;
   double cur_budget_per_unit = 0.1;
+  int total_unit = 0;
 
   // mission related;
   RSDG *graph;
@@ -92,8 +94,10 @@ public:
   bool offline_search = false;
   bool LOGGER = false;
   bool update = false;
+  bool reject = false;
   long freq;
   string xml_path;
+  int slowdown_scale_up = 0;
 
   // result
   double maxMV;
@@ -113,7 +117,7 @@ public:
 private: // private member functions
   void parseRunConfig(string config_path);
   void consultServer();
-  void consultServer_M();
+  bool consultServer_M();
   void updateSelection(vector<string> &result);
   bool applyResult();
   bool updateThread(rsdgService *s, string basicNode, double value);
@@ -123,7 +127,7 @@ private: // private member functions
   void logWarning(string msg);
   void logDebug(string msg);
   void logInfo(string msg);
-  void printToLog(int, bool, bool);
+  void printToLog(int, bool, bool, bool);
   void checkPoint(int index = 0);
   void updateModel(int);
   void readProfile(string file_path, bool COST);
@@ -133,6 +137,8 @@ private: // private member functions
   void readRS(string);
   void updateRSDG();
   void resetTimer();
+  void update_slowdown_if_almost_done();
+  double predicted_cost; // predicted_cost of current selection
 
 public: // public API's
   rsdgMission(string config_file_name, bool from_config = false);
