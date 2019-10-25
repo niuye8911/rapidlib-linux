@@ -73,7 +73,7 @@ class appMethods(AppMethods):
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=False):
         if qosRun:
-            return ['ls']  # return dummy command
+            return []  # return dummy command
         if fullRun or qosRun:
             self.gt_path = self.full_grond_truth_path
         pyramid = 25
