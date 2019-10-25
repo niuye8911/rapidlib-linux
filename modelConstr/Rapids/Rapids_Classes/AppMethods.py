@@ -70,8 +70,10 @@ class AppMethods():
         fail_result = {
             'totTime': -1,
             'totReconfig': -1,
-            'success': False,
-            'rc_by_budget': -1
+            'success': -1,
+            'slowdown_scale':-1,
+            'rc_by_budget': -1,
+            'rc_by_rapidm': -1
         }
         # go to the last line
         if os.stat(name).st_size == 0:
@@ -81,19 +83,23 @@ class AppMethods():
                 pass
             try:
                 last_col = line.split(',')
-                totTime = float(last_col[-5])
-                totReconfig = int(last_col[-4])
+                totTime = float(last_col[-6])
+                totReconfig = int(last_col[-5])
+                totScaleUp = int(last_col[-2])
                 success = last_col[-1].rstrip()
             except:
                 return fail_result
         # find details
         df = pd.read_csv(name)
         triggered_by_budget = df['RC_by_budget'].sum()
+        triggered_by_rapidm = df['RC_by_rapidm'].sum()
         return {
             'totTime': totTime,
             'totReconfig': totReconfig,
             'success': success,
-            'rc_by_budget': triggered_by_budget
+            'slowdown_scale':totScaleUp,
+            'rc_by_budget': triggered_by_budget,
+            'rc_by_rapidm': triggered_by_rapidm
         }
 
     def setRunConfigFile(self, config_file_path):
