@@ -6,7 +6,7 @@ def genFact(appInfo, config_table, bb_profile, numOfFixedEnv):
     appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
     # first get the GT ready if withQoS
     if appInfo.TRAINING_CFG['withQoS']:
-            appMethods.runGT(True)
+            appMethods.runGT(False)
     training_time_record = appMethods.train(config_table,bb_profile, numOfFixedEnv,
                                             appInfo)
     return training_time_record
