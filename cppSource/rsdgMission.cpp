@@ -1232,7 +1232,7 @@ void rsdgMission::finish(bool FINISH) {
     exit_code = 2;
   logfile << ",,,," << to_string((double)total_reconfig_time) << ','
           << to_string(num_of_reconfig) << "," << budget << "," << total_used
-          << ',' << exit_code << "," << slowdown_scale_up << endl;
+          << "," << slowdown_scale_up << ',' << exit_code << endl;
   logfile.close();
   inputDepFile.close();
   if (rapidm)

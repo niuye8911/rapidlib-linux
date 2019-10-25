@@ -30,7 +30,7 @@ public:
   const static bool RAPIDM = true;
   const string LOG_HEADER =
       "Selection,RC_by_budget,RC_by_result,RC_by_rapidm,Real_"
-      "Cost,RC_Time,RC_Num,Budget,Exec,SUCCESS,SCALE_UP\n";
+      "Cost,RC_Time,RC_Num,Budget,Exec,SCALE_UP,SUCCESS\n";
 
   string app_name;
   bool DEBUG = false; // set to true if debug info is needed
