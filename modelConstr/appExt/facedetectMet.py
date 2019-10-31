@@ -126,7 +126,7 @@ class appMethods(AppMethods):
         try:
             os.system(" ".join(evaluate_cmd))
             # get the precision and recall
-            result = open(self.run_dir + 'tempDiscROC.txt', 'r')
+            result = open('tempDiscROC.txt', 'r')
             # call evaluate routine
             for line in result:
                 col = line.split()
