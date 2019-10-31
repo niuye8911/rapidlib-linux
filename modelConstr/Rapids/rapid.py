@@ -339,6 +339,7 @@ def main(argv):
                 mission_config['GUROBI'] = True
                 mission_config['CONT'] = True
                 mission_config['RAPID_M'] = False
+                mission_config['RUSH_TO_END'] = False
                 mission_config['MISSION_LOG'] = True
                 mission_config['budget'] = 0.0
 
