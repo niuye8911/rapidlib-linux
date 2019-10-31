@@ -47,6 +47,7 @@ RAPIDS_SERVER::Response start(std::string machineID, std::string appID,
   std::string result = "null";
   while (result == "null") {
     result = queryServer(std::string("start.php"), getParams, postParams);
+    std::cout<<appID<<" starting failed, retrying"<<std::endl;
   }
   return parse_response(result);
 }
@@ -60,7 +61,7 @@ RAPIDS_SERVER::Response get(std::string machineID, std::string appID,
   std::string postParams = "budget=" + std::to_string(budget);
   std::string result = "null";
   while (result == "null") {
-    std::cout << "response if NULL, retrying consulting server" << std::endl;
+    std::cout << appID << " getting failed, retrying" << std::endl;
     result = queryServer(std::string("get.php"), getParams, postParams);
   }
   return parse_response(result);

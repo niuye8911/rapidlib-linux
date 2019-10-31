@@ -30,7 +30,7 @@ public:
   const static bool RAPIDM = true;
   const string LOG_HEADER =
       "Selection,RC_by_budget,RC_by_result,RC_by_rapidm,Real_"
-      "Cost,RC_Time,RC_Num,Budget,Exec,SCALE_UP,SUCCESS\n";
+      "Cost,RC_Time,RC_Num,Budget,Exec,SCALE_UP,SUCCESS,FAILED_REASON\n";
 
   string app_name;
   bool DEBUG = false; // set to true if debug info is needed
@@ -65,6 +65,7 @@ public:
   bool lpsolve;
   bool local;
   bool rapidm;
+  bool rush_to_end;
   bool rapidm_started;
   vector<long long> lastCheckPoints;
   vector<long long> timeSinceLastCheckPoints;
@@ -98,6 +99,7 @@ public:
   long freq;
   string xml_path;
   int slowdown_scale_up = 0;
+  string failed_reason = "NA";
 
   // result
   double maxMV;
@@ -108,6 +110,11 @@ public:
   string bucket;
   vector<string> candidate_configs;
 
+  // power saving mode
+  bool power_saving_mode = false;
+  string lowest_config="";
+  double lowest_cost=999999;
+
   // thread+runnable list
   vector<void *(*)(void *)> runnableList;
   vector<rsdgService *> serviceList;
@@ -115,6 +122,7 @@ public:
   void genAllConfigs(int, vector<string>);
 
 private: // private member functions
+  void setRushToEnd();
   void parseRunConfig(string config_path);
   void consultServer();
   bool consultServer_M();
