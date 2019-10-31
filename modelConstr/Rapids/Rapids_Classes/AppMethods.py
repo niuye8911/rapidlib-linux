@@ -34,9 +34,9 @@ class AppMethods():
         self.training_units = 1
         self.fullrun_units = 1
         self.run_config = ''
-        self.run_dir = './' # default working dir
+        self.run_dir = './'  # default working dir
 
-    def setRunDir(self,rundir):
+    def setRunDir(self, rundir):
         self.run_dir = rundir
 
     def setTrainingUnits(self, unit):
@@ -66,14 +66,16 @@ class AppMethods():
         pass
 
     def parseLog(self):
-        name = self.run_dir+"mission_" + self.appName + "_log.csv"
+        name = self.run_dir + "mission_" + self.appName + "_log.csv"
         fail_result = {
-            'totTime': -1,
+            'totReconfigTime': -1,
             'totReconfig': -1,
             'success': -1,
-            'slowdown_scale':-1,
+            'slowdown_scale': -1,
             'rc_by_budget': -1,
-            'rc_by_rapidm': -1
+            'rc_by_rapidm': -1,
+            'failed_reason': 'no file',
+            'runtime': -1
         }
         # go to the last line
         if os.stat(name).st_size == 0:
@@ -83,10 +85,12 @@ class AppMethods():
                 pass
             try:
                 last_col = line.split(',')
-                totTime = float(last_col[-6])
-                totReconfig = int(last_col[-5])
-                totScaleUp = int(last_col[-2])
-                success = last_col[-1].rstrip()
+                totTime = float(last_col[-7])
+                totReconfig = int(last_col[-6])
+                runtime = float(last_col[-4])
+                totScaleUp = int(last_col[-3])
+                success = last_col[-2]
+                failed_reason = last_col[-1].rstrip()
             except:
                 return fail_result
         # find details
@@ -94,12 +98,14 @@ class AppMethods():
         triggered_by_budget = df['RC_by_budget'].sum()
         triggered_by_rapidm = df['RC_by_rapidm'].sum()
         return {
-            'totTime': totTime,
+            'totReconfigTime': totTime,
             'totReconfig': totReconfig,
             'success': success,
-            'slowdown_scale':totScaleUp,
+            'slowdown_scale': totScaleUp,
             'rc_by_budget': triggered_by_budget,
-            'rc_by_rapidm': triggered_by_rapidm
+            'rc_by_rapidm': triggered_by_rapidm,
+            'failed_reason': failed_reason,
+            'runtime': runtime
         }
 
     def setRunConfigFile(self, config_file_path):
@@ -114,7 +120,9 @@ class AppMethods():
                         cont=True,
                         rapid_m=False,
                         mission_log=True,
-                        debug=False):
+                        debug=False,
+                        rush_to_end=False,
+                        power_saving=False):
         # update the run_config
         '''
         unit: UNIT_PER_CHECK, if not set, use default 10 reconfigs
@@ -137,6 +145,8 @@ class AppMethods():
                 config['mission']['DEBUG'] = debug
                 config['mission']['RAPID_M'] = rapid_m
                 config['mission']['MISSION_LOG'] = mission_log
+                config['mission']['RUSH_TO_END'] = rush_to_end
+                config['mission']['POWER_SAVING'] = power_saving
         config_json = open(self.run_config, 'w')
         json.dump(config, config_json, indent=2)
 
@@ -547,8 +557,8 @@ class AppMethods():
         :return: the average execution time for each work unit
         """
         # remove csv if exists
-        if os.path.isfile(self.run_dir+'tmp.csv'):
-            os.system('rm '+self.run_dir+'tmp.csv')
+        if os.path.isfile(self.run_dir + 'tmp.csv'):
+            os.system('rm ' + self.run_dir + 'tmp.csv')
         time1 = time.time()
         metric_value = None
         if withSys:
