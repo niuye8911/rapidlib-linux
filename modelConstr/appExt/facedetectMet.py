@@ -66,7 +66,7 @@ class appMethods(AppMethods):
             return []
         cmd = [
             self.obj_path, "-index", self.image_index_full_path, "-rsdg",
-            self.run_config, '1>/dev/null'
+            self.run_config
         ]
         return cmd
 
