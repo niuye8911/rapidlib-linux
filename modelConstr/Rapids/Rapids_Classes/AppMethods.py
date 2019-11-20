@@ -22,6 +22,7 @@ class AppMethods():
         '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns', '2>/dev/null',
         '-csv=tmp.csv', '--'
     ]
+    NEG_IN_REDUCED_CORE = ['PhysIPC', 'PhysIPC%', 'INSTnom', 'INSTnom%']
     NO_RECONFIG = -1
 
     def __init__(self, name, obj_path):
@@ -626,7 +627,8 @@ class AppMethods():
                     avg_value = functools.reduce(
                         (lambda x, y: (float(y[i]) + float(x))), values,
                         0.) / float(len(values))
-                    if avg_value == -1:
+                    if avg_value == -1 and metric[
+                            i] in self.NEG_IN_REDUCED_CORE:
                         # broken line
                         print('-1 found in line')
                         return None
