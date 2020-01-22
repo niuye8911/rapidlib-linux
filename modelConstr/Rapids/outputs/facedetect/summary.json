@@ -1,0 +1,37 @@
+{
+  "APP_NAME": "facedetect",
+  "OUTPUT_DIR_PREFIX": "outputs/facedetect/",
+  "DEBUG_DIR": "debug/facedetect/",
+  "TRAINING_OUTPUT_DIR": "training_outputs/facedetect/",
+  "FILE_PATHS": {
+    "COST_FILE_PATH": "outputs/facedetect/facedetect-cost.fact",
+    "MV_FILE_PATH": "outputs/facedetect/facedetect-mv.fact",
+    "SYS_FILE_PATH": "outputs/facedetect/facedetect-sys.csv",
+    "PERF_FILE_PATH": "outputs/facedetect/facedetect-perf.csv",
+    "PROFILE_PATH": "outputs/facedetect/facedetect.profile",
+    "M_FILE_PATH": "outputs/facedetect/facedetect-mperf.csv"
+  },
+  "STATUS": {
+    "COST_TRAINED": true,
+    "MV_TRAINED": true,
+    "PERF_TRAINED": false,
+    "SYS_TRAINED": false,
+    "MMODEL_TRAINED": false
+  },
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort/depfileface",
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/facedetectMet.py",
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/mara_face/facedetect",
+  "TRAINING_CFG": {
+    "withSYS": false,
+    "withQoS": true,
+    "withPerf": false,
+    "withMModel": false,
+    "RS": false,
+    "qosRun": false,
+    "overheadRun": false,
+    "validate": false,
+    "validate_rs_path": "",
+    "withSys": false,
+    "calRS": false
+  }
+}

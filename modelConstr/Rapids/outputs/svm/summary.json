@@ -1,0 +1,36 @@
+{
+  "APP_NAME": "svm",
+  "OUTPUT_DIR_PREFIX": "outputs/svm/",
+  "DEBUG_DIR": "debug/svm/",
+  "TRAINING_OUTPUT_DIR": "training_outputs/svm/",
+  "FILE_PATHS": {
+    "COST_FILE_PATH": "outputs/svm/svm-cost.fact",
+    "MV_FILE_PATH": "outputs/svm/svm-mv.fact",
+    "SYS_FILE_PATH": "outputs/svm/svm-sys.csv",
+    "PERF_FILE_PATH": "outputs/svm/svm-perf.csv",
+    "PROFILE_PATH": "outputs/svm/svm.profile",
+    "M_FILE_PATH": "outputs/svm/svm-mperf.csv"
+  },
+  "STATUS": {
+    "COST_TRAINED": true,
+    "MV_TRAINED": true,
+    "PERF_TRAINED": false,
+    "SYS_TRAINED": false,
+    "MMODEL_TRAINED": false
+  },
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/svmPort/depfilesvm",
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/svmMet.py",
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/mara_learn/svm",
+  "TRAINING_CFG": {
+    "withSys": true,
+    "withQoS": false,
+    "withPerf": true,
+    "withMModel": true,
+    "RS": false,
+    "qosRun": false,
+    "overheadRun": false,
+    "validate": false,
+    "validate_rs_path": "",
+    "calRS": false
+  }
+}

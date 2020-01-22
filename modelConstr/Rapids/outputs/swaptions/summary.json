@@ -1,0 +1,37 @@
+{
+  "APP_NAME": "swaptions",
+  "OUTPUT_DIR_PREFIX": "outputs/swaptions/",
+  "DEBUG_DIR": "debug/swaptions/",
+  "TRAINING_OUTPUT_DIR": "training_outputs/swaptions/",
+  "FILE_PATHS": {
+    "COST_FILE_PATH": "outputs/swaptions/swaptions-cost.fact",
+    "MV_FILE_PATH": "outputs/swaptions/swaptions-mv.fact",
+    "SYS_FILE_PATH": "outputs/swaptions/swaptions-sys.csv",
+    "PERF_FILE_PATH": "outputs/swaptions/swaptions-perf.csv",
+    "PROFILE_PATH": "outputs/swaptions/swaptions.profile",
+    "M_FILE_PATH": "outputs/swaptions/swaptions-mperf.csv"
+  },
+  "STATUS": {
+    "COST_TRAINED": true,
+    "MV_TRAINED": true,
+    "PERF_TRAINED": true,
+    "SYS_TRAINED": true,
+    "MMODEL_TRAINED": true
+  },
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort/depfileswaptions",
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/swaptionsMet.py",
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/swaptions/src/swaptions",
+  "TRAINING_CFG": {
+    "withSYS": false,
+    "withQoS": true,
+    "withPerf": false,
+    "withMModel": false,
+    "RS": false,
+    "qosRun": false,
+    "overheadRun": false,
+    "validate": false,
+    "validate_rs_path": "",
+    "withSys": false,
+    "calRS": false
+  }
+}

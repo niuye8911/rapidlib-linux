@@ -1,0 +1,36 @@
+{
+  "APP_NAME": "nn",
+  "OUTPUT_DIR_PREFIX": "outputs/nn/",
+  "DEBUG_DIR": "debug/nn/",
+  "TRAINING_OUTPUT_DIR": "training_outputs/nn/",
+  "FILE_PATHS": {
+    "COST_FILE_PATH": "outputs/nn/nn-cost.fact",
+    "MV_FILE_PATH": "outputs/nn/nn-mv.fact",
+    "SYS_FILE_PATH": "outputs/nn/nn-sys.csv",
+    "PERF_FILE_PATH": "outputs/nn/nn-perf.csv",
+    "PROFILE_PATH": "outputs/nn/nn.profile",
+    "M_FILE_PATH": "outputs/nn/nn-mperf.csv"
+  },
+  "STATUS": {
+    "COST_TRAINED": true,
+    "MV_TRAINED": true,
+    "PERF_TRAINED": true,
+    "SYS_TRAINED": false,
+    "MMODEL_TRAINED": true
+  },
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/nnPort/depfilenn",
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/nnMet.py",
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/mara_learn/nn",
+  "TRAINING_CFG": {
+    "withSys": true,
+    "withQoS": false,
+    "withPerf": false,
+    "withMModel": false,
+    "RS": false,
+    "qosRun": false,
+    "overheadRun": false,
+    "validate": false,
+    "validate_rs_path": "",
+    "calRS": false
+  }
+}

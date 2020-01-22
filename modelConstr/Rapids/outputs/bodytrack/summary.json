@@ -1,0 +1,37 @@
+{
+  "APP_NAME": "bodytrack",
+  "OUTPUT_DIR_PREFIX": "outputs/bodytrack/",
+  "DEBUG_DIR": "debug/bodytrack/",
+  "TRAINING_OUTPUT_DIR": "training_outputs/bodytrack/",
+  "FILE_PATHS": {
+    "COST_FILE_PATH": "outputs/bodytrack/bodytrack-cost.fact",
+    "MV_FILE_PATH": "outputs/bodytrack/bodytrack-mv.fact",
+    "SYS_FILE_PATH": "outputs/bodytrack/bodytrack-sys.csv",
+    "PERF_FILE_PATH": "outputs/bodytrack/bodytrack-perf.csv",
+    "PROFILE_PATH": "outputs/bodytrack/bodytrack.profile",
+    "M_FILE_PATH": "outputs/bodytrack/bodytrack-mperf.csv"
+  },
+  "STATUS": {
+    "COST_TRAINED": true,
+    "MV_TRAINED": true,
+    "PERF_TRAINED": false,
+    "SYS_TRAINED": false,
+    "MMODEL_TRAINED": false
+  },
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort/depfilebodytrack",
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/bodytrackMet.py",
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/bodytrack/obj/amd64-linux.gcc-serial/TrackingBenchmark/bodytrack",
+  "TRAINING_CFG": {
+    "withSYS": false,
+    "withQoS": true,
+    "withPerf": false,
+    "withMModel": false,
+    "RS": false,
+    "qosRun": false,
+    "overheadRun": false,
+    "validate": false,
+    "validate_rs_path": "",
+    "withSys": false,
+    "calRS": false
+  }
+}

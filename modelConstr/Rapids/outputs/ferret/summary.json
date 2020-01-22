@@ -1,0 +1,36 @@
+{
+  "APP_NAME": "ferret",
+  "OUTPUT_DIR_PREFIX": "outputs/ferret/",
+  "DEBUG_DIR": "debug/ferret/",
+  "TRAINING_OUTPUT_DIR": "training_outputs/ferret/",
+  "FILE_PATHS": {
+    "COST_FILE_PATH": "outputs/ferret/ferret-cost.fact",
+    "MV_FILE_PATH": "outputs/ferret/ferret-mv.fact",
+    "SYS_FILE_PATH": "outputs/ferret/ferret-sys.csv",
+    "PERF_FILE_PATH": "outputs/ferret/ferret-perf.csv",
+    "PROFILE_PATH": "outputs/ferret/ferret.profile",
+    "M_FILE_PATH": "outputs/ferret/ferret-mperf.csv"
+  },
+  "STATUS": {
+    "COST_TRAINED": true,
+    "MV_TRAINED": true,
+    "PERF_TRAINED": false,
+    "SYS_TRAINED": false,
+    "MMODEL_TRAINED": false
+  },
+  "DESC": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/ferretPort/depfileferret_new",
+  "METHODS_PATH": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/ferretMet.py",
+  "OBJ_PATH": "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/ferret/obj/amd64-linux.gcc-serial/parsec/bin/ferret-serial",
+  "TRAINING_CFG": {
+    "withSys": false,
+    "withQoS": true,
+    "withPerf": false,
+    "withMModel": false,
+    "RS": false,
+    "qosRun": true,
+    "overheadRun": false,
+    "validate": false,
+    "validate_rs_path": "",
+    "calRS": true
+  }
+}
