@@ -19,10 +19,9 @@ from collections import OrderedDict
 
 class AppMethods():
     PCM_PREFIX = [
-        '/home/liuliu/Research/pcm/pcm.x', '0.5', '-nc', '-ns', '2>/dev/null',
-        '-csv=tmp.csv', '--'
+        '/home/liuliu/Research/pcm/pcm.x', '-r', '0.5', '-nc', '-ns',
+        '2>/dev/null', '-csv=tmp.csv', '--'
     ]
-    NEG_IN_REDUCED_CORE = ['PhysIPC', 'PhysIPC%', 'INSTnom', 'INSTnom%']
     NO_RECONFIG = -1
 
     def __init__(self, name, obj_path):
@@ -163,8 +162,7 @@ class AppMethods():
             if int(self.fullrun_units / unit) < 1:
                 # finest granularity
                 continue
-            self.updateRunConfig(self,
-                                 budget,
+            self.updateRunConfig(budget,
                                  unit=unit,
                                  offline_search=False,
                                  remote=False,
@@ -220,11 +218,10 @@ class AppMethods():
         for percentage in range(1, 11):
             budget = (self.min_cost + float(percentage) *
                       step_size) * self.fullrun_units / 1000.0
-            unit = self.fullrun_units / 10  # reconfig 10 times
+            run_unit = self.fullrun_units / 10  # reconfig 10 times
             print("RUNNING BUDGET:", str(budget))
-            self.updateRunConfig(self,
-                                 budget,
-                                 unit=unit,
+            self.updateRunConfig(budget,
+                                 unit=run_unit,
                                  offline_search=OFFLINE,
                                  remote=False,
                                  gurobi=True,
@@ -575,6 +572,7 @@ class AppMethods():
             if total_time < 1:
                 # the time is too small for parsetmpcsv
                 print('TOTAL TIME < 1s', total_time)
+                print(" ".join(command))
                 metric_value = None
             else:
                 metric_value = AppMethods.parseTmpCSV()
@@ -588,6 +586,7 @@ class AppMethods():
 
     @staticmethod
     def parseTmpCSV():
+        NEG_IN_REDUCED_CORE = ['PhysIPC', 'PhysIPC%', 'INSTnom', 'INSTnom%']
         metric_value = Metric()
         with open('tmp.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=';')
@@ -610,6 +609,12 @@ class AppMethods():
                         # discard the row, especially the last row
                         continue
                     for item in row:
+                        try:
+                            float(item)
+                            if float(item) < -1:
+                                item = 0
+                        except:
+                            pass
                         value.append(item)
                     values.append(value)
             for i in range(0, len(metric)):
@@ -617,7 +622,7 @@ class AppMethods():
                     try:
                         float(values[0][i])
                     except:
-                        if i <= 1:
+                        if i <= 1:  # date and time
                             continue
                         else:
                             print("not valid number found in csv", values[0],
@@ -627,10 +632,10 @@ class AppMethods():
                     avg_value = functools.reduce(
                         (lambda x, y: (float(y[i]) + float(x))), values,
                         0.) / float(len(values))
-                    if avg_value == -1 and metric[
-                            i] in self.NEG_IN_REDUCED_CORE:
+                    if avg_value <= -1 and (
+                            metric[i] not in NEG_IN_REDUCED_CORE):
                         # broken line
-                        print('-1 found in line')
+                        print('-1 found in line', metric[i])
                         return None
                     metric_value.add_metric(metric[i], avg_value)
         csv_file.close()

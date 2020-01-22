@@ -35,7 +35,7 @@ def constructRSDG(gt,
             print("finding right seg lvl")
             while error >= threshold:
                 if seglvl >= maxT:
-                    print("Reached Highest Segmentation Granularity")
+                    print("Reached Highest Segmentation Granularity, error="+str(error))
                     break
                 seglvl += 1
                 partitions = partition(seglvl, knob_samples)
@@ -43,6 +43,7 @@ def constructRSDG(gt,
                 costrsdg, mvrsdgs, costpath, mvpaths = populate(
                     observed_profile, partitions, model, KDG, False)
                 error = compare(costrsdg, gt, False, model)
+                print(error)
             trainingsize = len(observed_profile.configurations)
         else:
             print("prefix seg lvl:",seglvl)
@@ -157,6 +158,7 @@ def retrieve(partitions, gt, knobs):
         configuration.addConfig(config)
         # filter out the invalid config, invalid if not present in groundTruth
         if not gt.hasEntry(configuration):
+            print('no such configuration', configuration.printSelf())
             continue
         costval = gt.getCost(configuration)
         mvvals = gt.getMV(configuration)

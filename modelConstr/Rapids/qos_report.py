@@ -3,13 +3,16 @@ import imp, os, sys
 from matplotlib import pyplot as plt
 from collections import OrderedDict
 import plotly.graph_objects as go
-import Classes
+import plotly
+import Rapids_Classes.AppMethods
 import csv, json
 
 MINMAX_FILE = './outputs/app_min_max.json'
 minmax = {}
 apps = ['swaptions', 'facedetect', 'svm', 'nn', 'ferret', 'bodytrack']
 output_file = './qos_report_gen.csv'
+
+plotly.io.orca.config.executable = '/usr/local/bin/orca'
 
 def readMinMaxMV():
     minmax = {}
@@ -30,7 +33,7 @@ def genMinMaxMV():
     app_config = {
         'swaptions': 'num-10000',
         'bodytrack': 'layer-1-particle-100',
-        'ferret': 'hash-2-itr-2-probe-2',
+        'ferret': 'hash-1-itr-20-probe-2',
         'facedetect': 'eyes-0-pyramid-5-selectivity-0',
         'svm':
         ['batch-1-learning-12-regular-45', 'batch-4-learning-89-regular-1'],

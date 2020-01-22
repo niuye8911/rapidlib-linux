@@ -28,18 +28,19 @@ class appMethods(AppMethods):
         self.min_mv = 58.69
         self.max_mv = 100
         self.gt_path = '/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/training_outputs/ferret-gt.txt'
+        self.gt_full_path = '/home/liuliu/Research/rapidlib-linux/modelConstr/Rapids/training_outputs/ferret-gt-full.txt'
         self.run_config = ''
 
     def cleanUpAfterEachRun(self, configs=None):
         # backup the generated output to another location
-        itr = 25
+        itr = 500
         hash = 8
         probe = 20
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "hash":
-                    hash = config.val  # retrieve the setting for each knob
+                    hash = pow(2,config.val)  # retrieve the setting for each knob
                 elif name == "probe":
                     probe = config.val  # retrieve the setting for each knob
                 elif name == "itr":
@@ -75,16 +76,17 @@ class appMethods(AppMethods):
 
     # helper function to assembly the command
     def getCommand(self, configs=None, qosRun=False, fullRun=True):
-        if qosRun and os.path.exists(self.gt_path):
+        if qosRun and os.path.exists(self.gt_full_path):
+            self.gt_path = self.gt_full_path
             return []  # return dummy command
-        itr = 25
+        itr = 500
         hash = 8
         probe = 20
         if configs is not None:
             for config in configs:
                 name = config.knob.set_name
                 if name == "hash":
-                    hash = config.val  # retrieve the setting for each knob
+                    hash = pow(2,config.val)  # retrieve the setting for each knob
                 elif name == "probe":
                     probe = config.val  # retrieve the setting for each knob
                 elif name == "itr":

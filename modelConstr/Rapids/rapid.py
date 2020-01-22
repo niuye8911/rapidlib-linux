@@ -43,8 +43,9 @@ knobs = Knobs()
 knob_samples = {}
 
 # Training Options
+GRANULARITY = 10.0
 PLOT = False
-NUM_OF_FIXED_ENV = 6  # -1:random environment N:N fixed environments
+NUM_OF_FIXED_ENV = 30  # -1:random environment N:N fixed environments
 targetMax = 0.1
 targetMean = 0.05
 THRESHOLD = 0.05
@@ -88,7 +89,7 @@ def main(argv):
         module = imp.load_source("", methods_path)
         appMethod = module.appMethods("", obj_path)
 
-        knobs, groundTruth_profile, knob_samples = genTrainingSet(appInfo.DESC)
+        knobs, groundTruth_profile, knob_samples = genTrainingSet(appInfo.DESC, GRANULARITY)
         xml = xmlgen.genxml(appInfo.APP_NAME, "", "", True, appInfo.DESC, True)
         factfile, mvfactfile = genFactWithRSDG(appname, groundTruth_profile,
                                                cost_rsdg, mv_rsdgs, appMethod,
@@ -128,7 +129,7 @@ def main(argv):
         appMethod = module.appMethods("", obj_path)
 
         appname, knobs, groundTruth_profile, knob_samples = genTrainingSet(
-            desc)
+            desc, GRANULARITY)
         appname = appname[:-1]
         xml = xmlgen.genxml(appname, "", "", True, desc, True)
         max_cost = appMethod.max_cost
@@ -198,7 +199,7 @@ def main(argv):
         # generate initial training set
 
         knobs, groundTruth_profile, knob_samples, bb_profile = genTrainingSet(
-            appInfo.DESC)
+            appInfo.DESC, GRANULARITY)
         fulltraining_size = len(groundTruth_profile.configurations)
         bb_size = len(bb_profile.configurations)
         # generate the structural RSDG files (XML)
@@ -263,11 +264,11 @@ def main(argv):
                 subprofile, partitions, model, KDG=False, RS=True)
             rss_size = len(rs)
             rss_bb_size = len(rs_bb)
-            with open(appname + ".rs", 'w') as result:
+            with open("./outputs/" + appname + '/'+appname + ".rs", 'w') as result:
                 for config in rs:
                     result.write(config.printSelf(",") + "\n")
                 result.write(str(mean))
-            with open(appname + "_bb.rs", 'w') as result:
+            with open("./outputs/" + appname + '/'+appname + "_bb.rs", 'w') as result:
                 for config in rs_bb:
                     result.write(config.printSelf(",") + "\n")
                 result.write(str(mean))
@@ -291,7 +292,7 @@ def main(argv):
         if PLOT:
             draw("outputs/modelValid.csv")
         if not model == "offline":
-            with open('./training_size.txt', 'w') as ts:
+            with open("./outputs/" + appname + '/training_size.txt', 'w') as ts:
                 ts.write("full:" + str(bb_size) + "\n")
                 ts.write("kdg:" + str(fulltraining_size) + "\n")
                 ts.write("rsp:" + str(rsp_size) + "\n")
@@ -319,7 +320,7 @@ def main(argv):
             pass
 
         # write the generated RSDG back to desc file
-        if not model == "offline":
+        if True:
             with open(appInfo.OUTPUT_DIR_PREFIX + appInfo.APP_NAME + "_run.config", 'w') as runFile:
                 run_config = OrderedDict()
                 # for missions
@@ -328,7 +329,7 @@ def main(argv):
                 basic_config['app_name'] = appInfo.APP_NAME
                 basic_config['cost_path'] = os.path.abspath(appInfo.FILE_PATHS['COST_FILE_PATH'])
                 basic_config['mv_path'] = os.path.abspath(appInfo.FILE_PATHS['MV_FILE_PATH'])
-                basic_config['defaultXML'] = os.path.abspath(default_xml_path)
+                basic_config['defaultXML'] = "outputs/"+appInfo.APP_NAME+'-default.xml' if model=="offline" else os.path.abspath(default_xml_path)
                     # some extra
                 run_config['mission']={}
                 mission_config = run_config['mission']
@@ -344,19 +345,19 @@ def main(argv):
                 mission_config['budget'] = 0.0
 
                 # for custom qos
-                run_config['cost_rsdg'] = os.path.abspath(cost_path)
-                run_config['mv_rsdgs'] = list(
+                run_config['cost_rsdg'] = "" if model=="offline" else  os.path.abspath(cost_path)
+                run_config['mv_rsdgs'] = [] if model=="offline" else  list(
                     map(lambda x: os.path.abspath(x), mv_paths[0:-1]))
-                run_config['mv_default_rsdg'] = os.path.abspath(mv_paths[-1])
-                run_config['defaultXML'] = os.path.abspath(default_xml_path)
+                run_config['mv_default_rsdg'] = [] if model=="offline" else os.path.abspath(mv_paths[-1])
                 run_config['appMet'] = os.path.abspath(appInfo.METHODS_PATH)
                 run_config['rapidScript'] = os.path.abspath('./rapid.py')
-                run_config['seglvl'] = seglvl
+                run_config['seglvl'] = 0 if model=="offline" else  seglvl
                 run_config['desc'] = os.path.abspath(appInfo.DESC)
-                run_config['preferences'] = list(
+                run_config['preferences'] = [] if model=="offline" else list(
                     map(lambda x: 1.0, mv_paths[0:-1]))
                 json.dump(run_config, runFile, indent=2)
                 runFile.close()
+
 
         if (stage == 4):
             return
@@ -365,6 +366,8 @@ def main(argv):
         appMethods = module.appMethods(appInfo.APP_NAME, appInfo.OBJ_PATH)
         # update the min/max value
         updateAppMinMax(appInfo, appMethods)
+        # set the run config
+        appMethods.setRunConfigFile(appInfo.OUTPUT_DIR_PREFIX + appInfo.APP_NAME + "_run.config")
 
         if appInfo.TRAINING_CFG['qosRun']:
             if model == 'offline':

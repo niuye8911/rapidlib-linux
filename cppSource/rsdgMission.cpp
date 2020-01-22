@@ -729,7 +729,11 @@ void rsdgMission::reconfig() {
   if (startTime == -1 || update_by_budget || rapidm) {
     // first time or need to reconfig
     if (offline_search || power_saving_mode) {
-      cout<<"using power saving mode"<<endl;
+      if (offline_search){
+        cout<<"using offline search mode"<<endl;
+      }else{
+        cout<<"using power saving mode"<<endl;
+      }
       // offline reconfig
       consultServer();
     } else {

@@ -1,15 +1,16 @@
 import itertools
+import numpy as np
 from Rapids_Classes.KDG import *
 from Rapids_Classes.Profile import Profile
 
 
 # stage_1 generate valid training set from constraints
-def genTrainingSet(cfg_file):
+def genTrainingSet(cfg_file, granularity=10):
     config_file = open(cfg_file, 'r')  # input file
     # parsing the file
     knobs, and_constriants, or_constraints = processFile(config_file)
     # generate the training
-    all_training, knob_samples = genAllTraining(knobs)
+    all_training, knob_samples = genAllTraining(knobs, granularity)
     # flat the all_training
     flatted = flatAll(all_training)
     # filter out the invalid configs
@@ -96,28 +97,32 @@ def flatAll(listOfTuples):
 # return:
 # product - a cross product containing bunch of Configurations
 # knob_samples - a disctionary contains all sampled configs
-def genAllTraining(knobs):
+def genAllTraining(knobs, granularity):
     final_sets = set()
     knob_samples = {}
     for knob in knobs:
         single_set = []
         name = knob.set_name
-        min = int(knob.min)
-        max = int(knob.max)
-        step = (max - min) / 9.0
-        if step < 1:
-            step = 1
+        v_min = int(knob.min)
+        v_max = int(knob.max)
+        # if less than 'granularity', select all
+        knob_vs = np.linspace(v_min,v_max,num=min(granularity,(v_max-v_min+1)))
+        #step = (max - min) / (granularity-1.0)
+        #if step < 1:
+        #    step = 1
         # print "step size for "+name + "is " + str(step)
-        knob_samples[name] = []
-        i = min
-        single_set.append(Config(knob, int(i)))
-        knob_samples[name].append(int(i))
-        while i < max:
-            i = i + step
-            if i + step > max:
-                i = max
-            single_set.append(Config(knob, int(i)))
-            knob_samples[name].append(int(i))
+        #knob_samples[name] = []
+        #i = min
+        #single_set.append(Config(knob, int(i)))
+        #knob_samples[name].append(int(i))
+        # while i < max:
+        #     i = i + step
+        #     if i + step > max:
+        #         i = max
+        #     single_set.append(Config(knob, int(i)))
+        #     knob_samples[name].append(int(i))
+        knob_samples[name]=list(map(lambda x: int(x),knob_vs))
+        single_set = list(map(lambda x: Config(knob,int(x)),knob_vs))
         frozen_single = frozenset(single_set)
         final_sets.add(frozen_single)
     product = crossproduct(final_sets)
