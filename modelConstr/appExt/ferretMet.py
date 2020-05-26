@@ -86,7 +86,7 @@ class appMethods(AppMethods):
             for config in configs:
                 name = config.knob.set_name
                 if name == "hash":
-                    hash = pow(2,config.val)  # retrieve the setting for each knob
+                    hash = pow(2,int(config.val))  # retrieve the setting for each knob
                 elif name == "probe":
                     probe = config.val  # retrieve the setting for each knob
                 elif name == "itr":

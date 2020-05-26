@@ -1,0 +1,13 @@
+{
+  "appName": "facedetect",
+  "appPath": "/home/liuliu/Research/mara_bench/mara_face/facedetect",
+  "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/facedetectMet.py",
+  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/facePort/depfileface",
+  "withQoS": 0,
+  "RS": 0,
+  "qosRun": 0,
+  "overheadRun": 0,
+  "withSys": 1,
+  "withPerf": 1,
+  "withMModel": 1
+}

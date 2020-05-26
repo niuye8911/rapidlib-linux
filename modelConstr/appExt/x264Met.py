@@ -19,7 +19,7 @@ class appMethods(AppMethods):
         :param name:
         """
         AppMethods.__init__(self, name, obj_path)
-        self.training_units = 100
+        self.training_units = 200
         self.fullrun_units = 512
         self.max_cost = 0
         self.min_cost = 0
@@ -91,7 +91,7 @@ class appMethods(AppMethods):
             input_size = os.path.getsize(self.input_path) / 1000.0
             if self.training:
                 input_size = input_size * self.training_units / self.fullrun_units
-            compress_rate =  1.0 - output_size / input_size
+            compress_rate = 1.0 - output_size / input_size
             for line in result:
                 col = line.split(':')
                 if 'SSIM' in col[0]:
@@ -100,9 +100,11 @@ class appMethods(AppMethods):
                     psnr = float(col[1])
             max_ssim = 1.0
             min_ssim = 0.5
-            max_compress = 1-1.0/150.0
+            max_compress = 1 - 1.0 / 150.0
             min_compress = 0.0
-            overall_qos = 0.5*(ssim - min_ssim)/(max_ssim-min_ssim) + 0.5*(compress_rate-min_compress) / (max_compress-min_compress)
+            overall_qos = 0.5 * (ssim - min_ssim) / (
+                max_ssim - min_ssim) + 0.5 * (compress_rate - min_compress) / (
+                    max_compress - min_compress)
         except:
             return [0.0, 0.0, 0.0, 0.0]
         return [ssim, psnr, compress_rate, psnr]

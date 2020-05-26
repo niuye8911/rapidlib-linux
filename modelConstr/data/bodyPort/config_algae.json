@@ -1,0 +1,13 @@
+{
+  "appName": "bodytrack",
+  "appPath": "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/bodytrack/obj/amd64-linux.gcc-serial/TrackingBenchmark/bodytrack",
+  "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/bodytrackMet.py",
+  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/bodyPort/depfilebodytrack",
+  "withQoS": 0,
+  "RS": 0,
+  "qosRun": 1,
+  "overheadRun": 0,
+  "withSys": 0,
+  "withPerf": 0,
+  "withMModel": 0
+}

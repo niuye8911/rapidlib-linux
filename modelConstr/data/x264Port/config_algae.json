@@ -1,0 +1,13 @@
+{
+"appName":"x264",
+"appPath":"/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/x264/inst/amd64-linux.gcc-serial/bin/x264",
+"appMet":"/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/x264Met.py",
+"appDep":"/home/liuliu/Research/rapidlib-linux/modelConstr/data/x264Port/depfilex264",
+  "withQoS": 1,
+  "RS": 0,
+  "qosRun": 0,
+  "overheadRun":0,
+  "withSys": 1,
+  "withPerf": 1,
+  "withMModel":1
+}

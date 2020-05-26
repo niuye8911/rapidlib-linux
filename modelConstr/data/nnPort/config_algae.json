@@ -1,13 +1,13 @@
 {
-"appName":"nn",
-"appPath":"/home/liuliu/Research/mara_bench/mara_learn/nn",
-"appMet":"/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/nnMet.py",
-"appDep":"/home/liuliu/Research/rapidlib-linux/modelConstr/data/nnPort/depfilenn",
-  "withQoS": 1,
-  "RS": 0,
-  "qosRun": 0,
-  "overheadRun":1,
+  "appName": "nn",
+  "appPath": "/home/liuliu/Research/mara_bench/mara_learn/nn",
+  "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/nnMet.py",
+  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/nnPort/depfilenn",
+  "withQoS": 0,
+  "RS": 1,
+  "qosRun": 1,
+  "overheadRun": 0,
   "withSys": 0,
   "withPerf": 0,
-  "withMModel":0
+  "withMModel":0 
 }

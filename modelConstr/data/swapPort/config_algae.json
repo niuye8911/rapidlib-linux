@@ -1,13 +1,13 @@
 {
-"appName":"swaptions",
-"appPath":"/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/swaptions/src/swaptions",
-"appMet":"/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/swaptionsMet.py",
-"appDep":"/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort/depfileswaptions",
-  "withQoS": 1,
-  "RS": 0,
-  "qosRun": 0,
-  "withSys": 1,
-  "withPerf": 1,
-  "withMModel":1,
-  "overheadRun":0
+  "appName": "swaptions",
+  "appPath": "/home/liuliu/Research/mara_bench/parsec_rapid/pkgs/apps/swaptions/src/swaptions",
+  "appMet": "/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/swaptionsMet.py",
+  "appDep": "/home/liuliu/Research/rapidlib-linux/modelConstr/data/swapPort/depfileswaptions",
+  "withQoS": 0,
+  "RS": 1,
+  "qosRun": 1,
+  "withSys": 0,
+  "withPerf": 0,
+  "withMModel": 0,
+  "overheadRun": 0
 }

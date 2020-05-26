@@ -1,0 +1,12 @@
+{
+"appName":"nav",
+"appPath":".",
+"appMet":"/home/liuliu/Research/rapidlib-linux/modelConstr/appExt/navMet.py",
+"appDep":"/home/liuliu/Research/rapidlib-linux/modelConstr/data/navPort/depfilenav",
+  "withQoS": 1,
+  "RS": 1,
+  "qosRun": 0,
+  "withSys": 0,
+  "withPerf": 0,
+  "withMModel":0
+}
