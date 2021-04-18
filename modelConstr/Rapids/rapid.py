@@ -213,6 +213,8 @@ def main(argv):
         # load user-supplied methods
         time_record = genFact(appInfo, groundTruth_profile, bb_profile,
                               NUM_OF_FIXED_ENV)
+        print("here")
+        exit(1)
         # ######################STAGE-3########################
         # third stage: Modeling, use the specific modeling method to construct
         # the RSDG

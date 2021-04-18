@@ -82,15 +82,15 @@ def readDesc(desc_file):
             line = line.strip()
             col = line.split(' ')
             if section == 0:  # continuous knobs
-                knob_name = col[0]
-                setting_name = knob_name
+                setting_name = col[0]
+                knob_name = setting_name + "Num"
                 regex = re.compile('[0-9]+')
                 setting_min, setting_max = regex.findall(col[1])
                 ktype = col[2]
                 knobs.add(Knob(knob_name, setting_name, setting_min, setting_max))
             elif section == 1:  # discrete knobs
-                knob_name = col[0]
-                setting_name = knob_name
+                setting_name = col[0]
+                knob_name = setting_name + "Num"
                 regex = re.compile('[0-9]+')
                 vals = regex.findall(col[1])
                 ktype = col[2]
