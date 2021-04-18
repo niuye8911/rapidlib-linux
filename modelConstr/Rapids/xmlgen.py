@@ -1,5 +1,5 @@
 from xml.dom import minidom
-
+from Parsing_Util.readFact import readDesc
 from lxml import etree
 
 
@@ -98,7 +98,7 @@ def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
     "RAPID-C / STAGE-1.2 : generating... structural RSDG xml"
     rsdg_map, relationmap = readcontrsdg(rsdgfile)
     rsdgmv_map, relationmvmap = readcontrsdg(rsdgmvfile)
-    and_list, or_list, range_map = readcontdep(depfile)
+    and_list, or_list, range_map = readcontdepfile(depfile)
 
     # write the root:resource
     xml = etree.Element("resource")
@@ -111,8 +111,8 @@ def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
             layer = etree.SubElement(servicefield, "servicelayer")
             node = etree.SubElement(layer, "basicnode")
             etree.SubElement(node, "nodename").text = node_name
-            etree.SubElement(node, "contmin").text = node_range[0]
-            etree.SubElement(node, "contmax").text = node_range[1]
+            etree.SubElement(node, "contmin").text = str(node_range[0])
+            etree.SubElement(node, "contmax").text = str(node_range[1])
 
     # create all contcost
     if rsdg_map is not None:
@@ -176,11 +176,11 @@ def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
             if not nodename == and_edge.sink:
                 continue
             contand = etree.SubElement(node, "contand")
-            etree.SubElement(contand, "ifrangemin").text = and_edge.sinkmin
-            etree.SubElement(contand, "ifrangemax").text = and_edge.sinkmax
+            etree.SubElement(contand, "ifrangemin").text = str(and_edge.sinkmin)
+            etree.SubElement(contand, "ifrangemax").text = str(and_edge.sinkmax)
             etree.SubElement(contand, "name").text = and_edge.source
-            etree.SubElement(contand, "thenrangemin").text = and_edge.sourcemin
-            etree.SubElement(contand, "thenrangemax").text = and_edge.sourcemax
+            etree.SubElement(contand, "thenrangemin").text = str(and_edge.sourcemin)
+            etree.SubElement(contand, "thenrangemax").text = str(and_edge.sourcemax)
 
     for or_edge in or_list:
         for services in xml.findall("service"):
@@ -189,11 +189,11 @@ def genxml(appname, rsdgfile, rsdgmvfile, cont, depfile, finalized=False):
             if not nodename == and_edge.sink:
                 continue
             contand = etree.SubElement(node, "contor")
-            etree.SubElement(contand, "ifrangemin").text = and_edge.sinkmin
-            etree.SubElement(contand, "ifrangemax").text = and_edge.sinkmax
-            etree.SubElement(contand, "name").text = and_edge.source
-            etree.SubElement(contand, "thenrangemin").text = and_edge.sourcemin
-            etree.SubElement(contand, "thenrangemax").text = and_edge.sourcemax
+            etree.SubElement(contand, "ifrangemin").text = str(and_edge.sinkmin)
+            etree.SubElement(contand, "ifrangemax").text = str(and_edge.sinkmax)
+            etree.SubElement(contand, "name").text = str(and_edge.source)
+            etree.SubElement(contand, "thenrangemin").text = str(and_edge.sourcemin)
+            etree.SubElement(contand, "thenrangemax").text = str(and_edge.sourcemax)
     writeXML(appname, xml, finalized)
     return xml
 
@@ -208,6 +208,25 @@ def writeXML(appname, xml, finalized):
     outputfile.write(xmlfile)
     outputfile.close()
     return "./outputs/" + name
+
+
+def readcontdepfile(depfile):
+    knobs, and_constriants, or_constraints = readDesc(depfile)
+    and_list = []
+    or_list = []
+    range_map = {}
+    for knob in knobs:
+        range_map[knob.svc_name] = {}
+        range_map[knob.svc_name][knob.set_name] = [0.0] * 2
+        range_map[knob.svc_name][knob.set_name][0] = knob.min
+        range_map[knob.svc_name][knob.set_name][1] = knob.max
+    for andc in and_constriants:
+        and_list.append(RangeClass(andc.sink, andc.sink_min, andc.sink_max, andc.source, andc.source_min,
+                                   andc.source_max))
+    for orc in and_constriants:
+        or_list.append(RangeClass(orc.sink, orc.sink_min, orc.sink_max, orc.source, orc.source_min,
+                                  orc.source_max))
+    return and_list, or_list, range_map
 
 
 def readcontdep(depfile):
