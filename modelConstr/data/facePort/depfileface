@@ -1,4 +1,6 @@
-facedetect
-pyramidNum pyramid 5 25
-selectivityNum selectivity 0 2
-eyesNum eyes 0 2
+<Continuous Knobs>:
+pyramid [5,25] INT;
+selectivity [0,2] INT;
+eyes [0,2] INT;
+<Sub-Metrics>:
+Precision, Recall;

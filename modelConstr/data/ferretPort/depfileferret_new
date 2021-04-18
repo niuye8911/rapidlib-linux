@@ -9,4 +9,4 @@ OR: itr [30,100] <- hash {4}, hash {8};
 AND: hash {4} <- probe [10-20];
 AND: hash {2} <- probe [20-20];
 <Sub-Metrics>:
-Coverage, Ranking;:q
+Coverage, Ranking;

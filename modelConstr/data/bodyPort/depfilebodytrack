@@ -1,5 +1,6 @@
-bodytrack
-particleNum particle 100 4000
-layerNum layer 1 5
-and layer particle 1 1 3000 4000
-and layer particle 2 3 2000 4000
+<Continuous Knobs>:
+particle [100,4000] INT;
+layer [1,5] INT;
+<Dependencies>:
+AND: layer [1,1] <- particle [3000-4000];
+AND: layer [2,3] <- particle [2000-4000];
