@@ -1,0 +1,12 @@
+<Continuous Knobs>:
+itr [10,500] INT; 
+probe [2,20] INT;
+<Discrete Knobs>:
+hash {2,4,8} INT; 
+<Dependencies>:
+AND: itr [10,30] <- hash {8};
+OR: itr [30,100] <- hash {4}, hash {8}; 
+AND: hash {4} <- probe [10-20];
+AND: hash {2} <- probe [20-20];
+<Sub-Metrics>:
+Coverage, Ranking;:q

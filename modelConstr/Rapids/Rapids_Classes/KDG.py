@@ -16,6 +16,15 @@ class Knob:
         self.set_name = set_name
         self.min = int(min)
         self.max = int(max)
+        self.isContinuous = True
+        self.vals = None
+
+    def setValues(self, vals):
+        """ Trasform to a knob with vals (discrete)"""
+        self.isContinuous = False
+        self.vals = [int(val) for val in vals]
+        self.min = min(self.vals)
+        self.max = max(self.vals)
 
 
 class Knobs:
@@ -108,6 +117,7 @@ class Configuration:
         #    result += " " + config.knob.set_name + " " + str(config.val)
         # return result
 
+
 class Constraint:
     """ a continuous constraint with source and sink
     The syntax of a constraint is:
@@ -132,6 +142,7 @@ class Constraint:
         self.source_max = int(source_max)
         self.sink_min = int(sink_min)
         self.sink_max = int(sink_max)
+
 
 class Segment:
     """ a segment of a knob

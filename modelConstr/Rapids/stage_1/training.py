@@ -2,13 +2,17 @@ import itertools
 import numpy as np
 from Rapids_Classes.KDG import *
 from Rapids_Classes.Profile import Profile
+from Parsing_Util.readFact import readDesc
 
 
 # stage_1 generate valid training set from constraints
+
+
 def genTrainingSet(cfg_file, granularity=10):
-    config_file = open(cfg_file, 'r')  # input file
+    # config_file = open(cfg_file, 'r')  # input file
     # parsing the file
-    knobs, and_constriants, or_constraints = processFile(config_file)
+    # knobs, and_constriants, or_constraints = processFile(config_file)
+    knobs, and_constriants, or_constraints = readDesc(cfg_file)
     # generate the training
     all_training, knob_samples = genAllTraining(knobs, granularity)
     # flat the all_training
@@ -31,6 +35,7 @@ def genTrainingSet(cfg_file, granularity=10):
     outfile = open('./outputs/trainingset', 'w')  # output file
     beautifyAndWriteOut(flatted_all_training, outfile)
     outfile.close()
+    exit(1)
     # prepare a Knobs
     knobs_class = Knobs()
     for k in knobs:
@@ -50,8 +55,6 @@ def processFile(cfg_file):
             setting = col[1]
             setting_min = col[2]
             setting_max = col[3]
-            print
-            knob_name
             knobs.add(Knob(knob_name, setting, setting_min, setting_max))
         elif len(col) == 7:  # it's a edge
             type = col[0]
@@ -106,7 +109,11 @@ def genAllTraining(knobs, granularity):
         v_min = int(knob.min)
         v_max = int(knob.max)
         # if less than 'granularity', select all
-        knob_vs = np.linspace(v_min,v_max,num=min(granularity,(v_max-v_min+1)))
+        knob_vs = np.linspace(v_min, v_max, num=min(granularity, (v_max - v_min + 1)))
+        if knob.vals is not None:
+            # discrete knob
+            knob_ids = np.linspace(0, len(knob.vals) - 1, num=min(granularity, (len(knob.vals))))
+            knob_vs = [knob.vals[int(id)] for id in knob_ids]
         #step = (max - min) / (granularity-1.0)
         #if step < 1:
         #    step = 1
